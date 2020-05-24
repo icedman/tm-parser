@@ -27,7 +27,6 @@ Json::Value loadJson(std::string filename) {
   }
 
   // std::cout << root << std::endl;
-
   return root;
 }
 
@@ -36,8 +35,12 @@ grammar_t::grammar_t(Json::Value const &json) {
   _rule = add_grammar(scopeName, json);
 
   Json::Value parsed = rule_to_json(_rule);
-  std::cout << parsed << std::endl;
+  // std::cout << parsed << std::endl;
+
+  doc = parsed;
 }
+
+grammar_t::~grammar_t() {}
 
 static bool pattern_has_back_reference(std::string const &ptrn) {
   bool escape = false;
@@ -174,6 +177,28 @@ void grammar_t::setup_includes(rule_ptr const &rule, rule_ptr const &base,
   }
 }
 
+std::vector<std::pair<scope::selector_t, rule_ptr>>
+grammar_t::injection_grammars() {
+  std::vector<std::pair<scope::selector_t, rule_ptr>> res;
+  // TODO find grammar in directory
+  // for(auto item : bundles::query(bundles::kFieldAny, NULL_STR,
+  // scope::wildcard, bundles::kItemTypeGrammar))
+  // {
+  //   std::string injectionSelector =
+  //   item->value_for_field(bundles::kFieldGrammarInjectionSelector);
+  //   if(injectionSelector != NULL_STR)
+  //   {
+  //     if(rule_ptr grammar = convert_plist(item->plist()))
+  //     {
+  //       setup_includes(grammar, grammar, grammar,
+  //       rule_stack_t(grammar.get())); compile_patterns(grammar.get());
+  //       res.emplace_back(injectionSelector, grammar);
+  //     }
+  //   }
+  // }
+  return res;
+}
+
 rule_ptr grammar_t::find_grammar(std::string const &scope,
                                  rule_ptr const &base) {
   auto it = _grammars.find(scope);
@@ -200,11 +225,11 @@ rule_ptr grammar_t::add_grammar(std::string const &scope,
   return grammar;
 }
 
-stack_ptr grammar_t::seed () const
-{
-  return std::make_shared<stack_t>(_rule.get(), _rule ? _rule->scope_string : "");
+stack_ptr grammar_t::seed() const {
+  return std::make_shared<stack_t>(_rule.get(),
+                                   _rule ? _rule->scope_string : "");
 }
-  
+
 grammar_ptr parse_grammar(Json::Value const &json) {
   return std::make_shared<grammar_t>(json);
 }

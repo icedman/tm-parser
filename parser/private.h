@@ -50,7 +50,7 @@ struct rule_t {
   repository_ptr end_captures;
   repository_ptr repository;
   repository_ptr injection_rules;
-  // std::vector<std::pair<scope::selector_st, rule_ptr>> injections;
+  std::vector<std::pair<scope::selector_t, rule_ptr>> injections;
 
   // =======================
   // = Pre-parsed versions =
@@ -83,7 +83,7 @@ struct stack_t {
 
   stack_ptr parent;
 
-  rule_t *rule; // the rule supplying patterns for current context
+  rule_t *rule;         // the rule supplying patterns for current context
   scope::scope_t scope; // the scope of the current context
 
   std::string scope_string = NULL_STR; // expanded version of rule->scope_string

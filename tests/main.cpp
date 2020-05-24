@@ -1,8 +1,8 @@
+#include <cstring>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <cstring>
-#include <fstream>
 
 #include "grammar.h"
 #include "parse.h"
@@ -30,10 +30,19 @@ void read_and_parse_a_grammar(const char *grammar, const char *out) {
 }
 
 void test_read_and_parse() {
-  const char *grammars[] = {
-      "hello.json", "json.json", "c.json", "html.json", "javascript.json", "coffee-script.json"
-      // "php.json",
-      "sql.json", "text.json", "ruby.json", "scss.json", "c-plus-plus.json", 0};
+  const char *grammars[] = {"hello.json",
+                            "json.json",
+                            "c.json",
+                            "html.json",
+                            "javascript.json",
+                            "coffee-script.json"
+                            // "php.json",
+                            "sql.json",
+                            "text.json",
+                            "ruby.json",
+                            "scss.json",
+                            "c-plus-plus.json",
+                            0};
 
   for (int i = 0;; i++) {
     if (grammars[i] == 0) {
@@ -48,10 +57,11 @@ void test_read_and_parse() {
 void test_hello() {
   grammar_ptr gm;
   gm = load("test-cases/first-mate/fixtures/hello.json");
+  std::cout << gm->document() << std::endl;
   // gm.dump();
 
-// 01234 6789Xab
-// hello world!
+  // 01234 6789Xab
+  // hello world!
 
   const char *first = "hello world!";
   const char *last = first + strlen(first);
@@ -63,14 +73,14 @@ void test_hello() {
 void test_coffee() {
   grammar_ptr gm;
   gm = load("test-cases/suite1/fixtures/coffee-script.json");
-  // gm.dump();
+  std::cout << gm->document() << std::endl;
 
   Json::Value tests = loadJson("test-cases/first-mate/tests.json");
   for (int i = 0; i < (int)tests.size(); i++) {
     Json::Value t = tests[i];
     std::string scopeName = t["grammarScopeName"].asString();
-      // std::cout << scopeName << std::endl;
-      // continue;
+    // std::cout << scopeName << std::endl;
+    // continue;
 
     if (scopeName == "source.c") {
       std::cout << t << std::endl;
@@ -85,29 +95,45 @@ void test_coffee() {
           std::cout << tl << std::endl;
         }
       }
-
     }
+  }
+}
+
+void dump_tokens(std::map<size_t, scope::scope_t> &scopes) {
+  std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
+  while(it != scopes.end()) {
+    size_t n = it->first;
+    scope::scope_t scope = it->second;
+    std::cout << n << ": " << scope.name << std::endl;
+    it++;
   }
 }
 
 void test_c() {
   grammar_ptr gm;
   gm = load("test-cases/first-mate/fixtures/c.json");
-  // gm.dump();
+  std::cout << gm->document() << std::endl;
+
+  return;
 
   FILE *fp = fopen("tests/cases/test.c", "r");
+  // FILE *fp = fopen("tests/cases/tinywl.c", "r");
   char str[1024];
-  while(fgets(str, 1000, fp)) {
+  bool firstLine = true;
 
+  parse::stack_ptr parser_state = gm->seed();
+  while (fgets(str, 1000, fp)) {
 
-  const char *first = str;
-  const char *last = first + strlen(first);
-
-  std::map<size_t, scope::scope_t> scopes;
-  stack_ptr stack = parse::parse(first, last, gm->seed(), scopes, true);
+    const char *first = str;
+    const char *last = first + strlen(first);
 
     std::cout << str << std::endl;
-    // gm.tokenizeLine(str, false);
+
+    std::map<size_t, scope::scope_t> scopes;
+    // stack_ptr stack 
+    parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
+    dump_tokens(scopes);
+    firstLine = false;
   }
 
   fclose(fp);

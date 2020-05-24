@@ -90,7 +90,6 @@ rule_ptr convert_json(Json::Value const &json) {
       continue;
     }
 
-    std::cout << "create captures" << std::endl;
     *map_dictionary[i].repository = std::make_shared<repository_t>();
     convert_dictionary(json[map_dictionary[i].name],
                        *map_dictionary[i].repository);
@@ -129,6 +128,8 @@ static bool dictionary_to_json(Json::Value &target, repository_ptr &res) {
 
 Json::Value rule_to_json(rule_ptr const &res) {
   Json::Value json;
+
+  json["_id"] = res->rule_id;
 
   struct {
     const char *name;
