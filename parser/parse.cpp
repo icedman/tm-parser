@@ -45,62 +45,76 @@ struct scopes_t {
     }
   }
 
-  scope::scope_t update(scope::scope_t scope,
+
+  scope::scope_t update (scope::scope_t scope, std::map<size_t, scope::scope_t>& out) const
+    {
+      // D(DBF_Parser, bug("%s\n", to_s(scope).c_str()););
+
+      size_t pos = 0;
+
+      for(auto const& pair : map)
+      {
+        // D(DBF_Parser, bug("%3zu: %c%s\n", pair.first, pair.second.add ? '+' : '-', pair.second.scope.c_str()););
+        if(pos != pair.first)
+        {
+          out.emplace(pos, scope);
+          pos = pair.first;
+        }
+
+        if(pair.second.add)
+        {
+          scope.push_scope(pair.second.scope);
+        }
+        else
+        {
+          if(scope.back() == pair.second.scope)
+          {
+            scope.pop_scope();
+          }
+          else
+          {
+            std::vector<std::string> stack;
+            while(scope.back() != pair.second.scope)
+            {
+              // D(DBF_Parser, bug("%s != %s\n", scope.back().c_str(), pair.second.scope.c_str()););
+              stack.emplace_back(scope.back());
+              scope.pop_scope();
+            }
+            scope.pop_scope();
+            for(auto it = stack.rbegin(); it != stack.rend(); ++it)
+              scope.push_scope(*it);
+          }
+        }
+        // D(DBF_Parser, bug("→ %s\n", to_s(scope).c_str()););
+      }
+
+      out.emplace(pos, scope);
+      return scope;
+    }
+
+  scope::scope_t _update(scope::scope_t scope,
                         std::map<size_t, scope::scope_t> &out) const {
     // // D(DBF_Parser, bug("%s\n", to_s(scope).c_str()););
+    // std::cout << "-----" << scope << std::endl;
 
-#if 0
-    std::cout << "-----" << scope.name << std::endl;
+    std::cout << "here!" << std::endl;
+
     for (auto const &pair : map) {
       int i = pair.first;
       scope::scope_t s = pair.second.scope;
-      if (pair.second.add) {
-        if (!out.count(i)) {
-          out.emplace(i, s);
-        } else {
-          out[i].name += " " + s.name;
-        }
+      // if (pair.second.add) {
+      //   if (!out.count(i)) {
+      //     out.emplace(i, s);
+      //   } else {
+      //     out[i].name += " " + s.name;
+      //   }
         // std::cout << i << ": " << out[i].name << std::endl;
-      } else {
+      // } else {
         // out[i] = scope::scope_t("");
-        // std::cout << i << ";" << std::endl;
-      }
+        std::cout << i << ";" << std::endl;
+      // }
     }
 
-    return scope;
-#endif
-
-    size_t pos = 0;
-    for (auto const &pair : map) {
-      // D(DBF_Parser, bug("%3zu: %c%s\n", pair.first, pair.second.add ? '+' :
-      // '-', pair.second.scope.c_str()););
-      if (pos != pair.first) {
-        out.emplace(pos, scope);
-        pos = pair.first;
-      }
-
-      if (pair.second.add) {
-        scope.push_scope(pair.second.scope);
-      } else {
-        if (scope.back() == pair.second.scope) {
-          scope.pop_scope();
-        } else {
-          std::vector<std::string> stack;
-          while (scope.back() != pair.second.scope) {
-            // D(DBF_Parser, bug("%s != %s\n", scope.back().c_str(),
-            // pair.second.scope.c_str()););
-            stack.emplace_back(scope.back());
-            scope.pop_scope();
-          }
-          scope.pop_scope();
-          for (auto it = stack.rbegin(); it != stack.rend(); ++it)
-            scope.push_scope(*it);
-        }
-      }
-      // D(DBF_Parser, bug("→ %s\n", to_s(scope).c_str()););
-    }
-
-    out.emplace(pos, scope);
     return scope;
   }
 

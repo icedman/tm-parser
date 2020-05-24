@@ -4,9 +4,37 @@
 
 #include <algorithm>
 #include <cstring>
+#include <string>
+#include <iostream>
 
 namespace scope {
 scope_t wildcard("x-any");
+
+std::vector<std::string> text_tokenize(std::string string, char separator) {
+  std::vector<std::string> res;
+
+  const char *start = string.c_str();
+  const char *end = start + string.length();
+
+  std::string str;
+  while(start != end) {
+    char c = *start;
+    if (c == separator) {
+      res.push_back(str);
+      str = "";
+      start++;
+      continue;
+    }
+    str += c;
+    start++;
+  }
+
+  if (str.length()) {
+    res.push_back(str);
+  }
+
+  return res;
+}
 
 // ===================
 // = scope_t::node_t =
@@ -81,10 +109,11 @@ scope_t &scope_t::operator=(scope_t const &rhs) {
 
 void scope_t::setup(std::string const &scope) {
   // for(auto str : text_tokenize(scope.begin(), scope.end(), ' '))
-  // {
-  //     if(!str.empty())
-  //         push_scope(str);
-  // }
+  for(auto str : text_tokenize(scope, ' '))
+  {
+      if(!str.empty())
+          push_scope(str);
+  }
 }
 
 bool scope_t::has_prefix(scope_t const &rhs) const {

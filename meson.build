@@ -35,7 +35,9 @@ onigmo_dep = declare_dependency(
 
 parser_inc = include_directories(['parser'])
 scopes_inc = include_directories(['scopes'])
+theme_inc = include_directories(['theme'])
 
 subdir('scopes')
 subdir('parser')
+subdir('theme')
 subdir('tests')

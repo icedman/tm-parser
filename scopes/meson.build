@@ -2,7 +2,7 @@ scopes_files = [
     'scope.cpp',
     'types.cpp',
     'parse.cpp',
-    'main.cpp'
+    'match.cpp'
 ]
 
 scopes_lib = library(
@@ -13,7 +13,6 @@ scopes_lib = library(
 
 scopes = executable(
     'scopes',
-    'match.cpp',
     scopes_files,
     'main.cpp',
     dependencies: [ jsoncpp_dep, onigmo_dep ]
