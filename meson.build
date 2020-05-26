@@ -19,7 +19,6 @@ add_project_arguments(
     language: ['cpp']
 )
 
-
 jsoncpp_proj = subproject('jsoncpp')
 jsoncpp_dep = jsoncpp_proj.get_variable('jsoncpp_dep')
 

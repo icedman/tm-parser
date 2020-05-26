@@ -12,3 +12,5 @@ config-debug
 subprojects/wlroots
 tmp
 subprojects
+
+moc_*

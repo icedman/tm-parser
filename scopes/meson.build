@@ -5,8 +5,8 @@ scopes_files = [
     'match.cpp'
 ]
 
-scopes_lib = library(
-    'scopes_lib',
+scopes_lib = static_library(
+    'scopes',
     scopes_files,
     dependencies: [ jsoncpp_dep, onigmo_dep ]
     )

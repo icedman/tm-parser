@@ -3,8 +3,8 @@ theme_files = [
     'util.cpp'
 ]
 
-theme_lib = library(
-    'theme_lib',
+theme_lib = static_library(
+    'theme',
     theme_files,
     include_directories : [ onigmo_inc, theme_inc, scopes_inc, parser_inc ],
     dependencies: [ jsoncpp_dep, onigmo_dep, scopes_dep, parser_dep ]

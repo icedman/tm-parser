@@ -5,8 +5,8 @@ parser_files = [
     'parse.cpp'
 ]
 
-parser_lib = library(
-    'parser_lib',
+parser_lib = static_library(
+    'parser',
     parser_files,
     dependencies: [ jsoncpp_dep, onigmo_dep, scopes_dep ]
     )
