@@ -6,6 +6,7 @@
 
 #include "grammar.h"
 #include "parse.h"
+#include "reader.h"
 
 using namespace parse;
 
@@ -101,7 +102,7 @@ void test_coffee() {
 
 void dump_tokens(std::map<size_t, scope::scope_t> &scopes) {
   std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
-  while(it != scopes.end()) {
+  while (it != scopes.end()) {
     size_t n = it->first;
     scope::scope_t scope = it->second;
     std::cout << n << ":" << scope.back().c_str() << std::endl;
@@ -131,7 +132,7 @@ void test_c() {
     std::map<size_t, scope::scope_t> scopes;
     scopes.emplace(0, source);
 
-    // stack_ptr stack 
+    // stack_ptr stack
     parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
     dump_tokens(scopes);
     firstLine = false;
@@ -145,5 +146,6 @@ int main(int argc, char **argv) {
   // test_hello();
   // test_coffee();
   test_c();
+  // test_plist();
   return 0;
 }

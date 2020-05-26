@@ -13,7 +13,8 @@ add_project_arguments(
     [
         '-Wno-unused-parameter',
         '-Wno-pedantic',
-        '-Wno-sign-compare'
+        '-Wno-sign-compare',
+        '-Wno-write-strings'
     ],
     language: ['cpp']
 )
