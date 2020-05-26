@@ -165,7 +165,6 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/features/qt_config.prf \
 		/usr/lib/qt/mkspecs/linux-g++/qmake.conf \
 		/usr/lib/qt/mkspecs/features/spec_post.prf \
-		.qmake.stash \
 		/usr/lib/qt/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/qt/mkspecs/features/toolchain.prf \
 		/usr/lib/qt/mkspecs/features/default_pre.prf \
@@ -304,7 +303,6 @@ Makefile: editor.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspec
 		/usr/lib/qt/mkspecs/features/qt_config.prf \
 		/usr/lib/qt/mkspecs/linux-g++/qmake.conf \
 		/usr/lib/qt/mkspecs/features/spec_post.prf \
-		.qmake.stash \
 		/usr/lib/qt/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/qt/mkspecs/features/toolchain.prf \
 		/usr/lib/qt/mkspecs/features/default_pre.prf \
@@ -430,7 +428,6 @@ Makefile: editor.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspec
 /usr/lib/qt/mkspecs/features/qt_config.prf:
 /usr/lib/qt/mkspecs/linux-g++/qmake.conf:
 /usr/lib/qt/mkspecs/features/spec_post.prf:
-.qmake.stash:
 /usr/lib/qt/mkspecs/features/exclusive_builds.prf:
 /usr/lib/qt/mkspecs/features/toolchain.prf:
 /usr/lib/qt/mkspecs/features/default_pre.prf:
@@ -520,7 +517,7 @@ moc_highlighter.cpp: highlighter.h \
 		../Onigmo/onigmognu.h \
 		../Onigmo/onigmo.h \
 		../scopes/scope.h \
-		../parser/parse.h \
+		../theme/theme.h \
 		moc_predefs.h \
 		/usr/bin/moc
 	/usr/bin/moc $(DEFINES) --include /home/iceman/Developer/textmate/textmate-parser/editor/moc_predefs.h -I/usr/lib/qt/mkspecs/linux-g++ -I/home/iceman/Developer/textmate/textmate-parser/editor -I/home/iceman/Developer/textmate/textmate-parser/parser -I/home/iceman/Developer/textmate/textmate-parser/scopes -I/home/iceman/Developer/textmate/textmate-parser/theme -I/home/iceman/Developer/textmate/textmate-parser/subprojects/jsoncpp-1.8.4/include -I/home/iceman/Developer/textmate/textmate-parser/Onigmo -I/usr/include/qt -I/usr/include/qt/QtWidgets -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/usr/include/c++/9.3.0 -I/usr/include/c++/9.3.0/x86_64-pc-linux-gnu -I/usr/include/c++/9.3.0/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/9.3.0/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/9.3.0/include-fixed -I/usr/include highlighter.h -o moc_highlighter.cpp
@@ -544,7 +541,7 @@ moc_mainwindow.cpp: mainwindow.h \
 		../Onigmo/onigmognu.h \
 		../Onigmo/onigmo.h \
 		../scopes/scope.h \
-		../parser/parse.h \
+		../theme/theme.h \
 		moc_predefs.h \
 		/usr/bin/moc
 	/usr/bin/moc $(DEFINES) --include /home/iceman/Developer/textmate/textmate-parser/editor/moc_predefs.h -I/usr/lib/qt/mkspecs/linux-g++ -I/home/iceman/Developer/textmate/textmate-parser/editor -I/home/iceman/Developer/textmate/textmate-parser/parser -I/home/iceman/Developer/textmate/textmate-parser/scopes -I/home/iceman/Developer/textmate/textmate-parser/theme -I/home/iceman/Developer/textmate/textmate-parser/subprojects/jsoncpp-1.8.4/include -I/home/iceman/Developer/textmate/textmate-parser/Onigmo -I/usr/include/qt -I/usr/include/qt/QtWidgets -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/usr/include/c++/9.3.0 -I/usr/include/c++/9.3.0/x86_64-pc-linux-gnu -I/usr/include/c++/9.3.0/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/9.3.0/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/9.3.0/include-fixed -I/usr/include mainwindow.h -o moc_mainwindow.cpp
@@ -583,7 +580,7 @@ highlighter.o: highlighter.cpp highlighter.h \
 		../Onigmo/onigmognu.h \
 		../Onigmo/onigmo.h \
 		../scopes/scope.h \
-		../parser/parse.h \
+		../theme/theme.h \
 		../parser/reader.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o highlighter.o highlighter.cpp
 
@@ -606,7 +603,7 @@ mainwindow.o: mainwindow.cpp mainwindow.h \
 		../Onigmo/onigmognu.h \
 		../Onigmo/onigmo.h \
 		../scopes/scope.h \
-		../parser/parse.h
+		../theme/theme.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 main.o: main.cpp mainwindow.h \
@@ -628,7 +625,7 @@ main.o: main.cpp mainwindow.h \
 		../Onigmo/onigmognu.h \
 		../Onigmo/onigmo.h \
 		../scopes/scope.h \
-		../parser/parse.h
+		../theme/theme.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 moc_highlighter.o: moc_highlighter.cpp 

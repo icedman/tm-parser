@@ -88,6 +88,7 @@ void theme_t::shared_styles_t::setup_styles(Json::Value const& themeItem)
     for (int i = 0; i < settings.size(); i++) {
         Json::Value item = settings[i];
         Json::Value scope = settings[i]["scope"];
+
         // std::cout << item << std::endl;
 
         if (scope.isString()) {
@@ -170,6 +171,8 @@ style_t theme_t::shared_styles_t::parse_styles(Json::Value const& item,
         return res;
     }
 
+    // std::cout << "parsing styles" << std::endl;
+
     res.scope_selector = scope_selector;
     get_settings_string(settings["fontName"], res.font_name);
     get_settings_float(settings["fontSize"], &res.font_size);
@@ -213,13 +216,18 @@ theme_t::theme_t(Json::Value const& themeItem, std::string const& fontName,
 theme_t::shared_styles_ptr
 theme_t::find_shared_styles(Json::Value const& themeItem)
 {
-    static std::map<std::string, theme_t::shared_styles_ptr> Cache;
+    std::cout << "th" << themeItem["scopeName"].asString() << std::endl;
+    std::cout << "th" << themeItem["scope"].asString() << std::endl;
 
-    std::string const& uuid = themeItem["scopeName"].asString();
-    auto theme = Cache.find(uuid);
-    if (theme == Cache.end())
-        theme = Cache.emplace(uuid, std::make_shared<shared_styles_t>(themeItem)).first;
-    return theme->second;
+    shared_styles_ptr res = std::make_shared<shared_styles_t>(themeItem);
+    return res;
+
+    // static std::map<std::string, theme_t::shared_styles_ptr> Cache;
+    // std::string const& uuid = themeItem["scope"].asString();
+    // auto theme = Cache.find(uuid);
+    // if (theme == Cache.end())
+    //     theme = Cache.emplace(uuid, std::make_shared<shared_styles_t>(themeItem)).first;
+    // return theme->second;
 }
 
 // ==============
@@ -229,7 +237,6 @@ theme_t::find_shared_styles(Json::Value const& themeItem)
 theme_ptr parse_theme(Json::Value& themeItem)
 {
     static std::map<std::string, theme_ptr> Cache;
-
     std::string const& uuid = themeItem["scopeName"].asString();
     auto theme = Cache.find(uuid);
     if (theme == Cache.end())
@@ -245,6 +252,7 @@ style_t const& theme_t::styles_for_scope(scope::scope_t const& scope) const
     // if(styles == _cache.end())
 
     std::multimap<double, style_t> ordering;
+
     for (auto const& it : global_styles(scope)) {
         double rank = 0;
         if (it.scope_selector.does_match(scope, &rank))
@@ -260,6 +268,31 @@ style_t const& theme_t::styles_for_scope(scope::scope_t const& scope) const
     style_t base(scope::selector_t(), _font_name, _font_size);
     for (auto const& it : ordering)
         base += it.second;
+
+    /*
+    std::vector<style_t> gs = global_styles(scope);
+    for(int i=0; i<gs.size(); i++) {
+        style_t st = gs[i];
+        double rank = 0;
+        if (st.scope_selector.does_match(scope, & rank)) {
+            ordering.emplace(rank, st);
+        }
+    }
+
+    std::vector<style_t> ss = _styles->_styles;
+    for(int i=0; i<ss.size(); i++) {
+        style_t st = ss[i];
+        double rank = 0;
+        if (st.scope_selector.does_match(scope, & rank)) {
+            ordering.emplace(rank, st);
+        }
+    }
+
+    style_t base(scope::selector_t(), _font_name, _font_size);
+    for (auto const& it : ordering) {
+        base += it.second;
+    }    
+    */
 
     style_t res(
         base.font_name,

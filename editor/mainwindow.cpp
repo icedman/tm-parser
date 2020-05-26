@@ -106,7 +106,8 @@ void MainWindow::setupEditor()
 
     highlighter = new Highlighter(editor->document());
 
-    QFile file("tinywl.c");
+    QFile file("../tests/cases/tinywl.c");
+    // QFile file("../tests/cases/test.c");
     if (file.open(QFile::ReadOnly | QFile::Text))
         editor->setPlainText(file.readAll());
 }
