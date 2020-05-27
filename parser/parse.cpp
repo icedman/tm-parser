@@ -51,8 +51,6 @@ struct scopes_t {
     scope::scope_t update(scope::scope_t scope,
         std::map<size_t, scope::scope_t>& out) const
     {
-        // D(DBF_Parser, bug("%s\n", to_s(scope).c_str()););
-
         size_t pos = 0;
 
         for (auto const& pair : map) {
@@ -85,33 +83,6 @@ struct scopes_t {
         }
 
         out.emplace(pos, scope);
-        return scope;
-    }
-
-    scope::scope_t _update(scope::scope_t scope,
-        std::map<size_t, scope::scope_t>& out) const
-    {
-        // // D(DBF_Parser, bug("%s\n", to_s(scope).c_str()););
-        // std::cout << "-----" << scope << std::endl;
-
-        std::cout << "here!" << std::endl;
-
-        for (auto const& pair : map) {
-            int i = pair.first;
-            scope::scope_t s = pair.second.scope;
-            // if (pair.second.add) {
-            //   if (!out.count(i)) {
-            //     out.emplace(i, s);
-            //   } else {
-            //     out[i].name += " " + s.name;
-            //   }
-            // std::cout << i << ": " << out[i].name << std::endl;
-            // } else {
-            // out[i] = scope::scope_t("");
-            std::cout << i << ";" << std::endl;
-            // }
-        }
-
         return scope;
     }
 

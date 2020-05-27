@@ -3,6 +3,10 @@
 
 #include <iostream>
 
+/*
+https://code.visualstudio.com/api/references/theme-color
+*/
+
 std::vector<style_t> theme_t::global_styles(scope::scope_t const& scope)
 {
     static struct {
@@ -79,51 +83,11 @@ theme_t::shared_styles_t::shared_styles_t(Json::Value const& themeItem)
 
 theme_t::shared_styles_t::~shared_styles_t() {}
 
-void theme_t::shared_styles_t::setup_styles(Json::Value const& themeItem)
+static bool color_is_dark (color_info_t &color)
 {
-    _styles.clear();
-    // _gutter_styles.clear();
-
-    Json::Value settings = themeItem["settings"];
-    for (int i = 0; i < settings.size(); i++) {
-        Json::Value item = settings[i];
-        Json::Value scope = settings[i]["scope"];
-
-        // std::cout << item << std::endl;
-
-        if (scope.isString()) {
-            _styles.push_back(parse_styles(item, scope.asString()));
-        } else if (scope.isArray()) {
-            for (int j = 0; j < scope.size(); j++) {
-                _styles.push_back(parse_styles(item, scope[j].asString()));
-            }
-        }
-    }
-
-    // if(!_color_space)
-    //     _color_space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-
-    // =======================================
-    // = Find “global” foreground/background =
-    // =======================================
-
-    // We assume that the first style is the unscoped root style
-
-    // _foreground     = (_styles.empty() ? CGColorPtr() :
-    // OakColorCreateFromThemeColor(_styles[0].foreground, _color_space)) ?:
-    // CGColorPtr(CGColorCreate(_color_space, (CGFloat[4]){ 1, 1, 1, 1 }),
-    // CGColorRelease); _background     = (_styles.empty() ? CGColorPtr() :
-    // OakColorCreateFromThemeColor(_styles[0].background, _color_space)) ?:
-    // CGColorPtr(CGColorCreate(_color_space, (CGFloat[4]){ 0, 0, 0, 1 }),
-    // CGColorRelease); _is_dark        = color_is_dark(_background.get());
-    // _is_transparent = CGColorGetAlpha(_background.get()) < 1;
-
-    // =========================
-    // = Default Gutter Styles =
-    // =========================
-
-    // ... omit
+    return 0.30*color.red + 0.59*color.green + 0.11*color.blue < 0.5;
 }
+
 
 static void get_settings_string(Json::Value const& item, std::string& target)
 {
@@ -158,6 +122,50 @@ static void get_settings_color(Json::Value const& item, color_info_t* target)
     target->alpha = rgba[3];
 
     // std::cout<<item.asString()<<std::endl;
+}
+
+void theme_t::shared_styles_t::setup_styles(Json::Value const& themeItem)
+{
+    _styles.clear();
+    // _gutter_styles.clear();
+
+    Json::Value settings;
+    if (themeItem.isMember("settings")) {
+        settings = themeItem["settings"];
+    } else {
+        settings = themeItem["tokenColors"];
+    }
+    for (int i = 0; i < settings.size(); i++) {
+        Json::Value item = settings[i];
+        Json::Value scope = settings[i]["scope"];
+
+        // std::cout << item << std::endl;
+
+        if (scope.isString()) {
+            _styles.push_back(parse_styles(item, scope.asString()));
+        } else if (scope.isArray()) {
+            for (int j = 0; j < scope.size(); j++) {
+                _styles.push_back(parse_styles(item, scope[j].asString()));
+            }
+        }
+    }
+
+    // if(!_color_space)
+    //     _color_space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+
+    // =======================================
+    // = Find “global” foreground/background =
+    // =======================================
+
+    // We assume that the first style is the unscoped root style
+
+    if (!_styles.empty()) {
+        _foreground     = _styles[0].foreground;
+        _background     = _styles[0].background;
+    }
+
+    _is_dark        = color_is_dark(_background);
+    _is_transparent = _background.alpha < 1;
 }
 
 style_t theme_t::shared_styles_t::parse_styles(Json::Value const& item,
@@ -241,6 +249,11 @@ theme_ptr parse_theme(Json::Value& themeItem)
     auto theme = Cache.find(uuid);
     if (theme == Cache.end())
         theme = Cache.emplace(uuid, std::make_shared<theme_t>(themeItem)).first;
+
+    Json::Value colors = themeItem["colors"];
+    get_settings_color(colors["editor.foreground"], &theme->second->editor.foreground);
+    get_settings_color(colors["editor.background"], &theme->second->editor.background);
+
     return theme->second;
 }
 

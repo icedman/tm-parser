@@ -103,6 +103,11 @@ struct theme_t {
     // bool is_transparent () const;
     style_t const& styles_for_scope(scope::scope_t const& scope) const;
 
+    struct {
+        color_info_t foreground;
+        color_info_t background;
+    } editor;
+
 private:
     static std::vector<style_t> global_styles(scope::scope_t const& scope);
 

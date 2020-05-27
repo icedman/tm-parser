@@ -51,6 +51,7 @@
 #include <QtWidgets>
 
 #include "mainwindow.h"
+#include "reader.h"
 
 //! [0]
 MainWindow::MainWindow(QWidget* parent)
@@ -84,7 +85,7 @@ void MainWindow::openFile(const QString& path)
     QString fileName = path;
 
     if (fileName.isNull())
-        fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", "C++ Files (*.cpp *.h)");
+        fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", "C, C++ Files (*.c *.cpp *.h)");
 
     if (!fileName.isEmpty()) {
         QFile file(fileName);
@@ -97,17 +98,41 @@ void MainWindow::openFile(const QString& path)
 void MainWindow::setupEditor()
 {
     QFont font;
-    font.setFamily("Courier");
-    font.setFixedPitch(true);
-    font.setPointSize(10);
+    //'Droid Sans Mono', 'monospace', monospace, 'Droid Sans Fallback'
+    font.setFamily("Droid Sans Mono");
+    // font.setFamily("Source Code Pro");
 
-    editor = new QTextEdit;
+    font.setFixedPitch(true);
+    font.setPointSize(12);
+
+    editor = new QPlainTextEdit;
     editor->setFont(font);
 
-    highlighter = new Highlighter(editor->document());
+    // Json::Value json_theme = parse::loadJson("./light_vs.json");
+    Json::Value json_theme = parse::loadJson("./dracula.json");
+    theme = parse_theme(json_theme);
 
-    QFile file("../tests/cases/tinywl.c");
-    // QFile file("../tests/cases/test.c");
+    //------------------
+    // editor theme
+    //------------------
+    QPalette p = editor->palette();
+    p.setColor(QPalette::Active, QPalette::Base,
+        QColor(theme->editor.background.red * 255, theme->editor.background.green * 255, theme->editor.background.blue * 255, 255)
+    );
+    p.setColor(QPalette::Inactive, QPalette::Base,
+        QColor(theme->editor.background.red * 255, theme->editor.background.green * 255, theme->editor.background.blue * 255, 255));
+    editor->setPalette(p);
+
+    QTextCharFormat fmt;
+    fmt.setForeground(QBrush(QColor(theme->editor.foreground.red * 255, theme->editor.foreground.green * 255, theme->editor.foreground.blue * 255, 255)));
+    editor->mergeCurrentCharFormat(fmt);
+
+    // setup highlighter
+    highlighter = new Highlighter(editor->document());
+    highlighter->setTheme(theme);
+
+    // QFile file("../tests/cases/tinywl.c");
+    QFile file("../tests/cases/test.c");
     if (file.open(QFile::ReadOnly | QFile::Text))
         editor->setPlainText(file.readAll());
 }

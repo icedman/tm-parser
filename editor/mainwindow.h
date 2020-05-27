@@ -52,11 +52,13 @@
 #define MAINWINDOW_H
 
 #include "highlighter.h"
+#include "theme.h"
 
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
 class QTextEdit;
+class QPlainTextEdit;
 QT_END_NAMESPACE
 
 //! [0]
@@ -76,8 +78,11 @@ private:
     void setupFileMenu();
     void setupHelpMenu();
 
-    QTextEdit* editor;
+    // QTextEdit* editor;
+    QPlainTextEdit* editor;
     Highlighter* highlighter;
+
+    theme_ptr theme;
 };
 //! [0]
 

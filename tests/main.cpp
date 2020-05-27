@@ -112,7 +112,10 @@ void dump_tokens(std::map<size_t, scope::scope_t>& scopes)
     while (it != scopes.end()) {
         size_t n = it->first;
         scope::scope_t scope = it->second;
-        std::cout << n << ":" << scope.back().c_str() << std::endl;
+        std::cout << n << ":"
+            << to_s(scope).c_str()
+            << std::endl;
+
         it++;
     }
 }
@@ -125,7 +128,7 @@ void theme_tokens(std::map<size_t, scope::scope_t>& scopes, theme_ptr theme)
         scope::scope_t scope = it->second;
         style_t s = theme->styles_for_scope(scope);
 
-    std::cout << n << ":" << scope.back().c_str()
+        std::cout << n << " size:" << scope.size() << " last:" << scope.back().c_str()
         << " " << s.foreground.red << ", " << s.foreground.green << ", " << s.foreground.blue
         << std::endl;
         it++;
@@ -136,7 +139,8 @@ void theme_tokens(std::map<size_t, scope::scope_t>& scopes, theme_ptr theme)
 void test_c()
 {
     grammar_ptr gm;
-    gm = load("test-cases/first-mate/fixtures/c.json");
+    // gm = load("test-cases/first-mate/fixtures/c.json");
+    gm = load("extensions/cpp/syntaxes/c.tmLanguage.json");
     // std::cout << gm->document() << std::endl;
 
     Json::Value root = parse::loadJson("test-cases/themes/light_vs.json");
@@ -147,7 +151,7 @@ void test_c()
     char str[1024];
     bool firstLine = true;
 
-    scope::scope_t source("source.c");
+    // scope::scope_t source("source.c");
 
     parse::stack_ptr parser_state = gm->seed();
     while (fgets(str, 1000, fp)) {
@@ -157,13 +161,14 @@ void test_c()
 
         std::cout << str << std::endl;
         std::map<size_t, scope::scope_t> scopes;
-        scopes.emplace(0, source);
 
         // stack_ptr stack
         parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
         // dump_tokens(scopes);
         theme_tokens(scopes, theme);
         firstLine = false;
+
+        // break;
     }
 
     fclose(fp);
