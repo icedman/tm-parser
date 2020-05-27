@@ -52,7 +52,6 @@ struct scopes_t {
         std::map<size_t, scope::scope_t>& out) const
     {
         size_t pos = 0;
-
         for (auto const& pair : map) {
             // D(DBF_Parser, bug("%3zu: %c%s\n", pair.first, pair.second.add ? '+' :
             // '-', pair.second.scope.c_str()););

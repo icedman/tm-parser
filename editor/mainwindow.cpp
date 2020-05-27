@@ -50,12 +50,15 @@
 
 #include <QtWidgets>
 
+#include <iostream>
+
 #include "mainwindow.h"
 #include "reader.h"
 
 //! [0]
 MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent),
+    updateTimer(this)
 {
     setupFileMenu();
     setupHelpMenu();
@@ -63,6 +66,9 @@ MainWindow::MainWindow(QWidget* parent)
 
     setCentralWidget(editor);
     setWindowTitle(tr("Syntax Highlighter"));
+    setMinimumSize(1200, 800);
+
+    // connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdate()));
 }
 //! [0]
 
@@ -89,8 +95,11 @@ void MainWindow::openFile(const QString& path)
 
     if (!fileName.isEmpty()) {
         QFile file(fileName);
-        if (file.open(QFile::ReadOnly | QFile::Text))
+        if (file.open(QFile::ReadOnly | QFile::Text)) {
+            highlighter->setDeferRendering(true);
             editor->setPlainText(file.readAll());
+            onUpdate();
+        }
     }
 }
 
@@ -115,26 +124,34 @@ void MainWindow::setupEditor()
     //------------------
     // editor theme
     //------------------
-    QPalette p = editor->palette();
-    p.setColor(QPalette::Active, QPalette::Base,
-        QColor(theme->editor.background.red * 255, theme->editor.background.green * 255, theme->editor.background.blue * 255, 255)
-    );
-    p.setColor(QPalette::Inactive, QPalette::Base,
-        QColor(theme->editor.background.red * 255, theme->editor.background.green * 255, theme->editor.background.blue * 255, 255));
-    editor->setPalette(p);
+    if (!theme->global_style.background.is_blank()) {
+        QPalette p = editor->palette();
+        p.setColor(QPalette::Active, QPalette::Base,
+            QColor(theme->global_style.background.red * 255,
+                theme->global_style.background.green * 255,
+                theme->global_style.background.blue * 255, 255));
+        p.setColor(QPalette::Inactive, QPalette::Base,
+            QColor(theme->global_style.background.red * 255,
+                theme->global_style.background.green * 255,
+                theme->global_style.background.blue * 255, 255));
+        editor->setPalette(p);
+    }
 
-    QTextCharFormat fmt;
-    fmt.setForeground(QBrush(QColor(theme->editor.foreground.red * 255, theme->editor.foreground.green * 255, theme->editor.foreground.blue * 255, 255)));
-    editor->mergeCurrentCharFormat(fmt);
+    if (!theme->global_style.foreground.is_blank()) {
+        QTextCharFormat fmt;
+        fmt.setForeground(QBrush(QColor(theme->global_style.foreground.red * 255,
+            theme->global_style.foreground.green * 255,
+            theme->global_style.foreground.blue * 255, 255)));
+        editor->mergeCurrentCharFormat(fmt);
+    }
 
     // setup highlighter
     highlighter = new Highlighter(editor->document());
     highlighter->setTheme(theme);
 
-    // QFile file("../tests/cases/tinywl.c");
-    QFile file("../tests/cases/test.c");
-    if (file.open(QFile::ReadOnly | QFile::Text))
-        editor->setPlainText(file.readAll());
+    // openFile("../tests/cases/sqlite3.c");
+    // openFile("../tests/cases/tinywl.c");
+    openFile("../tests/cases/test.c");
 }
 //! [1]
 
@@ -159,4 +176,34 @@ void MainWindow::setupHelpMenu()
 
     helpMenu->addAction(tr("&About"), this, &MainWindow::about);
     helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
+}
+
+void MainWindow::higlightAllBlocks()
+{
+
+}
+
+void MainWindow::onUpdate()
+{
+    QTextDocument *doc = editor->document();
+    int lines = doc->lineCount();
+
+    int rendered = 0;
+    for(int i=0;i<lines && rendered<200; i++) {
+        QTextBlock block = doc->findBlockByLineNumber(i);
+        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+        if (!blockData) {
+            rendered++;
+            blockData = new HighlightBlockData;
+            block.setUserData(blockData);
+            highlighter->rehighlightBlock(block);
+        }
+    }
+
+    if (rendered > 0) {
+        updateTimer.singleShot(5, this, SLOT(onUpdate()));
+    } else {
+        std::cout << "all rendering done" << std::endl;
+        highlighter->setDeferRendering(false);
+    }
 }

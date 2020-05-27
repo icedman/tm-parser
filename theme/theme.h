@@ -100,17 +100,12 @@ struct theme_t {
     color_info_t foreground() const;
     color_info_t background(std::string const& fileType = NULL_STR) const;
     // bool is_dark () const;
-    // bool is_transparent () const;
-    style_t const& styles_for_scope(scope::scope_t const& scope) const;
 
-    struct {
-        color_info_t foreground;
-        color_info_t background;
-    } editor;
+    style_t const& styles_for_scope(scope::scope_t const& scope);
+
+    style_t global_style;
 
 private:
-    static std::vector<style_t> global_styles(scope::scope_t const& scope);
-
     struct shared_styles_t {
 
         shared_styles_t(Json::Value const& themeItem);
@@ -121,19 +116,18 @@ private:
             std::string scope_selector);
 
         std::vector<style_t> _styles;
-        color_info_t _foreground;
-        color_info_t _background;
-        bool _is_dark;
-        bool _is_transparent;
     };
 
     typedef std::shared_ptr<shared_styles_t> shared_styles_ptr;
     shared_styles_ptr find_shared_styles(Json::Value const& themeItem);
     shared_styles_ptr _styles;
 
+    void setup_global_style(Json::Value const& themeItem);
+
     std::string _font_name;
     float _font_size;
 
+    std::map<size_t, style_t> _cache;
     // mutable google::dense_hash_map<scope::scope_t, styles_t> _cache;
 };
 

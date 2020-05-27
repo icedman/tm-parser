@@ -11,8 +11,7 @@ QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
 
-class HighlightBlockData: public QTextBlockUserData
-{
+class HighlightBlockData : public QTextBlockUserData {
 public:
     parse::stack_ptr parser_state;
     scope::scope_t last_scope;
@@ -26,11 +25,13 @@ public:
     Highlighter(QTextDocument* parent = 0);
 
     void setTheme(theme_ptr theme);
+    void setDeferRendering(bool defer);
 
 protected:
     void highlightBlock(const QString& text) override;
 
 private:
+    bool deferRendering;
     parse::grammar_ptr grammar;
     theme_ptr theme;
 };

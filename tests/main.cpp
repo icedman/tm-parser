@@ -9,6 +9,8 @@
 #include "reader.h"
 #include "theme.h"
 
+#include <time.h>
+
 using namespace parse;
 
 grammar_ptr load(std::string path)
@@ -112,9 +114,9 @@ void dump_tokens(std::map<size_t, scope::scope_t>& scopes)
     while (it != scopes.end()) {
         size_t n = it->first;
         scope::scope_t scope = it->second;
-        std::cout << n << ":"
-            << to_s(scope).c_str()
-            << std::endl;
+        std::cout << n << " size:" << scope.size() << " atoms:"
+                  << to_s(scope).c_str()
+                  << std::endl;
 
         it++;
     }
@@ -131,10 +133,10 @@ void theme_tokens(std::map<size_t, scope::scope_t>& scopes, theme_ptr theme)
         std::cout << n << " size:" << scope.size() << " last:" << scope.back().c_str()
         << " " << s.foreground.red << ", " << s.foreground.green << ", " << s.foreground.blue
         << std::endl;
+
         it++;
     }
 }
-
 
 void test_c()
 {
@@ -146,29 +148,34 @@ void test_c()
     Json::Value root = parse::loadJson("test-cases/themes/light_vs.json");
     theme_ptr theme = parse_theme(root);
 
+    // FILE* fp = fopen("tests/cases/sqlite3.c", "r");
     FILE* fp = fopen("tests/cases/test.c", "r");
-    // FILE *fp = fopen("tests/cases/tinywl.c", "r");
+    // FILE* fp = fopen("tests/cases/tinywl.c", "r");
     char str[1024];
-    bool firstLine = true;
 
-    // scope::scope_t source("source.c");
+    for (int i = 0; i < 1; i++) {
+        fseek(fp, 0, SEEK_SET);
+        bool firstLine = true;
 
-    parse::stack_ptr parser_state = gm->seed();
-    while (fgets(str, 1000, fp)) {
+        parse::stack_ptr parser_state = gm->seed();
+        while (fgets(str, 1000, fp)) {
 
-        const char* first = str;
-        const char* last = first + strlen(first);
+            const char* first = str;
+            const char* last = first + strlen(first);
 
-        std::cout << str << std::endl;
-        std::map<size_t, scope::scope_t> scopes;
+            // std::cout << ".";
+            std::cout << str << std::endl;
 
-        // stack_ptr stack
-        parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
-        // dump_tokens(scopes);
-        theme_tokens(scopes, theme);
-        firstLine = false;
+            std::map<size_t, scope::scope_t> scopes;
+            parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
+            dump_tokens(scopes);
 
-        // break;
+            // theme_tokens(scopes, theme);
+            
+            firstLine = false;
+
+            // break;
+        }
     }
 
     fclose(fp);
@@ -176,10 +183,18 @@ void test_c()
 
 int main(int argc, char** argv)
 {
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+
     // test_read_and_parse();
     // test_hello();
     // test_coffee();
     test_c();
     // test_plist();
+
+    end = clock();
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+    std::cout << std::endl << "done in " << cpu_time_used << "s" << std::endl;
     return 0;
 }

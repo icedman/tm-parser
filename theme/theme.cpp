@@ -7,88 +7,6 @@
 https://code.visualstudio.com/api/references/theme-color
 */
 
-std::vector<style_t> theme_t::global_styles(scope::scope_t const& scope)
-{
-    static struct {
-        std::string name;
-        color_info_t style_t::*field;
-    } const colorKeys[] = {
-        { "foreground", &style_t::foreground },
-        { "background", &style_t::background },
-        { "caret", &style_t::caret },
-        { "selection", &style_t::selection },
-        { "invisibles", &style_t::invisibles },
-    };
-
-    static struct {
-        std::string name;
-        bool_t style_t::*field;
-    } const booleanKeys[] = {
-        { "misspelled", &style_t::misspelled },
-        { "bold", &style_t::bold },
-        { "italic", &style_t::italic },
-        { "underline", &style_t::underlined },
-        { "strikethrough", &style_t::strikethrough },
-    };
-
-    std::vector<style_t> res;
-
-    /*
-    for(auto const& colorKey : colorKeys)
-    {
-        bundles::item_ptr item;
-        plist::any_t const& value = bundles::value_for_setting(colorKey.name, scope, &item);
-        if(item)
-        {
-            res.emplace_back(item->scope_selector());
-            res.back().*(colorKey.field) = read_color(plist::get<std::string>(value));
-        }
-    }
-
-    for(auto const& booleanKey : booleanKeys)
-    {
-        bundles::item_ptr item;
-        plist::any_t const& value = bundles::value_for_setting(booleanKey.name, scope, &item);
-        if(item)
-        {
-            res.emplace_back(item->scope_selector());
-            res.back().*(booleanKey.field) = plist::is_true(value) ? bool_true : bool_false;
-        }
-    }
-
-    bundles::item_ptr fontNameItem;
-    plist::any_t const& fontNameValue = bundles::value_for_setting("fontName", scope, &fontNameItem);
-    if(fontNameItem)
-    {
-        res.emplace_back(fontNameItem->scope_selector());
-        res.back().font_name = plist::get<std::string>(fontNameValue);
-    }
-
-    bundles::item_ptr fontSizeItem;
-    plist::any_t const& fontSizeValue = bundles::value_for_setting("fontSize", scope, &fontSizeItem);
-    if(fontSizeItem)
-    {
-        res.emplace_back(fontSizeItem->scope_selector());
-        res.back().font_size = read_font_size(plist::get<std::string>(fontSizeValue));
-    }
-    */
-
-    return res;
-}
-
-theme_t::shared_styles_t::shared_styles_t(Json::Value const& themeItem)
-{
-    setup_styles(themeItem);
-}
-
-theme_t::shared_styles_t::~shared_styles_t() {}
-
-static bool color_is_dark (color_info_t &color)
-{
-    return 0.30*color.red + 0.59*color.green + 0.11*color.blue < 0.5;
-}
-
-
 static void get_settings_string(Json::Value const& item, std::string& target)
 {
     if (!item.isString()) {
@@ -120,14 +38,37 @@ static void get_settings_color(Json::Value const& item, color_info_t* target)
     target->green = rgba[1];
     target->blue = rgba[2];
     target->alpha = rgba[3];
-
     // std::cout<<item.asString()<<std::endl;
+}
+
+static style_t parse_style(Json::Value const& settings)
+{
+    style_t res;
+    get_settings_string(settings["fontName"], res.font_name);
+    get_settings_float(settings["fontSize"], &res.font_size);
+    get_settings_color(settings["foreground"], &res.foreground);
+    get_settings_color(settings["background"], &res.background);
+    get_settings_color(settings["caret"], &res.caret);
+    get_settings_color(settings["selection"], &res.selection);
+    get_settings_color(settings["invisibles"], &res.invisibles);
+    return res;
+}
+
+theme_t::shared_styles_t::shared_styles_t(Json::Value const& themeItem)
+{
+    setup_styles(themeItem);
+}
+
+theme_t::shared_styles_t::~shared_styles_t() {}
+
+static bool color_is_dark(color_info_t& color)
+{
+    return 0.30 * color.red + 0.59 * color.green + 0.11 * color.blue < 0.5;
 }
 
 void theme_t::shared_styles_t::setup_styles(Json::Value const& themeItem)
 {
     _styles.clear();
-    // _gutter_styles.clear();
 
     Json::Value settings;
     if (themeItem.isMember("settings")) {
@@ -137,6 +78,11 @@ void theme_t::shared_styles_t::setup_styles(Json::Value const& themeItem)
     }
     for (int i = 0; i < settings.size(); i++) {
         Json::Value item = settings[i];
+
+        if (!item.isMember("scope")) {
+            continue;
+        }
+
         Json::Value scope = settings[i]["scope"];
 
         // std::cout << item << std::endl;
@@ -149,23 +95,6 @@ void theme_t::shared_styles_t::setup_styles(Json::Value const& themeItem)
             }
         }
     }
-
-    // if(!_color_space)
-    //     _color_space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-
-    // =======================================
-    // = Find “global” foreground/background =
-    // =======================================
-
-    // We assume that the first style is the unscoped root style
-
-    if (!_styles.empty()) {
-        _foreground     = _styles[0].foreground;
-        _background     = _styles[0].background;
-    }
-
-    _is_dark        = color_is_dark(_background);
-    _is_transparent = _background.alpha < 1;
 }
 
 style_t theme_t::shared_styles_t::parse_styles(Json::Value const& item,
@@ -181,14 +110,8 @@ style_t theme_t::shared_styles_t::parse_styles(Json::Value const& item,
 
     // std::cout << "parsing styles" << std::endl;
 
+    res = parse_style(settings);
     res.scope_selector = scope_selector;
-    get_settings_string(settings["fontName"], res.font_name);
-    get_settings_float(settings["fontSize"], &res.font_size);
-    get_settings_color(settings["foreground"], &res.foreground);
-    get_settings_color(settings["background"], &res.background);
-    get_settings_color(settings["caret"], &res.caret);
-    get_settings_color(settings["selection"], &res.selection);
-    get_settings_color(settings["invisibles"], &res.invisibles);
 
     // bool flag;
     // res.misspelled = plist::get_key_path(plist, "settings.misspelled", flag) ?
@@ -218,7 +141,34 @@ theme_t::theme_t(Json::Value const& themeItem, std::string const& fontName,
     , _font_size(fontSize)
 {
     _styles = find_shared_styles(themeItem);
+
+    setup_global_style(themeItem);
+    _cache.clear();
+
     // _cache.set_empty_key(scope::scope_t{});
+}
+
+void theme_t::setup_global_style(Json::Value const& themeItem)
+{
+
+    Json::Value colors = themeItem["colors"];
+    get_settings_color(colors["editor.foreground"], &global_style.foreground);
+    get_settings_color(colors["editor.background"], &global_style.background);
+
+    // unscoped settings
+    if (!themeItem.isMember("settings")) {
+        return;
+    }
+
+    Json::Value settings = themeItem["settings"];
+    for (int i = 0; i < settings.size(); i++) {
+        Json::Value item = settings[i];
+        if (!item.isMember("scope")) {
+            style_t res = parse_style(item);
+            if (!res.foreground.is_blank()) {
+            }
+        }
+    }
 }
 
 theme_t::shared_styles_ptr
@@ -244,30 +194,25 @@ theme_ptr parse_theme(Json::Value& themeItem)
     static std::map<std::string, theme_ptr> Cache;
     std::string const& uuid = themeItem["scopeName"].asString();
     auto theme = Cache.find(uuid);
-    if (theme == Cache.end())
+    if (theme == Cache.end()) {
         theme = Cache.emplace(uuid, std::make_shared<theme_t>(themeItem)).first;
-
-    Json::Value colors = themeItem["colors"];
-    get_settings_color(colors["editor.foreground"], &theme->second->editor.foreground);
-    get_settings_color(colors["editor.background"], &theme->second->editor.background);
+    }
 
     return theme->second;
 }
 
-static style_t _res;
-style_t const& theme_t::styles_for_scope(scope::scope_t const& scope) const
-{
+style_t const& theme_t::styles_for_scope(scope::scope_t const& scope)
+{    
+    size_t hash = scope.hash();
+
     // implement cache!
-    // auto styles = _cache.find(scope);
-    // if(styles == _cache.end())
+    auto styles = _cache.find(hash);
+    if (styles != _cache.end()) {
+        // std::cout << "found!" << std::endl;
+        return styles->second;
+    }
 
     std::multimap<double, style_t> ordering;
-
-    for (auto const& it : global_styles(scope)) {
-        double rank = 0;
-        if (it.scope_selector.does_match(scope, &rank))
-            ordering.emplace(rank, it);
-    }
 
     for (auto const& it : _styles->_styles) {
         double rank = 0;
@@ -276,35 +221,12 @@ style_t const& theme_t::styles_for_scope(scope::scope_t const& scope) const
     }
 
     style_t base(scope::selector_t(), _font_name, _font_size);
-    for (auto const& it : ordering)
-        base += it.second;
-
-    /*
-    std::vector<style_t> gs = global_styles(scope);
-    for(int i=0; i<gs.size(); i++) {
-        style_t st = gs[i];
-        double rank = 0;
-        if (st.scope_selector.does_match(scope, & rank)) {
-            ordering.emplace(rank, st);
-        }
-    }
-
-    std::vector<style_t> ss = _styles->_styles;
-    for(int i=0; i<ss.size(); i++) {
-        style_t st = ss[i];
-        double rank = 0;
-        if (st.scope_selector.does_match(scope, & rank)) {
-            ordering.emplace(rank, st);
-        }
-    }
-
-    style_t base(scope::selector_t(), _font_name, _font_size);
     for (auto const& it : ordering) {
         base += it.second;
-    }    
-    */
+    }
 
-    style_t res(
+    static style_t _res;
+    _res = style_t(
         base.font_name,
         base.font_size,
         base.foreground,
@@ -314,28 +236,28 @@ style_t const& theme_t::styles_for_scope(scope::scope_t const& scope) const
         base.underlined,
         base.strikethrough,
         base.misspelled);
-
-    _res = res;
+    
+    _cache.emplace(hash, _res);
     return _res;
 }
 
 style_t& style_t::operator+=(style_t const& rhs)
 {
-    font_name  = rhs.font_name != NULL_STR    ? rhs.font_name : font_name;
+    font_name = rhs.font_name != NULL_STR ? rhs.font_name : font_name;
     // font_size  = rhs.font_size > 0            ? rhs.font_size : font_size * fabs(rhs.font_size);
 
-    foreground = rhs.foreground.is_blank()    ? foreground : rhs.foreground;
-    background = rhs.background.is_blank()    ? background : rhs.background;
+    foreground = rhs.foreground.is_blank() ? foreground : rhs.foreground;
+    background = rhs.background.is_blank() ? background : rhs.background;
     // background = rhs.background.is_blank()    ? background : blend(background, rhs.background);
-    caret      = rhs.caret.is_blank()         ? caret      : rhs.caret;
-    selection  = rhs.selection.is_blank()     ? selection  : rhs.selection;
-    invisibles = rhs.invisibles.is_blank()    ? invisibles : rhs.invisibles;
+    caret = rhs.caret.is_blank() ? caret : rhs.caret;
+    selection = rhs.selection.is_blank() ? selection : rhs.selection;
+    invisibles = rhs.invisibles.is_blank() ? invisibles : rhs.invisibles;
 
-    bold          = rhs.bold          == bool_unset ? bold          : rhs.bold;
-    italic        = rhs.italic        == bool_unset ? italic        : rhs.italic;
-    underlined    = rhs.underlined    == bool_unset ? underlined    : rhs.underlined;
+    bold = rhs.bold == bool_unset ? bold : rhs.bold;
+    italic = rhs.italic == bool_unset ? italic : rhs.italic;
+    underlined = rhs.underlined == bool_unset ? underlined : rhs.underlined;
     strikethrough = rhs.strikethrough == bool_unset ? strikethrough : rhs.strikethrough;
-    misspelled    = rhs.misspelled    == bool_unset ? misspelled    : rhs.misspelled;
+    misspelled = rhs.misspelled == bool_unset ? misspelled : rhs.misspelled;
 
     return *this;
 }
