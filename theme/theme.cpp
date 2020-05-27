@@ -224,9 +224,6 @@ theme_t::theme_t(Json::Value const& themeItem, std::string const& fontName,
 theme_t::shared_styles_ptr
 theme_t::find_shared_styles(Json::Value const& themeItem)
 {
-    std::cout << "th" << themeItem["scopeName"].asString() << std::endl;
-    std::cout << "th" << themeItem["scope"].asString() << std::endl;
-
     shared_styles_ptr res = std::make_shared<shared_styles_t>(themeItem);
     return res;
 

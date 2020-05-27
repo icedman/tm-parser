@@ -61,12 +61,12 @@ void Highlighter::highlightBlock(const QString& text)
     const char* first = str.c_str();
     const char* last = first + text.length()+1;
 
-    printf("\n-------------\n%d\n%s\n", text.length(), first);
+    // printf("\n-------------\n%d\n%s\n", text.length(), first);
 
 
     parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
 
-    std::cout << "first: " << firstLine << std::endl;
+    // std::cout << "first: " << firstLine << std::endl;
 
     std::string prevScopeName;
     size_t si = 0;
@@ -81,9 +81,9 @@ void Highlighter::highlightBlock(const QString& text)
         if (n > si) {
             style_t s = theme->styles_for_scope(prevScopeName);
             if (!s.foreground.is_blank()) {
-                std::cout << si << "-" << n << ":" << prevScopeName << "\t";
-                dump_color(s.foreground);
-                std::cout << std::endl;
+                // std::cout << si << "-" << n << ":" << prevScopeName << "\t";
+                // dump_color(s.foreground);
+                // std::cout << std::endl;
                 QColor clr(s.foreground.red * 255, s.foreground.green * 255, s.foreground.blue * 255, 255);
                 setFormat(si, n-si, clr);
             }
@@ -97,9 +97,9 @@ void Highlighter::highlightBlock(const QString& text)
     if (n > si) {
         style_t s = theme->styles_for_scope(prevScopeName);
         if (!s.foreground.is_blank()) {
-                std::cout << si << "-" << n << ":" << prevScopeName << "\t";
-                dump_color(s.foreground);
-                std::cout << std::endl;
+                // std::cout << si << "-" << n << ":" << prevScopeName << "\t";
+                // dump_color(s.foreground);
+                // std::cout << std::endl;
             QColor clr(s.foreground.red * 255, s.foreground.green * 255, s.foreground.blue * 255, 255);
             setFormat(si, n-si, clr);
         }

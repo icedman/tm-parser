@@ -105,7 +105,7 @@ void MainWindow::setupEditor()
     font.setFixedPitch(true);
     font.setPointSize(12);
 
-    editor = new QPlainTextEdit;
+    editor = new QSublimeTextEdit;
     editor->setFont(font);
 
     // Json::Value json_theme = parse::loadJson("./light_vs.json");

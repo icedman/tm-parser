@@ -59,6 +59,7 @@
 QT_BEGIN_NAMESPACE
 class QTextEdit;
 class QPlainTextEdit;
+typedef QTextEdit QSublimeTextEdit;
 QT_END_NAMESPACE
 
 //! [0]
@@ -78,8 +79,7 @@ private:
     void setupFileMenu();
     void setupHelpMenu();
 
-    // QTextEdit* editor;
-    QPlainTextEdit* editor;
+    QSublimeTextEdit* editor;
     Highlighter* highlighter;
 
     theme_ptr theme;
