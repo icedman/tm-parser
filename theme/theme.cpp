@@ -7,6 +7,30 @@
 https://code.visualstudio.com/api/references/theme-color
 */
 
+std::string scope_pop_child(std::string string)
+{
+    std::string res;
+
+    const char* start = string.c_str();
+    const char* end = start + string.length();
+
+    std::string str;
+    while (end != start) {
+        char c = *end;
+        if (c == '.') {
+            break;
+        }
+        end--;
+    }
+
+    if (start != end) {
+        res.assign(start, end-start);
+    }
+
+    return res;
+}
+
+
 static void get_settings_string(Json::Value const& item, std::string& target)
 {
     if (!item.isString()) {
@@ -205,10 +229,8 @@ style_t const& theme_t::styles_for_scope(scope::scope_t const& scope)
 {    
     size_t hash = scope.hash();
 
-    // implement cache!
     auto styles = _cache.find(hash);
     if (styles != _cache.end()) {
-        // std::cout << "found!" << std::endl;
         return styles->second;
     }
 
@@ -216,8 +238,10 @@ style_t const& theme_t::styles_for_scope(scope::scope_t const& scope)
 
     for (auto const& it : _styles->_styles) {
         double rank = 0;
-        if (it.scope_selector.does_match(scope, &rank))
+        if (it.scope_selector.does_match(scope, &rank)) {
+            std::cout << to_s(it.scope_selector) << ":" << rank << std::endl;
             ordering.emplace(rank, it);
+        }
     }
 
     style_t base(scope::selector_t(), _font_name, _font_size);

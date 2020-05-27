@@ -3,8 +3,7 @@
 #include "types.h"
 
 #include <algorithm>
-
-#define exp2(a) (a * a)
+#include <cmath>
 
 namespace scope {
 namespace types {
