@@ -30,15 +30,14 @@ private:
     void setupFileMenu();
     void setupHelpMenu();
 
-    void higlightAllBlocks();
-
     QSublimeTextEdit* editor;
     Highlighter* highlighter;
     QTimer updateTimer;
 
     theme_ptr theme;
+
 private Q_SLOTS:
-    void onUpdate();
+    void highlightBlocks();
 };
 //! [0]
 

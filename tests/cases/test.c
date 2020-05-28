@@ -1,3 +1,5 @@
+/* test.c */
+
 #include <stdio.h>
 
 /* a sample app */
@@ -8,3 +10,5 @@ int main(int argc, char** argv)
     }
     return 0;
 }
+
+/* last line */

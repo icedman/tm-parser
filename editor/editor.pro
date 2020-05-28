@@ -14,16 +14,16 @@ target.path = $$[QT_INSTALL_EXAMPLES]/widgets/richtext/syntaxhighlighter
 INSTALLS += target
 
 # parser
-INCPATH += ../parser/
-LIBS+= ../build/parser/libparser.a
+INCPATH += ../textmate/parser/
+LIBS+= ../build/textmate/parser/libparser.a
 
 # scopes
-INCPATH += ../scopes/
-LIBS+= ../build/scopes/libscopes.a
+INCPATH += ../textmate/scopes/
+LIBS+= ../build/textmate/scopes/libscopes.a
 
 # theme
-INCPATH += ../theme/
-LIBS+= ../build/theme/libtheme.a
+INCPATH += ../textmate/theme/
+LIBS+= ../build/textmate/theme/libtheme.a
 
 # jsoncpp (build as static library)
 INCPATH += ../subprojects/jsoncpp-1.8.4/include 

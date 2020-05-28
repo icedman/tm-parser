@@ -2,6 +2,7 @@
 #include "parse.h"
 #include "reader.h"
 
+#include <QTextDocument>
 #include <iostream>
 
 Highlighter::Highlighter(QTextDocument* parent)
@@ -9,6 +10,9 @@ Highlighter::Highlighter(QTextDocument* parent)
 {
     Json::Value json_grammar = parse::loadJson("../extensions/cpp/syntaxes/c.tmLanguage.json");
     grammar = parse::parse_grammar(json_grammar);
+
+    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdate()));
+    updateTimer.start(50);
 }
 
 void Highlighter::setTheme(theme_ptr _theme)
@@ -35,10 +39,33 @@ void dump_color(color_info_t clr)
         << " b:" << (int)(clr.blue * 255);
 }
 
+void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t &style)
+{
+    if (style.bold == bool_true ||
+        style.italic == bool_true ||
+        style.underlined == bool_true ||
+        style.strikethrough == bool_true ||
+        !style.foreground.is_blank()) {
+        QTextCharFormat f;
+        f.setFontWeight(style.bold == bool_true ? QFont::Medium : QFont::Normal);
+        f.setFontItalic(style.italic == bool_true);
+        f.setFontUnderline(style.underlined == bool_true);
+        f.setFontStrikeOut(style.strikethrough == bool_true);
+        f.setForeground(QColor(style.foreground.red * 255, style.foreground.green * 255, style.foreground.blue * 255, 255));
+        setFormat(start, length, f);
+    }
+}
+
 void Highlighter::highlightBlock(const QString& text)
 {
     std::map<size_t, scope::scope_t> scopes;
 
+    bool firstLine = true;
+    parse::stack_ptr parser_state = NULL;
+
+    //----------------------
+    // gather block data
+    //----------------------
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(currentBlock().userData());
     if (!blockData) {
         if (deferRendering) {
@@ -47,17 +74,13 @@ void Highlighter::highlightBlock(const QString& text)
         blockData = new HighlightBlockData;
     }
 
-    std::string str;
-    str.assign(text.toUtf8().constData(), text.length());
-    str += "\n";
-
-    bool firstLine = true;
-    parse::stack_ptr parser_state = NULL;
-
     QTextBlock prevBlock = currentBlock().previous();
     HighlightBlockData* prevBlockData = reinterpret_cast<HighlightBlockData*>(prevBlock.userData());
     if (prevBlockData) {
         parser_state = prevBlockData->parser_state;
+        if (parser_state->rule) {
+            blockData->last_prev_block_rule = parser_state->rule->rule_id;
+        }
         firstLine = !(parser_state != NULL);
     }
 
@@ -66,35 +89,33 @@ void Highlighter::highlightBlock(const QString& text)
         firstLine = true;
     }
 
+    //----------------------
+    // parse the line
+    //----------------------
+    std::string str;
+    str.assign(text.toUtf8().constData(), text.length());
+    str += "\n";
+
     const char* first = str.c_str();
     const char* last = first + text.length() + 1;
 
-    printf("\n-------------\n%d\n%s\n", text.length(), first);
+    std::cout << str << "<<<<" << std::endl;
 
     parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
 
-    // std::cout << "first: " << firstLine << std::endl;
-
     std::string prevScopeName;
     size_t si = 0;
-    size_t n = 0;
+    size_t n = 0;    
     std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
     while (it != scopes.end()) {
         n = it->first;
         scope::scope_t scope = it->second;
         std::string scopeName = to_s(scope);
-        // scope.back().c_str();
         it++;
 
         if (n > si) {
             style_t s = theme->styles_for_scope(prevScopeName);
-            if (!s.foreground.is_blank()) {
-                std::cout << si << "-" << n << ":" << prevScopeName << "\t";
-                dump_color(s.foreground);
-                std::cout << std::endl;
-                QColor clr(s.foreground.red * 255, s.foreground.green * 255, s.foreground.blue * 255, 255);
-                setFormat(si, n - si, clr);
-            }
+            setFormatFromStyle(si, n - si, s);
         }
 
         prevScopeName = scopeName;
@@ -104,15 +125,40 @@ void Highlighter::highlightBlock(const QString& text)
     n = last - first;
     if (n > si) {
         style_t s = theme->styles_for_scope(prevScopeName);
-        if (!s.foreground.is_blank()) {
-            std::cout << si << "-" << n << ":" << prevScopeName << "\t";
-            dump_color(s.foreground);
-            std::cout << std::endl;
-            QColor clr(s.foreground.red * 255, s.foreground.green * 255, s.foreground.blue * 255, 255);
-            setFormat(si, n - si, clr);
-        }
+        setFormatFromStyle(si, n - si, s);
     }
 
     blockData->parser_state = parser_state;
+    blockData->dirty = false;
     currentBlock().setUserData(blockData);
+
+    //----------------------
+    // mark next block for highlight
+    // .. if necessary
+    //----------------------
+    if (parser_state->rule) {
+        QTextBlock next = currentBlock().next();
+        if (next.isValid()) {
+            HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(next.userData());
+            if (blockData && parser_state->rule->rule_id != blockData->last_prev_block_rule) {
+                blockData->dirty = true;
+            }   
+        }
+    }
+}
+
+void Highlighter::onUpdate()
+{
+    QTextDocument *doc = document();
+
+    int rendered = 0;
+    QTextBlock block = doc->begin();
+    while(block.isValid() && rendered<200) {
+        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+        if (blockData && blockData->dirty) {
+            rendered++;
+            rehighlightBlock(block);
+        }
+        block = block.next();
+    }
 }
