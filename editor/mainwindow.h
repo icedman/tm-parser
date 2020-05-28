@@ -2,16 +2,11 @@
 #define MAINWINDOW_H
 
 #include "highlighter.h"
+#include "editor.h"
 #include "theme.h"
 
 #include <QMainWindow>
 #include <QTimer>
-
-QT_BEGIN_NAMESPACE
-class QTextEdit;
-class QPlainTextEdit;   //<< one-block = one-line
-typedef QPlainTextEdit QSublimeTextEdit;
-QT_END_NAMESPACE
 
 //! [0]
 class MainWindow : public QMainWindow {
@@ -30,14 +25,7 @@ private:
     void setupFileMenu();
     void setupHelpMenu();
 
-    QSublimeTextEdit* editor;
-    Highlighter* highlighter;
-    QTimer updateTimer;
-
-    theme_ptr theme;
-
-private Q_SLOTS:
-    void highlightBlocks();
+    Editor *editor;
 };
 //! [0]
 

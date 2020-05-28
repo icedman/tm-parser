@@ -28,6 +28,7 @@ public:
     Highlighter(QTextDocument* parent = 0);
 
     void setTheme(theme_ptr theme);
+    void setGrammar(parse::grammar_ptr grammar);
     void setDeferRendering(bool defer);
     
 protected:

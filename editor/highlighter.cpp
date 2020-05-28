@@ -6,11 +6,10 @@
 #include <iostream>
 
 Highlighter::Highlighter(QTextDocument* parent)
-    : QSyntaxHighlighter(parent)
+    : QSyntaxHighlighter(parent),
+        theme(0),
+        grammar(0)
 {
-    Json::Value json_grammar = parse::loadJson("../extensions/cpp/syntaxes/c.tmLanguage.json");
-    grammar = parse::parse_grammar(json_grammar);
-
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdate()));
     updateTimer.start(50);
 }
@@ -25,6 +24,11 @@ void Highlighter::setTheme(theme_ptr _theme)
     // std::cout << s.foreground.red << ","
     //     << s.foreground.green << ","
     //     << s.foreground.blue << std::endl;
+}
+
+void Highlighter::setGrammar(parse::grammar_ptr _grammar)
+{
+    grammar = _grammar;
 }
 
 void Highlighter::setDeferRendering(bool defer)
@@ -58,6 +62,10 @@ void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t &style
 
 void Highlighter::highlightBlock(const QString& text)
 {
+    if (!theme || !grammar) {
+        return;
+    }
+    
     std::map<size_t, scope::scope_t> scopes;
 
     bool firstLine = true;
@@ -99,7 +107,7 @@ void Highlighter::highlightBlock(const QString& text)
     const char* first = str.c_str();
     const char* last = first + text.length() + 1;
 
-    std::cout << str << "<<<<" << std::endl;
+    // std::cout << str << "<<<<" << std::endl;
 
     parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
 
