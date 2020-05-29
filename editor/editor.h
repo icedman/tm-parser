@@ -2,21 +2,35 @@
 #define EDITOR_WINDOW_H
 
 #include "highlighter.h"
-#include "gutter.h"
 
 #include "grammar.h"
 #include "theme.h"
 
 #include <QWidget>
 #include <QTimer>
+#include <QPlainTextEdit>   
+#include <QTextBlock>
 
-QT_BEGIN_NAMESPACE
-class QTextEdit;
-class QPlainTextEdit;   //<< one-block = one-line
-typedef QPlainTextEdit QSublimeTextEdit;
-QT_END_NAMESPACE
+class MiniMap;
+class Gutter;
 
-//! [0]
+class SublimeTextEdit : public QPlainTextEdit
+{
+public:
+    QTextBlock _firstVisibleBlock() {
+        return firstVisibleBlock();
+    }
+    
+    QRectF _blockBoundingGeometry(QTextBlock &block) {
+        return blockBoundingGeometry(block); 
+    }
+
+    QPointF _contentOffset() {
+        return contentOffset();
+    }
+
+};
+
 class Editor : public QWidget {
     Q_OBJECT
 
@@ -30,14 +44,22 @@ public:
 
 private:
 
-    QSublimeTextEdit* editor;
+    SublimeTextEdit* editor;
+    Gutter* gutter;
+    MiniMap* mini;
     Highlighter* highlighter;
     QTimer updateTimer;
 
     theme_ptr theme;
     parse::grammar_ptr grammar;
 
+public slots:
+    void updateGutter();
+    void updateMiniMap();
+
 private Q_SLOTS:
+    void updateRequested(const QRect &rect, int d);
+
     void highlightBlocks();
 };
 

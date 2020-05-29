@@ -43,19 +43,25 @@ void dump_color(color_info_t clr)
         << " b:" << (int)(clr.blue * 255);
 }
 
-void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t &style)
+void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t &style, HighlightBlockData *blockData)
 {
     if (style.bold == bool_true ||
         style.italic == bool_true ||
         style.underlined == bool_true ||
         style.strikethrough == bool_true ||
         !style.foreground.is_blank()) {
+
+        QColor clr = QColor(style.foreground.red * 255, style.foreground.green * 255, style.foreground.blue * 255, 255);
         QTextCharFormat f;
         f.setFontWeight(style.bold == bool_true ? QFont::Medium : QFont::Normal);
         f.setFontItalic(style.italic == bool_true);
         f.setFontUnderline(style.underlined == bool_true);
         f.setFontStrikeOut(style.strikethrough == bool_true);
-        f.setForeground(QColor(style.foreground.red * 255, style.foreground.green * 255, style.foreground.blue * 255, 255));
+        f.setForeground(clr);
+
+        // blockData->span_colors.push_back(clr);
+        // blockData->spans.push_back((start << 24 | length));
+
         setFormat(start, length, f);
     }
 }
@@ -111,6 +117,9 @@ void Highlighter::highlightBlock(const QString& text)
 
     parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
 
+    blockData->spans.clear();
+    blockData->span_colors.clear();
+
     std::string prevScopeName;
     size_t si = 0;
     size_t n = 0;    
@@ -123,7 +132,7 @@ void Highlighter::highlightBlock(const QString& text)
 
         if (n > si) {
             style_t s = theme->styles_for_scope(prevScopeName);
-            setFormatFromStyle(si, n - si, s);
+            setFormatFromStyle(si, n - si, s, blockData);
         }
 
         prevScopeName = scopeName;
@@ -133,7 +142,7 @@ void Highlighter::highlightBlock(const QString& text)
     n = last - first;
     if (n > si) {
         style_t s = theme->styles_for_scope(prevScopeName);
-        setFormatFromStyle(si, n - si, s);
+        setFormatFromStyle(si, n - si, s, blockData);
     }
 
     blockData->parser_state = parser_state;

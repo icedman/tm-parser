@@ -18,6 +18,9 @@ public:
     scope::scope_t last_scope;
     bool dirty;
     size_t last_prev_block_rule;
+
+    std::vector<QColor> span_colors;
+    std::vector<uint32_t> spans;
 };
 
 //! [0]
@@ -33,7 +36,7 @@ public:
     
 protected:
     void highlightBlock(const QString& text) override;
-    void setFormatFromStyle(size_t start, size_t length, style_t &style);
+    void setFormatFromStyle(size_t start, size_t length, style_t &style, HighlightBlockData *blockData);
     
 private:
     bool deferRendering;

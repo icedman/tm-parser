@@ -1,5 +1,6 @@
 theme_files = [
     'theme.cpp',
+    'stringop.cpp',
     'util.cpp'
 ]
 

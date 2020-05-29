@@ -71,3 +71,19 @@ void MainWindow::setupHelpMenu()
     helpMenu->addAction(tr("&About"), this, &MainWindow::about);
     helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
 }
+
+/*
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings settings("MyCompany", "MyApp");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
+    QMainWindow::closeEvent(event);
+}
+void MainWindow::readSettings()
+{
+    QSettings settings("MyCompany", "MyApp");
+    restoreGeometry(settings.value("myWidget/geometry").toByteArray());
+    restoreState(settings.value("myWidget/windowState").toByteArray());
+}
+*/

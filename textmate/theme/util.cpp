@@ -13,7 +13,7 @@
 #include <string.h>
 #include <strings.h>
 
-uint32_t make_cokor(int r, int g, int b)
+uint32_t make_color(int r, int g, int b)
 {
     return (r << 24) | (g << 16) | (b << 8) | 0xff;
 }
@@ -28,7 +28,7 @@ bool parse_color_name(const char* spec, uint32_t* color)
             break;
         }
         if (strcmp(e->name, spec) == 0) {
-            *color = make_cokor(e->r, e->g, e->b);
+            *color = make_color(e->r, e->g, e->b);
             return true;
         }
     }
@@ -81,7 +81,7 @@ bool parse_color_rgb(const char* spec, uint32_t* color)
     // if (!token) return false;
     // rpad(alpha, token, token[0], 2);
 
-    *color = make_cokor((strtol(red, NULL, 16)), (strtol(green, NULL, 16)),
+    *color = make_color((strtol(red, NULL, 16)), (strtol(green, NULL, 16)),
         (strtol(blue, NULL, 16)));
     return true;
 }

@@ -1,13 +1,17 @@
 QT += widgets
 requires(qtConfig(filedialog))
 
-HEADERS         = highlighter.h \
-                  mainwindow.h \
-                  editor.h
+HEADERS         = mainwindow.h \
+                  editor.h \
+                  highlighter.h \
+                  gutter.h \
+                  minimap.h \
 
-SOURCES         = highlighter.cpp \
-                  mainwindow.cpp \
+SOURCES         = mainwindow.cpp \
                   editor.cpp \
+                  highlighter.cpp \
+                  gutter.cpp \
+                  minimap.cpp \
                   main.cpp
 
 CONFIG += c++17

@@ -1,5 +1,6 @@
 #include "theme.h"
 #include "util.h"
+// #include "reader.h"
 
 #include <iostream>
 
@@ -168,16 +169,29 @@ theme_t::theme_t(Json::Value const& themeItem, std::string const& fontName,
     setup_global_style(themeItem);
     _cache.clear();
 
+    bundle = themeItem;
+
     // _cache.set_empty_key(scope::scope_t{});
+}
+
+std::string theme_t::theme_color_string(std::string const& name)
+{
+     if (bundle.isMember("colors")) {
+        Json::Value colors = bundle["colors"];
+        return colors[name].asString();
+    }
+    return "";
+}
+void theme_t::theme_color(std::string const& name, color_info_t &color)
+{
+    if (bundle.isMember("colors")) {
+        Json::Value colors = bundle["colors"];
+        get_settings_color(colors[name], &color);
+    }
 }
 
 void theme_t::setup_global_style(Json::Value const& themeItem)
 {
-
-    Json::Value colors = themeItem["colors"];
-    get_settings_color(colors["editor.foreground"], &global_style.foreground);
-    get_settings_color(colors["editor.background"], &global_style.background);
-
     // unscoped settings
     if (!themeItem.isMember("settings")) {
         return;
@@ -218,7 +232,20 @@ theme_ptr parse_theme(Json::Value& themeItem)
     std::string const& uuid = themeItem["scopeName"].asString();
     auto theme = Cache.find(uuid);
     if (theme == Cache.end()) {
-        theme = Cache.emplace(uuid, std::make_shared<theme_t>(themeItem)).first;
+
+        theme_ptr _theme = std::make_shared<theme_t>(themeItem);
+        
+        // include
+        if (themeItem.isMember("include")) {
+        #if 0
+            // not supported for now
+            std::string filename = themeItem["include"].asString();
+            Json::Value inc = parse::loadJson(filename);
+            theme_ptr _parent_theme = parse_theme(inc);
+        #endif
+        }
+
+        theme = Cache.emplace(uuid, _theme).first;
     }
 
     return theme->second;
