@@ -16,7 +16,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -O2 -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -fpermissive -O2 -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I. -I../textmate/parser -I../textmate/scopes -I../textmate/theme -I../subprojects/jsoncpp-1.8.4/include -I../Onigmo -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -I. -I/usr/lib/qt/mkspecs/linux-g++
 QMAKE         = /usr/bin/qmake
 DEL_FILE      = rm -f
@@ -519,12 +519,13 @@ compiler_moc_predefs_make_all: moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) moc_predefs.h
 moc_predefs.h: /usr/lib/qt/mkspecs/features/data/dummy.cpp
-	g++ -pipe -O2 -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/qt/mkspecs/features/data/dummy.cpp
+	g++ -pipe -fpermissive -O2 -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/qt/mkspecs/features/data/dummy.cpp
 
 compiler_moc_header_make_all: moc_mainwindow.cpp moc_editor.cpp moc_highlighter.cpp moc_gutter.cpp moc_minimap.cpp
 compiler_moc_header_clean:
 	-$(DEL_FILE) moc_mainwindow.cpp moc_editor.cpp moc_highlighter.cpp moc_gutter.cpp moc_minimap.cpp
 moc_mainwindow.cpp: mainwindow.h \
+		editor.h \
 		highlighter.h \
 		../textmate/parser/grammar.h \
 		../subprojects/jsoncpp-1.8.4/include/json/json.h \
@@ -544,7 +545,7 @@ moc_mainwindow.cpp: mainwindow.h \
 		../Onigmo/onigmo.h \
 		../textmate/scopes/scope.h \
 		../textmate/theme/theme.h \
-		editor.h \
+		extension.h \
 		moc_predefs.h \
 		/usr/bin/moc
 	/usr/bin/moc $(DEFINES) --include /home/iceman/Developer/textmate/textmate-parser/editor/moc_predefs.h -I/usr/lib/qt/mkspecs/linux-g++ -I/home/iceman/Developer/textmate/textmate-parser/editor -I/home/iceman/Developer/textmate/textmate-parser/textmate/parser -I/home/iceman/Developer/textmate/textmate-parser/textmate/scopes -I/home/iceman/Developer/textmate/textmate-parser/textmate/theme -I/home/iceman/Developer/textmate/textmate-parser/subprojects/jsoncpp-1.8.4/include -I/home/iceman/Developer/textmate/textmate-parser/Onigmo -I/usr/include/qt -I/usr/include/qt/QtWidgets -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/usr/include/c++/9.3.0 -I/usr/include/c++/9.3.0/x86_64-pc-linux-gnu -I/usr/include/c++/9.3.0/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/9.3.0/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/9.3.0/include-fixed -I/usr/include mainwindow.h -o moc_mainwindow.cpp
@@ -623,6 +624,7 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean
 ####### Compile
 
 mainwindow.o: mainwindow.cpp mainwindow.h \
+		editor.h \
 		highlighter.h \
 		../textmate/parser/grammar.h \
 		../subprojects/jsoncpp-1.8.4/include/json/json.h \
@@ -642,13 +644,11 @@ mainwindow.o: mainwindow.cpp mainwindow.h \
 		../Onigmo/onigmo.h \
 		../textmate/scopes/scope.h \
 		../textmate/theme/theme.h \
-		editor.h \
+		extension.h \
 		../textmate/parser/reader.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
-editor.o: editor.cpp gutter.h \
-		minimap.h \
-		editor.h \
+editor.o: editor.cpp editor.h \
 		highlighter.h \
 		../textmate/parser/grammar.h \
 		../subprojects/jsoncpp-1.8.4/include/json/json.h \
@@ -668,6 +668,8 @@ editor.o: editor.cpp gutter.h \
 		../Onigmo/onigmo.h \
 		../textmate/scopes/scope.h \
 		../textmate/theme/theme.h \
+		gutter.h \
+		minimap.h \
 		../textmate/parser/reader.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o editor.o editor.cpp
 
@@ -697,43 +699,7 @@ highlighter.o: highlighter.cpp highlighter.h \
 gutter.o: gutter.cpp gutter.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gutter.o gutter.cpp
 
-minimap.o: minimap.cpp minimap.h \
-		editor.h \
-		highlighter.h \
-		../textmate/parser/grammar.h \
-		../subprojects/jsoncpp-1.8.4/include/json/json.h \
-		../subprojects/jsoncpp-1.8.4/include/json/autolink.h \
-		../subprojects/jsoncpp-1.8.4/include/json/config.h \
-		../subprojects/jsoncpp-1.8.4/include/json/version.h \
-		../subprojects/jsoncpp-1.8.4/include/json/allocator.h \
-		../subprojects/jsoncpp-1.8.4/include/json/value.h \
-		../subprojects/jsoncpp-1.8.4/include/json/forwards.h \
-		../subprojects/jsoncpp-1.8.4/include/json/reader.h \
-		../subprojects/jsoncpp-1.8.4/include/json/features.h \
-		../subprojects/jsoncpp-1.8.4/include/json/writer.h \
-		../textmate/parser/private.h \
-		../textmate/parser/defines.h \
-		../textmate/parser/pattern.h \
-		../Onigmo/onigmognu.h \
-		../Onigmo/onigmo.h \
-		../textmate/scopes/scope.h \
-		../textmate/theme/theme.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o minimap.o minimap.cpp
-
-extension.o: extension.cpp extension.h \
-		../subprojects/jsoncpp-1.8.4/include/json/json.h \
-		../subprojects/jsoncpp-1.8.4/include/json/autolink.h \
-		../subprojects/jsoncpp-1.8.4/include/json/config.h \
-		../subprojects/jsoncpp-1.8.4/include/json/version.h \
-		../subprojects/jsoncpp-1.8.4/include/json/allocator.h \
-		../subprojects/jsoncpp-1.8.4/include/json/value.h \
-		../subprojects/jsoncpp-1.8.4/include/json/forwards.h \
-		../subprojects/jsoncpp-1.8.4/include/json/reader.h \
-		../subprojects/jsoncpp-1.8.4/include/json/features.h \
-		../subprojects/jsoncpp-1.8.4/include/json/writer.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o extension.o extension.cpp
-
-main.o: main.cpp mainwindow.h \
+minimap.o: minimap.cpp editor.h \
 		highlighter.h \
 		../textmate/parser/grammar.h \
 		../subprojects/jsoncpp-1.8.4/include/json/json.h \
@@ -753,7 +719,53 @@ main.o: main.cpp mainwindow.h \
 		../Onigmo/onigmo.h \
 		../textmate/scopes/scope.h \
 		../textmate/theme/theme.h \
-		editor.h
+		minimap.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o minimap.o minimap.cpp
+
+extension.o: extension.cpp extension.h \
+		../subprojects/jsoncpp-1.8.4/include/json/json.h \
+		../subprojects/jsoncpp-1.8.4/include/json/autolink.h \
+		../subprojects/jsoncpp-1.8.4/include/json/config.h \
+		../subprojects/jsoncpp-1.8.4/include/json/version.h \
+		../subprojects/jsoncpp-1.8.4/include/json/allocator.h \
+		../subprojects/jsoncpp-1.8.4/include/json/value.h \
+		../subprojects/jsoncpp-1.8.4/include/json/forwards.h \
+		../subprojects/jsoncpp-1.8.4/include/json/reader.h \
+		../subprojects/jsoncpp-1.8.4/include/json/features.h \
+		../subprojects/jsoncpp-1.8.4/include/json/writer.h \
+		../textmate/parser/grammar.h \
+		../textmate/parser/private.h \
+		../textmate/parser/defines.h \
+		../textmate/parser/pattern.h \
+		../Onigmo/onigmognu.h \
+		../Onigmo/onigmo.h \
+		../textmate/scopes/scope.h \
+		../textmate/parser/reader.h \
+		../textmate/theme/stringop.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o extension.o extension.cpp
+
+main.o: main.cpp mainwindow.h \
+		editor.h \
+		highlighter.h \
+		../textmate/parser/grammar.h \
+		../subprojects/jsoncpp-1.8.4/include/json/json.h \
+		../subprojects/jsoncpp-1.8.4/include/json/autolink.h \
+		../subprojects/jsoncpp-1.8.4/include/json/config.h \
+		../subprojects/jsoncpp-1.8.4/include/json/version.h \
+		../subprojects/jsoncpp-1.8.4/include/json/allocator.h \
+		../subprojects/jsoncpp-1.8.4/include/json/value.h \
+		../subprojects/jsoncpp-1.8.4/include/json/forwards.h \
+		../subprojects/jsoncpp-1.8.4/include/json/reader.h \
+		../subprojects/jsoncpp-1.8.4/include/json/features.h \
+		../subprojects/jsoncpp-1.8.4/include/json/writer.h \
+		../textmate/parser/private.h \
+		../textmate/parser/defines.h \
+		../textmate/parser/pattern.h \
+		../Onigmo/onigmognu.h \
+		../Onigmo/onigmo.h \
+		../textmate/scopes/scope.h \
+		../textmate/theme/theme.h \
+		extension.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 

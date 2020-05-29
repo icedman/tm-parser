@@ -16,6 +16,7 @@ SOURCES         = mainwindow.cpp \
                   extension.cpp \
                   main.cpp
 
+QMAKE_CXXFLAGS += -fpermissive
 CONFIG += c++17
 
 # install

@@ -6,29 +6,30 @@
 #include "grammar.h"
 #include "theme.h"
 
-#include <QWidget>
-#include <QTimer>
-#include <QPlainTextEdit>   
+#include <QPlainTextEdit>
 #include <QTextBlock>
+#include <QTimer>
+#include <QWidget>
 
 class MiniMap;
 class Gutter;
 
-class SublimeTextEdit : public QPlainTextEdit
-{
+class SublimeTextEdit : public QPlainTextEdit {
 public:
-    QTextBlock _firstVisibleBlock() {
+    QTextBlock _firstVisibleBlock()
+    {
         return firstVisibleBlock();
     }
-    
-    QRectF _blockBoundingGeometry(QTextBlock &block) {
-        return blockBoundingGeometry(block); 
+
+    QRectF _blockBoundingGeometry(QTextBlock& block)
+    {
+        return blockBoundingGeometry(block);
     }
 
-    QPointF _contentOffset() {
+    QPointF _contentOffset()
+    {
         return contentOffset();
     }
-
 };
 
 class Editor : public QWidget {
@@ -38,6 +39,8 @@ public:
     Editor(QWidget* parent = 0);
 
     void setupEditor();
+    void setTheme(theme_ptr _theme);
+    void setGrammar(parse::grammar_ptr _grammar);
 
     void openFile(const QString& path = QString());
     void saveFile(const QString& path = QString());
@@ -46,7 +49,6 @@ public:
     QString fileName;
 
 private:
-
     SublimeTextEdit* editor;
     Gutter* gutter;
     MiniMap* mini;
@@ -61,7 +63,7 @@ public slots:
     void updateMiniMap();
 
 private Q_SLOTS:
-    void updateRequested(const QRect &rect, int d);
+    void updateRequested(const QRect& rect, int d);
 
     void highlightBlocks();
 };

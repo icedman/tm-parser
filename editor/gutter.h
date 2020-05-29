@@ -6,7 +6,7 @@
 struct BlockInfo {
     int position;
     int number;
-    bool foldable: 1;
+    bool foldable : 1;
     bool folded : 1;
 };
 
@@ -22,8 +22,7 @@ public:
     QFont font;
 
 protected:
-    void paintEvent(QPaintEvent *event) override;
-
+    void paintEvent(QPaintEvent* event) override;
 };
 
 #endif // GUTTERH

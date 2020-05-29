@@ -8,6 +8,8 @@
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
+    configure();
+
     setupFileMenu();
     setupHelpMenu();
     setupEditor();
@@ -25,6 +27,21 @@ void MainWindow::about()
            "highlighting rules using regular expressions.</p>"));
 }
 
+void MainWindow::configure()
+{
+    load_extensions(QString("../extensions"), extensions);
+
+    //----------------
+    // configuration
+    //----------------
+    // Json::Value json_theme = parse::loadJson("./dark_vs.json");
+    // Json::Value json_theme = parse::loadJson("./light_vs.json");
+    Json::Value json_theme = parse::loadJson("./dracula-soft.json");
+    // Json::Value json_theme = parse::loadJson("./monokai-color-theme.json");
+    // Json::Value json_theme = parse::loadJson("./shades-of-purple-color-theme.json");
+    theme = parse_theme(json_theme);
+}
+
 void MainWindow::newFile()
 {
     editor->newFile();
@@ -34,7 +51,7 @@ void MainWindow::saveFile()
 {
     QString fileName = editor->fileName;
 
-    std::cout << fileName.toUtf8().constData() << std::endl;
+    // std::cout << fileName.toUtf8().constData() << std::endl;
 
     if (fileName.isNull() || fileName.isEmpty())
         fileName = QFileDialog::getOpenFileName(this, tr("Save File"), "", "");
@@ -52,6 +69,7 @@ void MainWindow::openFile(const QString& path)
         fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", "C, C++ Files (*.c *.cpp *.h)");
 
     if (!fileName.isEmpty()) {
+        editor->setGrammar(grammar_from_file(fileName, extensions));
         editor->openFile(fileName);
     }
 }
@@ -59,6 +77,10 @@ void MainWindow::openFile(const QString& path)
 void MainWindow::setupEditor()
 {
     editor = new Editor();
+
+    editor->setTheme(theme);
+    editor->setupEditor();
+
     setCentralWidget(editor);
 
     // openFile("../tests/cases/test.c");
