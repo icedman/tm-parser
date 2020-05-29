@@ -137,7 +137,7 @@ Json::Value rule_to_json(rule_ptr const& res)
 {
     Json::Value json;
 
-    json["_id"] = res->rule_id;
+    json["_id"] = (int)res->rule_id;
 
     struct {
         const char* name;
