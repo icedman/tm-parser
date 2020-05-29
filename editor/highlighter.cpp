@@ -6,9 +6,9 @@
 #include <iostream>
 
 Highlighter::Highlighter(QTextDocument* parent)
-    : QSyntaxHighlighter(parent),
-        theme(0),
-        grammar(0)
+    : QSyntaxHighlighter(parent)
+    , theme(0)
+    , grammar(0)
 {
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdate()));
     updateTimer.start(50);
@@ -39,17 +39,13 @@ void Highlighter::setDeferRendering(bool defer)
 void dump_color(color_info_t clr)
 {
     std::cout << " r:" << (int)(clr.red * 255)
-        << " g:" << (int)(clr.green * 255)
-        << " b:" << (int)(clr.blue * 255);
+              << " g:" << (int)(clr.green * 255)
+              << " b:" << (int)(clr.blue * 255);
 }
 
-void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t &style, const char* line, HighlightBlockData *blockData)
+void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style, const char* line, HighlightBlockData* blockData)
 {
-    if (style.bold == bool_true ||
-        style.italic == bool_true ||
-        style.underlined == bool_true ||
-        style.strikethrough == bool_true ||
-        !style.foreground.is_blank()) {
+    if (style.bold == bool_true || style.italic == bool_true || style.underlined == bool_true || style.strikethrough == bool_true || !style.foreground.is_blank()) {
 
         QColor clr = QColor(style.foreground.red * 255, style.foreground.green * 255, style.foreground.blue * 255, 255);
         QTextCharFormat f;
@@ -61,18 +57,18 @@ void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t &style
 
         if (!style.foreground.is_blank()) {
             int s = -1;
-            for(int i=start; i<start+length; i++) {
+            for (int i = start; i < start + length; i++) {
                 if (s == -1) {
                     if (line[i] != ' ') {
                         s = i;
                     }
                     continue;
                 }
-                if (line[i] == ' ' || i+1 == start+length) {
+                if (line[i] == ' ' || i + 1 == start + length) {
                     if (s != -1) {
                         SpanInfo span = {
                             .start = s,
-                            .length = i-s,
+                            .length = i - s,
                             .red = style.foreground.red * 255,
                             .green = style.foreground.green * 255,
                             .blue = style.foreground.blue * 255
@@ -93,7 +89,7 @@ void Highlighter::highlightBlock(const QString& text)
     if (!theme || !grammar) {
         return;
     }
-    
+
     std::map<size_t, scope::scope_t> scopes;
 
     bool firstLine = true;
@@ -143,7 +139,7 @@ void Highlighter::highlightBlock(const QString& text)
 
     std::string prevScopeName;
     size_t si = 0;
-    size_t n = 0;    
+    size_t n = 0;
     std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
     while (it != scopes.end()) {
         n = it->first;
@@ -180,18 +176,18 @@ void Highlighter::highlightBlock(const QString& text)
             HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(next.userData());
             if (blockData && parser_state->rule->rule_id != blockData->last_prev_block_rule) {
                 blockData->dirty = true;
-            }   
+            }
         }
     }
 }
 
 void Highlighter::onUpdate()
 {
-    QTextDocument *doc = document();
+    QTextDocument* doc = document();
 
     int rendered = 0;
     QTextBlock block = doc->begin();
-    while(block.isValid() && rendered<200) {
+    while (block.isValid() && rendered < 200) {
         HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
         if (blockData && blockData->dirty) {
             rendered++;

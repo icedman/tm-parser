@@ -40,11 +40,11 @@ public:
     void setTheme(theme_ptr theme);
     void setGrammar(parse::grammar_ptr grammar);
     void setDeferRendering(bool defer);
-    
+
 protected:
     void highlightBlock(const QString& text) override;
-    void setFormatFromStyle(size_t start, size_t length, style_t &style, const char *line, HighlightBlockData *blockData);
-    
+    void setFormatFromStyle(size_t start, size_t length, style_t& style, const char* line, HighlightBlockData* blockData);
+
 private:
     bool deferRendering;
     parse::grammar_ptr grammar;
@@ -54,7 +54,6 @@ private:
 
 private Q_SLOTS:
     void onUpdate();
-
 };
 //! [0]
 

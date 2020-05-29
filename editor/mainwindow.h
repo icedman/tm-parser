@@ -8,7 +8,6 @@
 #include <QMainWindow>
 #include <QTimer>
 
-//! [0]
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -22,13 +21,15 @@ public slots:
     void openFile(const QString& path = QString());
 
 private:
+    void configure();
     void setupEditor();
     void setupFileMenu();
     void setupHelpMenu();
 
-    Editor *editor;
+    Editor* editor;
     std::vector<Extension> extensions;
+
+    theme_ptr theme;
 };
-//! [0]
 
 #endif // MAINWINDOW_H
