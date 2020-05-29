@@ -13,5 +13,6 @@ subprojects/wlroots
 tmp
 subprojects
 
+Makefile
 moc_*
 .qmake*
