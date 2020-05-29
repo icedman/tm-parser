@@ -4,6 +4,7 @@
 #include "onigmognu.h"
 #include <map>
 #include <memory>
+#include <string>
 
 std::map<std::string, std::string> extract_captures(OnigUChar const* buffer,
     OnigRegion const* match,
