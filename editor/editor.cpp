@@ -6,11 +6,6 @@
 #include "editor.h"
 #include "reader.h"
 
-// QTextBlock SublimeTextEdit::_firstVisibleBlock()
-// {
-//     return firstVisibleBlock();
-// }
-
 Editor::Editor(QWidget* parent)
     : QWidget(parent),
     updateTimer(this)
@@ -25,23 +20,28 @@ Editor::Editor(QWidget* parent)
 void Editor::newFile()
 {
     editor->clear();
+    fileName = "";
+}
+
+void Editor::saveFile(const QString& path)
+{
+    QFile file(path);
+    if (file.open(QFile::WriteOnly | QFile::Text)) {
+        QTextStream out(&file);
+        out << editor->toPlainText();
+        // file.write(editor->toPlainText());
+    }
 }
 
 void Editor::openFile(const QString& path)
 {
-    QString fileName = path;
-
-    if (fileName.isNull())
-        fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", "C, C++ Files (*.c *.cpp *.h)");
-
-    if (!fileName.isEmpty()) {
-        QFile file(fileName);
-        if (file.open(QFile::ReadOnly | QFile::Text)) {
-            highlighter->setDeferRendering(true);
-            highlighter->setGrammar(grammar);
-            editor->setPlainText(file.readAll());
-            highlightBlocks();
-        }
+    QFile file(path);
+    if (file.open(QFile::ReadOnly | QFile::Text)) {
+        fileName = path;
+        highlighter->setDeferRendering(true);
+        highlighter->setGrammar(grammar);
+        editor->setPlainText(file.readAll());
+        highlightBlocks();
     }
 }
 
@@ -81,6 +81,9 @@ void Editor::setupEditor()
     box->setSpacing(0);
 
     setLayout(box);
+
+    // gutter->hide();
+    // mini->hide();
 
     // Json::Value json_theme = parse::loadJson("./dark_vs.json");
     // Json::Value json_theme = parse::loadJson("./light_vs.json");
@@ -168,11 +171,12 @@ void Editor::highlightBlocks()
 void Editor::updateRequested(const QRect &rect, int d)
 {
     updateGutter();
+    updateMiniMap();
 }
 
 void Editor::updateMiniMap()
 {   
-    int sw = 100;
+    int sw = 60 + (width()*0.03);
     mini->setMinimumSize(sw, 0);
     mini->update();
 }

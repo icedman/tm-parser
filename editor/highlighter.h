@@ -12,6 +12,14 @@ QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
 
+struct SpanInfo {
+    int start;
+    int length;
+    int red;
+    int green;
+    int blue;
+};
+
 class HighlightBlockData : public QTextBlockUserData {
 public:
     parse::stack_ptr parser_state;
@@ -19,8 +27,7 @@ public:
     bool dirty;
     size_t last_prev_block_rule;
 
-    std::vector<QColor> span_colors;
-    std::vector<uint32_t> spans;
+    std::vector<SpanInfo> spans;
 };
 
 //! [0]
@@ -36,7 +43,7 @@ public:
     
 protected:
     void highlightBlock(const QString& text) override;
-    void setFormatFromStyle(size_t start, size_t length, style_t &style, HighlightBlockData *blockData);
+    void setFormatFromStyle(size_t start, size_t length, style_t &style, const char *line, HighlightBlockData *blockData);
     
 private:
     bool deferRendering;

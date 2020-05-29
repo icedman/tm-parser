@@ -40,7 +40,10 @@ public:
     void setupEditor();
 
     void openFile(const QString& path = QString());
+    void saveFile(const QString& path = QString());
     void newFile();
+
+    QString fileName;
 
 private:
 

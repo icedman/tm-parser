@@ -1,8 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "highlighter.h"
 #include "editor.h"
+#include "extension.h"
 #include "theme.h"
 
 #include <QMainWindow>
@@ -18,6 +18,7 @@ public:
 public slots:
     void about();
     void newFile();
+    void saveFile();
     void openFile(const QString& path = QString());
 
 private:
@@ -26,6 +27,7 @@ private:
     void setupHelpMenu();
 
     Editor *editor;
+    std::vector<Extension> extensions;
 };
 //! [0]
 

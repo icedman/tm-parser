@@ -6,12 +6,14 @@ HEADERS         = mainwindow.h \
                   highlighter.h \
                   gutter.h \
                   minimap.h \
+                  extension.h
 
 SOURCES         = mainwindow.cpp \
                   editor.cpp \
                   highlighter.cpp \
                   gutter.cpp \
                   minimap.cpp \
+                  extension.cpp \
                   main.cpp
 
 CONFIG += c++17

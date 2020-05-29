@@ -27,6 +27,21 @@ void MainWindow::about()
 
 void MainWindow::newFile()
 {
+    editor->newFile();
+}
+
+void MainWindow::saveFile()
+{
+    QString fileName = editor->fileName;
+
+    std::cout << fileName.toUtf8().constData() << std::endl;
+
+    if (fileName.isNull() || fileName.isEmpty())
+        fileName = QFileDialog::getOpenFileName(this, tr("Save File"), "", "");
+
+    if (!fileName.isEmpty()) {
+        editor->saveFile(fileName);
+    }
 }
 
 void MainWindow::openFile(const QString& path)
@@ -59,6 +74,9 @@ void MainWindow::setupFileMenu()
     fileMenu->addAction(
         tr("&Open..."),
         this, [this]() { openFile(); }, QKeySequence::Open);
+    fileMenu->addAction(
+        tr("&Save..."),
+        this, [this]() { saveFile(); }, QKeySequence::Save);
     fileMenu->addAction(tr("E&xit"), qApp,
         &QApplication::quit, QKeySequence::Quit);
 }

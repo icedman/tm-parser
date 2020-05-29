@@ -43,7 +43,7 @@ void dump_color(color_info_t clr)
         << " b:" << (int)(clr.blue * 255);
 }
 
-void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t &style, HighlightBlockData *blockData)
+void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t &style, const char* line, HighlightBlockData *blockData)
 {
     if (style.bold == bool_true ||
         style.italic == bool_true ||
@@ -59,8 +59,30 @@ void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t &style
         f.setFontStrikeOut(style.strikethrough == bool_true);
         f.setForeground(clr);
 
-        // blockData->span_colors.push_back(clr);
-        // blockData->spans.push_back((start << 24 | length));
+        if (!style.foreground.is_blank()) {
+            int s = -1;
+            for(int i=start; i<start+length; i++) {
+                if (s == -1) {
+                    if (line[i] != ' ') {
+                        s = i;
+                    }
+                    continue;
+                }
+                if (line[i] == ' ' || i+1 == start+length) {
+                    if (s != -1) {
+                        SpanInfo span = {
+                            .start = s,
+                            .length = i-s,
+                            .red = style.foreground.red * 255,
+                            .green = style.foreground.green * 255,
+                            .blue = style.foreground.blue * 255
+                        };
+                        blockData->spans.push_back(span);
+                    }
+                    s = -1;
+                }
+            }
+        }
 
         setFormat(start, length, f);
     }
@@ -118,7 +140,6 @@ void Highlighter::highlightBlock(const QString& text)
     parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
 
     blockData->spans.clear();
-    blockData->span_colors.clear();
 
     std::string prevScopeName;
     size_t si = 0;
@@ -132,7 +153,7 @@ void Highlighter::highlightBlock(const QString& text)
 
         if (n > si) {
             style_t s = theme->styles_for_scope(prevScopeName);
-            setFormatFromStyle(si, n - si, s, blockData);
+            setFormatFromStyle(si, n - si, s, first, blockData);
         }
 
         prevScopeName = scopeName;
@@ -142,7 +163,7 @@ void Highlighter::highlightBlock(const QString& text)
     n = last - first;
     if (n > si) {
         style_t s = theme->styles_for_scope(prevScopeName);
-        setFormatFromStyle(si, n - si, s, blockData);
+        setFormatFromStyle(si, n - si, s, first, blockData);
     }
 
     blockData->parser_state = parser_state;
