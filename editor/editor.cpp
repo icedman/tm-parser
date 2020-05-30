@@ -6,6 +6,7 @@
 #include "minimap.h"
 #include "reader.h"
 #include "extension.h"
+#include "settings.h"
 
 Editor::Editor(QWidget* parent)
     : QWidget(parent)
@@ -121,6 +122,7 @@ void Editor::setTheme(theme_ptr _theme)
     ");
 
     editor->setStyleSheet("QPlainTextEdit { border: 0px; } QScrollBar { width: 0px }");
+    editor->setLineWrapMode(QPlainTextEdit::NoWrap);
 }
 
 void Editor::setGrammar(parse::grammar_ptr _grammar)

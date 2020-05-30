@@ -1,19 +1,21 @@
 QT += widgets
 requires(qtConfig(filedialog))
 
-HEADERS         = mainwindow.h \
-                  editor.h \
-                  highlighter.h \
+HEADERS         = editor.h \
+                  extension.h \
                   gutter.h \
+                  highlighter.h \
+                  mainwindow.h \
                   minimap.h \
-                  extension.h
+                  settings.h
 
-SOURCES         = mainwindow.cpp \
-                  editor.cpp \
-                  highlighter.cpp \
-                  gutter.cpp \
-                  minimap.cpp \
+SOURCES         = editor.cpp \
                   extension.cpp \
+                  gutter.cpp \
+                  highlighter.cpp \
+                  mainwindow.cpp \
+                  minimap.cpp \
+                  settings.cpp \
                   main.cpp
 
 QMAKE_CXXFLAGS += -fpermissive
@@ -23,17 +25,12 @@ CONFIG += c++17
 target.path = $$[QT_INSTALL_EXAMPLES]/widgets/richtext/syntaxhighlighter
 INSTALLS += target
 
-# parser
 INCPATH += ../textmate/parser/
-LIBS+= ../build/textmate/parser/libparser.a
-
-# scopes
 INCPATH += ../textmate/scopes/
-LIBS+= ../build/textmate/scopes/libscopes.a
-
-# theme
 INCPATH += ../textmate/theme/
-LIBS+= ../build/textmate/theme/libtheme.a
+
+LIBS+= ../build/textmate/libtextmate.a
+
 
 # jsoncpp (build as static library)
 INCPATH += ../subprojects/jsoncpp-1.8.4/include 

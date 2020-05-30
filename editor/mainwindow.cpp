@@ -1,9 +1,12 @@
 #include <QtWidgets>
+#include <QStandardPaths>
+
 #include <iostream>
 
 #include "mainwindow.h"
 #include "reader.h"
 #include "theme.h"
+#include "settings.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -33,7 +36,9 @@ void MainWindow::about()
 
 void MainWindow::configure()
 {
-    load_extensions(QString("../extensions"), extensions);
+    QString config = QStandardPaths::locate(QStandardPaths::ConfigLocation, "editor/extensions", QStandardPaths::LocateDirectory);
+    load_extensions(config, extensions);
+    load_extensions(QString("./extensions"), extensions);
 }
 
 void MainWindow::setupTheme()

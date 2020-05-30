@@ -32,8 +32,8 @@ private Q_SLOTS:
 
 private:
     Editor* editor;
-    std::vector<Extension> extensions;
 
+    std::vector<Extension> extensions;
     theme_ptr theme;
 
     QMenu* fileMenu;

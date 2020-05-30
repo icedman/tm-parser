@@ -20,7 +20,7 @@ textmate_files = [
     'theme/util.cpp'
 ]
 
-textmate_lib = library(
+textmate_lib = static_library(
     'textmate',
     textmate_files,
     include_directories: [ textmate_inc, parser_inc, scopes_inc, theme_inc ],

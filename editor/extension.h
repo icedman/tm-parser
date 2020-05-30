@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "grammar.h"
-#include "theme.h"
 
 class Extension {
 public:
@@ -16,7 +15,5 @@ public:
 
 void load_extensions(const QString path, std::vector<Extension>& extensions);
 parse::grammar_ptr grammar_from_file(const QString path, std::vector<Extension>& extensions);
-
-bool theme_color(theme_ptr theme, std::string name, QColor& qcolor);
 
 #endif // EXTENSION_H

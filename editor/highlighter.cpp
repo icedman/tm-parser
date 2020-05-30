@@ -1,10 +1,11 @@
+#include <QTextDocument>
+#include <iostream>
+
 #include "highlighter.h"
 #include "parse.h"
 #include "reader.h"
 #include "extension.h"
-
-#include <QTextDocument>
-#include <iostream>
+#include "settings.h"
 
 Highlighter::Highlighter(QTextDocument* parent)
     : QSyntaxHighlighter(parent)
