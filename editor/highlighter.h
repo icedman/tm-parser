@@ -50,6 +50,8 @@ private:
     parse::grammar_ptr grammar;
     theme_ptr theme;
 
+    QColor foregroundColor;
+    
     QTimer updateTimer;
 
 private Q_SLOTS:

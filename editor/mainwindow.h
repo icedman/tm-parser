@@ -25,11 +25,21 @@ private:
     void setupEditor();
     void setupFileMenu();
     void setupHelpMenu();
+    void setupTheme();
 
+private Q_SLOTS:
+    void warmConfigure();
+
+private:
     Editor* editor;
     std::vector<Extension> extensions;
 
     theme_ptr theme;
+
+    QMenu* fileMenu;
+    QMenu* viewMenu;
+
+    QTimer updateTimer;
 };
 
 #endif // MAINWINDOW_H

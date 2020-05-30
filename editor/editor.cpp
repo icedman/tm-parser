@@ -5,6 +5,7 @@
 #include "gutter.h"
 #include "minimap.h"
 #include "reader.h"
+#include "extension.h"
 
 Editor::Editor(QWidget* parent)
     : QWidget(parent)
@@ -16,8 +17,6 @@ Editor::Editor(QWidget* parent)
     , editor(0)
     , updateTimer(this)
 {
-    // setupEditor();
-    // connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(updateCursor()));
 }
 
 void Editor::newFile()
@@ -45,16 +44,6 @@ void Editor::openFile(const QString& path)
         editor->setPlainText(file.readAll());
         highlightBlocks();
     }
-}
-
-bool theme_color(theme_ptr theme, std::string name, QColor& qcolor)
-{
-    color_info_t clr;
-    theme->theme_color(name, clr);
-    qcolor.setRed(clr.red * 255);
-    qcolor.setGreen(clr.green * 255);
-    qcolor.setBlue(clr.blue * 255);
-    return !clr.is_blank();
 }
 
 void Editor::setTheme(theme_ptr _theme)
@@ -107,7 +96,31 @@ void Editor::setTheme(theme_ptr _theme)
         editor->setPalette(p);
     }
 
-    editor->setStyleSheet("QPlainTextEdit { border: 0px; } QScrollBar { width: 0px } ");
+    vscroll->setStyleSheet(" \
+    QScrollBar:vertical { \
+      width: 12px; \
+      background: " + bgColor.darker(105).name() + "; \
+      padding: 3px; \
+      border: none; \
+    } \
+    QScrollBar::handle:vertical { \
+      background: " + bgColor.lighter(150).name() + "; \
+      border-radius: 3px; \
+    } \
+    QScrollBar::add-line:vertical { \
+      border: none; \
+      background: none; \
+    } \
+    QScrollBar::sub-line:vertical { \
+      border: none; \
+      background: none; \
+    } \
+    QScrollBar::handle:hover:vertical { \
+      background: " + bgColor.lighter(180).name() + "; \
+    } \
+    ");
+
+    editor->setStyleSheet("QPlainTextEdit { border: 0px; } QScrollBar { width: 0px }");
 }
 
 void Editor::setGrammar(parse::grammar_ptr _grammar)
@@ -146,10 +159,18 @@ void Editor::setupEditor()
     mini = new MiniMap();
     mini->editor = editor;
 
+    vscroll = new QScrollBar();
+
+    connect(editor->verticalScrollBar(), SIGNAL(valueChanged(int)), vscroll, SLOT(setValue(int)));
+    connect(vscroll, SIGNAL(valueChanged(int)), editor->verticalScrollBar(), SLOT(setValue(int)));
+    connect(vscroll, SIGNAL(valueChanged(int)), this, SLOT(updateScrollBar(int)));
+
     QHBoxLayout* box = new QHBoxLayout();
     box->addWidget(gutter);
     box->addWidget(editor);
     box->addWidget(mini);
+    box->addWidget(vscroll);
+
     box->setMargin(0);
     box->setSpacing(0);
 
@@ -214,6 +235,30 @@ void Editor::updateMiniMap()
     int sw = 60 + (width() * 0.03);
     mini->setMinimumSize(sw, 0);
     mini->update();
+
+    int first = 0;
+    if (gutter->lineNumbers.size()) {
+        first = gutter->lineNumbers[0].number;
+    }
+    mini->setSizes(first, gutter->lineNumbers.size(), vscroll->value(), vscroll->maximum());
+}
+
+void Editor::updateScrollBar()
+{
+    size_t max = editor->verticalScrollBar()->maximum();
+    if (max > 0) {
+        vscroll->show();
+    } else {
+        vscroll->hide();
+    }
+    vscroll->setMaximum(max);
+    updateMiniMap();
+}
+
+void Editor::updateScrollBar(int i)
+{
+    updateGutter();
+    updateScrollBar();
 }
 
 void Editor::updateGutter()
@@ -253,4 +298,6 @@ void Editor::updateGutter()
     }
     gutter->lineNumbers.resize(index);
     gutter->update();
+
+    updateScrollBar();
 }

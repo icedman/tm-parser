@@ -1,6 +1,7 @@
 #include "highlighter.h"
 #include "parse.h"
 #include "reader.h"
+#include "extension.h"
 
 #include <QTextDocument>
 #include <iostream>
@@ -17,13 +18,7 @@ Highlighter::Highlighter(QTextDocument* parent)
 void Highlighter::setTheme(theme_ptr _theme)
 {
     theme = _theme;
-
-    // scope::scope_t scope("comment");
-    // style_t s = theme->styles_for_scope("scope");
-
-    // std::cout << s.foreground.red << ","
-    //     << s.foreground.green << ","
-    //     << s.foreground.blue << std::endl;
+    theme_color(theme, "editor.foreground", foregroundColor);
 }
 
 void Highlighter::setGrammar(parse::grammar_ptr _grammar)
@@ -45,43 +40,45 @@ void dump_color(color_info_t clr)
 
 void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style, const char* line, HighlightBlockData* blockData)
 {
+    QColor clr;
     if (style.bold == bool_true || style.italic == bool_true || style.underlined == bool_true || style.strikethrough == bool_true || !style.foreground.is_blank()) {
-
-        QColor clr = QColor(style.foreground.red * 255, style.foreground.green * 255, style.foreground.blue * 255, 255);
+        clr = QColor(style.foreground.red * 255, style.foreground.green * 255, style.foreground.blue * 255, 255);
         QTextCharFormat f;
         f.setFontWeight(style.bold == bool_true ? QFont::Medium : QFont::Normal);
         f.setFontItalic(style.italic == bool_true);
         f.setFontUnderline(style.underlined == bool_true);
         f.setFontStrikeOut(style.strikethrough == bool_true);
         f.setForeground(clr);
-
-        if (!style.foreground.is_blank()) {
-            int s = -1;
-            for (int i = start; i < start + length; i++) {
-                if (s == -1) {
-                    if (line[i] != ' ') {
-                        s = i;
-                    }
-                    continue;
-                }
-                if (line[i] == ' ' || i + 1 == start + length) {
-                    if (s != -1) {
-                        SpanInfo span = {
-                            .start = s,
-                            .length = i - s,
-                            .red = style.foreground.red * 255,
-                            .green = style.foreground.green * 255,
-                            .blue = style.foreground.blue * 255
-                        };
-                        blockData->spans.push_back(span);
-                    }
-                    s = -1;
-                }
-            }
-        }
-
         setFormat(start, length, f);
     }
+
+    if (style.foreground.is_blank()) {
+        clr = foregroundColor;
+    }
+
+    int s = -1;
+    for (int i = start; i < start + length; i++) {
+        if (s == -1) {
+            if (line[i] != ' ') {
+                s = i;
+            }
+            continue;
+        }
+        if (line[i] == ' ' || i + 1 == start + length) {
+            if (s != -1) {
+                SpanInfo span = {
+                    .start = s,
+                    .length = i - s + 1,
+                    .red = clr.red(),
+                    .green = clr.green(),
+                    .blue = clr.blue()
+                };
+                blockData->spans.push_back(span);
+            }
+            s = -1;
+        }
+    }
+
 }
 
 void Highlighter::highlightBlock(const QString& text)

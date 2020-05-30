@@ -55,10 +55,14 @@ private:
     Highlighter* highlighter;
     QTimer updateTimer;
 
+    QScrollBar *vscroll;
+
     theme_ptr theme;
     parse::grammar_ptr grammar;
 
 public slots:
+    void updateScrollBar();
+    void updateScrollBar(int i);
     void updateGutter();
     void updateMiniMap();
 

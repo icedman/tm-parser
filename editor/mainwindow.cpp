@@ -4,17 +4,22 @@
 
 #include "mainwindow.h"
 #include "reader.h"
+#include "theme.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
+    , updateTimer(this)
 {
     configure();
 
+    setupTheme();
     setupFileMenu();
     setupHelpMenu();
     setupEditor();
 
-    setWindowTitle(tr("Syntax Highlighter"));
+    updateTimer.singleShot(2000, this, SLOT(warmConfigure()));
+
+    setWindowTitle(tr("Editor"));
     setMinimumSize(600, 400);
 }
 
@@ -30,16 +35,27 @@ void MainWindow::about()
 void MainWindow::configure()
 {
     load_extensions(QString("../extensions"), extensions);
+}
 
-    //----------------
-    // configuration
-    //----------------
+void MainWindow::setupTheme()
+{
     // Json::Value json_theme = parse::loadJson("./dark_vs.json");
     // Json::Value json_theme = parse::loadJson("./light_vs.json");
-    Json::Value json_theme = parse::loadJson("./dracula-soft.json");
-    // Json::Value json_theme = parse::loadJson("./monokai-color-theme.json");
+    // Json::Value json_theme = parse::loadJson("./dracula-soft.json");
+    Json::Value json_theme = parse::loadJson("./monokai-color-theme.json");
+    // Json::Value json_theme = parse::loadJson("./shades-of-purple-color-theme-italic.json");
     // Json::Value json_theme = parse::loadJson("./shades-of-purple-color-theme.json");
+
+    // std::cout << json_theme << std::endl;
+    
     theme = parse_theme(json_theme);
+
+    // QColor menuBarBg;
+    // QColor menuBarFg;
+    // if (theme_color(theme, "activityBar.background", menuBarBg)) {
+    //     theme_color(theme, "activityBar.foreground", menuBarFg);
+    //     menuBar()->setStyleSheet("QMenuBar{ color: " + menuBarFg.name() + "; background: " + menuBarBg.name() + " }");
+    // }
 }
 
 void MainWindow::newFile()
@@ -82,13 +98,11 @@ void MainWindow::setupEditor()
     editor->setupEditor();
 
     setCentralWidget(editor);
-
-    // openFile("../tests/cases/test.c");
 }
 
 void MainWindow::setupFileMenu()
 {
-    QMenu* fileMenu = new QMenu(tr("&File"), this);
+    fileMenu = new QMenu(tr("&File"), this);
     menuBar()->addMenu(fileMenu);
 
     fileMenu->addAction(tr("&New"), this,
@@ -101,15 +115,23 @@ void MainWindow::setupFileMenu()
         this, [this]() { saveFile(); }, QKeySequence::Save);
     fileMenu->addAction(tr("E&xit"), qApp,
         &QApplication::quit, QKeySequence::Quit);
+
+    viewMenu = new QMenu(tr("&View"), this);
+    menuBar()->addMenu(viewMenu);
 }
 
 void MainWindow::setupHelpMenu()
 {
-    QMenu* helpMenu = new QMenu(tr("&Help"), this);
+    QMenu *helpMenu = new QMenu(tr("&Help"), this);
     menuBar()->addMenu(helpMenu);
 
     helpMenu->addAction(tr("&About"), this, &MainWindow::about);
     helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
+}
+
+void MainWindow::warmConfigure()
+{
+    std::cout << "configure" << std::endl;
 }
 
 /*
