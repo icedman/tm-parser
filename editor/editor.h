@@ -60,6 +60,8 @@ private:
     theme_ptr theme;
     parse::grammar_ptr grammar;
 
+    QTextBlock updateIterator;
+
 public slots:
     void updateScrollBar();
     void updateScrollBar(int i);

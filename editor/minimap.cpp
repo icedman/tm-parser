@@ -14,6 +14,15 @@ MiniMap::MiniMap(QWidget* parent)
 
 void MiniMap::paintEvent(QPaintEvent* event)
 {
+    if (buffer.width() > 0) {
+        QPainter pt(this);
+       pt.drawPixmap(rect(), buffer, buffer.rect());
+
+       // todo update single line changed!
+
+       return;
+    }
+
     QTextDocument* doc = editor->document();
     int lines = doc->lineCount() + 1;
 
@@ -37,9 +46,9 @@ void MiniMap::paintEvent(QPaintEvent* event)
         }
     }
     
-    // todo render only changed!
-    QPainter p(this);
-
+    buffer = QPixmap(width(), height());
+    QPainter p(&buffer);
+    
     QColor bg = backgroundColor.darker(105);
     QColor bgLighter = backgroundColor.lighter(120);
 
@@ -53,12 +62,14 @@ void MiniMap::paintEvent(QPaintEvent* event)
 
     int renderLines = (currentHeight * 4) / advanceY;
 
-    // std::cout << vh << std::endl;
+    // highlighted block
     p.fillRect(0, y - offsetY, width(), vh, bgLighter);
 
-    int fv = firstVisible - 500;
-    if (fv < 0) {
-        fv = 0;
+    // int start = n - (offsetY / advanceY) - 4;
+
+    int start = (offsetY - currentHeight) / advanceY;
+    if (start < 0) {
+        start = 0;
     }
 
     p.save();
@@ -67,7 +78,7 @@ void MiniMap::paintEvent(QPaintEvent* event)
     p.setBrush(Qt::SolidPattern);
 
     int idx = 0;
-    QTextBlock block = doc->findBlockByNumber(fv);
+    QTextBlock block = doc->findBlockByNumber(start);
     while (block.isValid()) {
         HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
         if (blockData) {
@@ -79,19 +90,29 @@ void MiniMap::paintEvent(QPaintEvent* event)
                 p.setPen(QColor(span.red, span.green, span.blue));
                 p.drawLine(x, y - offsetY, x + w, y - offsetY);
             }
+            if (y - offsetY > height()) {
+                break;
+            }
         }
         idx++;
-        if (idx > renderLines) {
-            break;
-        }
         block = block.next();
     }
 
     p.restore();
+
+    QPainter pt(this);
+    pt.drawPixmap(rect(), buffer, buffer.rect());
 }
 
 void MiniMap::setSizes(size_t first, int visible, size_t val, size_t max)
 {
+    if (firstVisible != first ||
+        visibleLines != visible ||
+        value != val ||
+        maximum != max) {
+        buffer = QPixmap();
+    }
+
     firstVisible = first;
     visibleLines = visible;
     value = val;
