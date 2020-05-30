@@ -141,8 +141,8 @@ void Editor::setupEditor()
 
     QFont font;
     //'Droid Sans Mono', 'monospace', monospace, 'Droid Sans Fallback'
-    font.setFamily("Droid Sans Mono");
-    // font.setFamily("Source Code Pro");
+    // font.setFamily("Droid Sans Mono");
+    font.setFamily("Source Code Pro for Powerline");
 
     font.setFixedPitch(true);
     font.setPointSize(12);

@@ -16,3 +16,5 @@ subprojects
 Makefile
 moc_*
 .qmake*
+editor.app
+
