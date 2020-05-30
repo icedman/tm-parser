@@ -52,6 +52,8 @@ private:
 
     QColor foregroundColor;
     
+    bool hasDirtyBlocks;
+    QTextBlock updateIterator;
     QTimer updateTimer;
 
 private Q_SLOTS:

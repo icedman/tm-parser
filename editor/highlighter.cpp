@@ -13,7 +13,7 @@ Highlighter::Highlighter(QTextDocument* parent)
     , grammar(0)
 {
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdate()));
-    updateTimer.start(50);
+    updateTimer.start(250);
 }
 
 void Highlighter::setTheme(theme_ptr _theme)
@@ -174,6 +174,7 @@ void Highlighter::highlightBlock(const QString& text)
             HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(next.userData());
             if (blockData && parser_state->rule->rule_id != blockData->last_prev_block_rule) {
                 blockData->dirty = true;
+                hasDirtyBlocks = true;
             }
         }
     }
@@ -181,16 +182,26 @@ void Highlighter::highlightBlock(const QString& text)
 
 void Highlighter::onUpdate()
 {
-    QTextDocument* doc = document();
+    if (!hasDirtyBlocks) {
+        return;
+    }
 
     int rendered = 0;
-    QTextBlock block = doc->begin();
-    while (block.isValid() && rendered < 200) {
-        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+
+    if (!updateIterator.isValid()) {
+        QTextDocument* doc = document();
+        updateIterator = doc->begin();
+    }
+    while (updateIterator.isValid() && rendered < 200) {
+        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(updateIterator.userData());
         if (blockData && blockData->dirty) {
             rendered++;
-            rehighlightBlock(block);
+            rehighlightBlock(updateIterator);
         }
-        block = block.next();
+        updateIterator = updateIterator.next();
+    }
+
+    if (rendered == 0) {
+        hasDirtyBlocks = false;
     }
 }

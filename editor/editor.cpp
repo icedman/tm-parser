@@ -40,8 +40,15 @@ void Editor::openFile(const QString& path)
     QFile file(path);
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         fileName = path;
-        highlighter->setDeferRendering(true);
         highlighter->setGrammar(grammar);
+        
+        if (file.size() > (1024*500)) {
+            // do super load!
+            std::cout << "do threaded syntax highlighting at load" << std::endl;
+        }
+
+        std::cout << file.size() << std::endl;
+        highlighter->setDeferRendering(true);
         editor->setPlainText(file.readAll());
         highlightBlocks();
     }
@@ -194,34 +201,6 @@ void Editor::setupEditor()
     updateMiniMap();
 }
 
-void Editor::highlightBlocks()
-{
-    if (!editor) {
-        return;
-    }
-
-    QTextDocument* doc = editor->document();
-    int rendered = 0;
-    QTextBlock block = doc->begin();
-    while (block.isValid() && rendered < 100) {
-        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
-        if (!blockData) {
-            rendered++;
-            blockData = new HighlightBlockData;
-            block.setUserData(blockData);
-            highlighter->rehighlightBlock(block);
-        }
-        block = block.next();
-    }
-
-    if (rendered > 0) {
-        updateTimer.singleShot(50, this, SLOT(highlightBlocks()));
-    } else {
-        std::cout << "all rendering done" << std::endl;
-        highlighter->setDeferRendering(false);
-    }
-}
-
 void Editor::updateRequested(const QRect& rect, int d)
 {
     updateGutter();
@@ -302,4 +281,33 @@ void Editor::updateGutter()
     gutter->update();
 
     updateScrollBar();
+}
+
+
+void Editor::highlightBlocks()
+{
+    int rendered = 0;
+
+    if (!updateIterator.isValid()) {
+        QTextDocument* doc = editor->document();
+        updateIterator = doc->begin();
+    }
+    
+    while (updateIterator.isValid() && rendered < 100) {
+        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(updateIterator.userData());
+        if (!blockData) {
+            rendered++;
+            blockData = new HighlightBlockData;
+            updateIterator.setUserData(blockData);
+            highlighter->rehighlightBlock(updateIterator);
+        }
+        updateIterator = updateIterator.next();
+    }
+
+    if (rendered > 0) {
+        updateTimer.singleShot(50, this, SLOT(highlightBlocks()));
+    } else {
+        std::cout << "all rendering done" << std::endl;
+        highlighter->setDeferRendering(false);
+    }
 }

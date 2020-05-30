@@ -23,6 +23,8 @@ public:
 
     float offsetY;
 
+    QPixmap buffer;
+
 private:
     void scrollByMouseY(float y);
 
