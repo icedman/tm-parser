@@ -17,4 +17,4 @@ Makefile
 moc_*
 .qmake*
 editor.app
-
+editor/editor

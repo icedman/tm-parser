@@ -33,7 +33,6 @@ onigmo_dep = declare_dependency(
     include_directories : onigmo_inc
 )
 
-
 textmate_inc = include_directories('textmate')
 
 subdir('textmate')
