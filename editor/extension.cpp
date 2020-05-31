@@ -9,6 +9,21 @@
 
 #include "json/json.h"
 
+void load_settings(const QString path, Json::Value &settings)
+{
+    Json::Value obj = parse::loadJson(path.toStdString() + "/settings.json");
+    if (!obj.isObject()) {
+        return;
+    }
+
+    std::vector<std::string> keys = obj.getMemberNames();
+    std::vector<std::string>::iterator it = keys.begin();
+    while (it != keys.end()) {
+        settings[*it] = obj[*it];
+        it++;
+    }
+}
+
 void load_extensions(const QString path, std::vector<Extension>& extensions)
 {
     // Json::Value contribs
@@ -60,8 +75,6 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
 
     // std::cout << contribs;
 }
-
-// parse::grammar_ptr grammar_from_file(const QString path, std::vector<Extension>& extensions)
 
 language_info_t language_from_file(const QString path, std::vector<Extension>& extensions)
 {

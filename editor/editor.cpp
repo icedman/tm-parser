@@ -197,6 +197,14 @@ void Editor::updateMiniMap()
         return;
     }
 
+    // todo
+    if (settings->miniMap) {
+        mini->show();
+    } else {
+        mini->hide();
+    }
+
+
     int sw = 60 + (width() * 0.03);
     mini->setMinimumSize(sw, 0);
     mini->update();

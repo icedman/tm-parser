@@ -11,6 +11,7 @@ Highlighter::Highlighter(QTextDocument* parent)
     : QSyntaxHighlighter(parent)
     , theme(0)
     , grammar(0)
+    , deferRendering(false)
 {
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdate()));
     updateTimer.start(250);

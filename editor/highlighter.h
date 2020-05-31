@@ -41,6 +41,7 @@ public:
     void setDeferRendering(bool defer);
 
     bool isDirty() { return hasDirtyBlocks; }
+    bool isReady() { return !deferRendering; }
 
 protected:
     void highlightBlock(const QString& text) override;

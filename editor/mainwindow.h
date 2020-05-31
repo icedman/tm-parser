@@ -4,8 +4,8 @@
 #include "editor.h"
 #include "extension.h"
 #include "theme.h"
-
 #include "tree.h"
+#include "json/json.h"
 
 #include <QMainWindow>
 #include <QTimer>
@@ -27,10 +27,10 @@ public slots:
 private:
     void configure();
     void setupEditor();
-    void setupFileMenu();
-    void setupHelpMenu();
+    void setupMenu();
     void setupLayout();
     void applyTheme();
+    void applySettings();
 
 private Q_SLOTS:
     void warmConfigure();
@@ -47,6 +47,9 @@ private:
     QWidget* central;
     QStackedWidget* editors;
     Sidebar* sidebar;
+
+    struct editor_settings_t editor_settings;
+    Json::Value settings;
 
     QTimer updateTimer;
 };

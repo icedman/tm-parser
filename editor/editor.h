@@ -32,6 +32,10 @@ public:
     }
 };
 
+struct editor_settings_t {
+    bool miniMap : true;
+};
+
 class Editor : public QWidget {
     Q_OBJECT
 
@@ -46,11 +50,17 @@ public:
     void saveFile(const QString& path = QString());
     void newFile();
 
+    bool isAvailable() {
+        return highlighter->isReady() && !updateTimer.isActive();
+    }
+
     QString fileName;
     TextmateEdit* editor;
     Gutter* gutter;
     MiniMap* mini;
     Highlighter* highlighter;
+
+    struct editor_settings_t *settings;
 
 private:
     QTimer updateTimer;

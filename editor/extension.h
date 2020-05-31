@@ -19,9 +19,9 @@ struct language_info_t {
     parse::grammar_ptr grammar;
 };
 
+void load_settings(const QString path, Json::Value &settings);
 void load_extensions(const QString path, std::vector<Extension>& extensions);
 theme_ptr theme_from_name(const QString path, std::vector<Extension>& extensions);
-// parse::grammar_ptr grammar_from_file(const QString path, std::vector<Extension>& extensions);
 language_info_t language_from_file(const QString path, std::vector<Extension>& extensions);
 
 #endif // EXTENSION_H

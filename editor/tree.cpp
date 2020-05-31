@@ -9,6 +9,7 @@
 
 Sidebar::Sidebar(QWidget* parent)
     : QTreeView(parent),
+    fileModel(0),
     firstOpen(false)
 {
     setHeaderHidden(true);
@@ -16,6 +17,10 @@ Sidebar::Sidebar(QWidget* parent)
 
 void Sidebar::setRootPath(QString path)
 {
+    if (fileModel) {
+        return;
+    }
+
     fileModel = new QFileSystemModel(this);
     fileModel->setRootPath(path);
 
