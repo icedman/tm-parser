@@ -39,7 +39,7 @@ void MainWindow::about()
 
 void MainWindow::configure()
 {
-    QString config = QStandardPaths::locate(QStandardPaths::ConfigLocation, "editor/extensions", QStandardPaths::LocateDirectory);
+    QString config = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor/extensions", QStandardPaths::LocateDirectory);
     load_extensions(config, extensions);
     load_extensions(QString("./extensions"), extensions);
 

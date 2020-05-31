@@ -98,6 +98,7 @@ bool theme_sidebar(theme_ptr theme, std::string name, QWidget& tree)
     }
     if (!theme_color(theme, name + ".foreground", fgColor)) {
       theme_color(theme, "editor.foreground", fgColor);
+      fgColor = fgColor.darker(110);
     }
 
     QColor activeBg;
