@@ -5,8 +5,12 @@
 #include "extension.h"
 #include "theme.h"
 
+#include "tree.h"
+
 #include <QMainWindow>
 #include <QTimer>
+
+class QStackedWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -25,7 +29,8 @@ private:
     void setupEditor();
     void setupFileMenu();
     void setupHelpMenu();
-    void setupTheme();
+    void setupLayout();
+    void applyTheme();
 
 private Q_SLOTS:
     void warmConfigure();
@@ -38,6 +43,10 @@ private:
 
     QMenu* fileMenu;
     QMenu* viewMenu;
+
+    QWidget* central;
+    QStackedWidget* editors;
+    Sidebar* sidebar;
 
     QTimer updateTimer;
 };

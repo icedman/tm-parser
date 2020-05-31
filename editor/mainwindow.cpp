@@ -1,12 +1,13 @@
-#include <QtWidgets>
+#include <QStackedWidget>
 #include <QStandardPaths>
+#include <QtWidgets>
 
 #include <iostream>
 
 #include "mainwindow.h"
 #include "reader.h"
-#include "theme.h"
 #include "settings.h"
+#include "theme.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -14,15 +15,17 @@ MainWindow::MainWindow(QWidget* parent)
 {
     configure();
 
-    setupTheme();
     setupFileMenu();
     setupHelpMenu();
-    setupEditor();
 
-    updateTimer.singleShot(2000, this, SLOT(warmConfigure()));
+    setupEditor();
+    setupLayout();
+    applyTheme();
 
     setWindowTitle(tr("Editor"));
     setMinimumSize(600, 400);
+
+    updateTimer.singleShot(250, this, SLOT(warmConfigure()));
 }
 
 void MainWindow::about()
@@ -39,27 +42,63 @@ void MainWindow::configure()
     QString config = QStandardPaths::locate(QStandardPaths::ConfigLocation, "editor/extensions", QStandardPaths::LocateDirectory);
     load_extensions(config, extensions);
     load_extensions(QString("./extensions"), extensions);
+
+    // theme = theme_from_name("Monokai", extensions);
+    // theme = theme_from_name("Solarized Dark", extensions);
+    // theme = theme_from_name("Tomorrow Night Blue", extensions);
+    // theme = theme_from_name("Dracula Soft", extensions);
+    theme = theme_from_name("Dracula", extensions);
+    // theme = theme_from_name("Shades of Purple", extensions);
 }
 
-void MainWindow::setupTheme()
+void MainWindow::applyTheme()
 {
-    // Json::Value json_theme = parse::loadJson("./dark_vs.json");
-    // Json::Value json_theme = parse::loadJson("./light_vs.json");
-    // Json::Value json_theme = parse::loadJson("./dracula-soft.json");
-    Json::Value json_theme = parse::loadJson("./monokai-color-theme.json");
-    // Json::Value json_theme = parse::loadJson("./shades-of-purple-color-theme-italic.json");
-    // Json::Value json_theme = parse::loadJson("./shades-of-purple-color-theme.json");
+    QColor menuBarBg;
+    QColor menuBarFg;
+    if (theme_color(theme, "menu.background", menuBarBg)) {
+        theme_color(theme, "menu.foreground", menuBarFg);
+        menuBar()->setStyleSheet("QMenuBar{ color: " + menuBarFg.name() + "; background: " + menuBarBg.name() + " }");
+    }
 
-    // std::cout << json_theme << std::endl;
-    
-    theme = parse_theme(json_theme);
+    theme_splitter(theme, "editor.background", *central);
+    theme_sidebar(theme, "editor.background", *sidebar);
+    theme_scrollbar(theme, "editor.background", *sidebar->horizontalScrollBar());
+    theme_scrollbar(theme, "editor.background", *sidebar->verticalScrollBar());
+    if (!theme_sidebar(theme, "sideBar", *sidebar)) {
+        if (!theme_sidebar(theme, "menu", *sidebar)) {
+            theme_sidebar(theme, "editor", *sidebar);
+        }
+    }
+    if (!theme_statusbar(theme, "statusBar", *statusBar())) {
+        theme_sidebar(theme, "editor", *statusBar());
+    }
 
-    // QColor menuBarBg;
-    // QColor menuBarFg;
-    // if (theme_color(theme, "activityBar.background", menuBarBg)) {
-    //     theme_color(theme, "activityBar.foreground", menuBarFg);
-    //     menuBar()->setStyleSheet("QMenuBar{ color: " + menuBarFg.name() + "; background: " + menuBarBg.name() + " }");
-    // }
+    statusBar()->showMessage("hello", 1000);
+}
+
+void MainWindow::setupLayout()
+{
+    QSplitter* splitter = new QSplitter(Qt::Horizontal);
+    editors = new QStackedWidget();
+
+    // hbox->setMargin(0);
+    // hbox->setSpacing(0);
+    // editors->setMargin(0);
+    // editors->setSpacing(0);
+
+    setStyleSheet("* { font-size: 12pt; } QPlainTextEdit { font-size: 12pt; }");
+
+    sidebar = new Sidebar();
+    sidebar->mainWindow = this;
+
+    splitter->addWidget(sidebar);
+    splitter->addWidget(editors);
+    splitter->setStretchFactor(1, 4);
+
+    editors->addWidget(editor);
+    setCentralWidget(splitter);
+
+    central = splitter;
 }
 
 void MainWindow::newFile()
@@ -89,19 +128,20 @@ void MainWindow::openFile(const QString& path)
         fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", "C, C++ Files (*.c *.cpp *.h)");
 
     if (!fileName.isEmpty()) {
-        editor->setGrammar(grammar_from_file(fileName, extensions));
+        language_info_t lang = language_from_file(fileName, extensions);
+        editor->setGrammar(lang.grammar);
         editor->openFile(fileName);
     }
 }
 
 void MainWindow::setupEditor()
 {
-    editor = new Editor();
+    editor = new Editor(this);
 
     editor->setTheme(theme);
     editor->setupEditor();
 
-    setCentralWidget(editor);
+    // setCentralWidget(editor);
 }
 
 void MainWindow::setupFileMenu()
@@ -126,7 +166,7 @@ void MainWindow::setupFileMenu()
 
 void MainWindow::setupHelpMenu()
 {
-    QMenu *helpMenu = new QMenu(tr("&Help"), this);
+    QMenu* helpMenu = new QMenu(tr("&Help"), this);
     menuBar()->addMenu(helpMenu);
 
     helpMenu->addAction(tr("&About"), this, &MainWindow::about);
@@ -136,6 +176,8 @@ void MainWindow::setupHelpMenu()
 void MainWindow::warmConfigure()
 {
     std::cout << "configure" << std::endl;
+
+    sidebar->setRootPath("./");
 }
 
 /*

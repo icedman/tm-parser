@@ -10,6 +10,8 @@ struct BlockInfo {
     bool folded : 1;
 };
 
+class Editor;
+
 class Gutter : public QWidget {
     Q_OBJECT
 
@@ -20,6 +22,8 @@ public:
     QColor lineNumberColor;
     QColor backgroundColor;
     QFont font;
+
+    Editor* editor;
 
 protected:
     void paintEvent(QPaintEvent* event) override;

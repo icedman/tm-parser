@@ -1,34 +1,72 @@
+#include <QColor>
 #include <QDebug>
 #include <QDirIterator>
-#include <QColor>
 #include <iostream>
 
 #include "extension.h"
 #include "reader.h"
 #include "stringop.h"
 
+#include "json/json.h"
+
 void load_extensions(const QString path, std::vector<Extension>& extensions)
 {
+    // Json::Value contribs
     QDirIterator it(path);
     while (it.hasNext()) {
         QString extensionPath = it.next();
         QString package = extensionPath + "/package.json";
 
         // qDebug() << package;
-
         Extension ex = {
             .path = extensionPath,
         };
 
         ex.package = parse::loadJson(package.toStdString());
-        if (ex.package.isObject()) {
+        if (!ex.package.isObject()) {
+            continue;
+        }
+
+        bool append = false;
+        if (ex.package.isMember("contributes")) {
+            std::vector<std::string> keys = ex.package["contributes"].getMemberNames();
+            std::vector<std::string>::iterator c_it = keys.begin();
+            while (c_it != keys.end()) {
+                std::string name = *c_it;
+
+                if (name == "themes" || name == "iconThemes" || name == "languages") {
+                    append = true;
+
+                    // Json::Value obj;
+                    // obj["name"] = ex.package["name"];
+                    // obj["package"] = package.toStdString();
+                    // contribs[name].append(obj);
+
+                    break;
+                }
+
+                c_it++;
+            }
+        }
+
+        if (append) {
+            // std::cout << ex.package["name"].asString() << std::endl;
+
+            qDebug() << package;
+
             extensions.emplace_back(ex);
         }
     }
+
+    // std::cout << contribs;
 }
 
-parse::grammar_ptr grammar_from_file(const QString path, std::vector<Extension>& extensions)
+// parse::grammar_ptr grammar_from_file(const QString path, std::vector<Extension>& extensions)
+
+language_info_t language_from_file(const QString path, std::vector<Extension>& extensions)
 {
+    language_info_t lang;
+
     parse::grammar_ptr grammar;
 
     QFileInfo info(path);
@@ -43,9 +81,6 @@ parse::grammar_ptr grammar_from_file(const QString path, std::vector<Extension>&
     Json::Value resolvedGrammars;
 
     for (auto ext : extensions) {
-        if (!ext.package.isMember("contributes")) {
-            continue;
-        }
         Json::Value contribs = ext.package["contributes"];
         if (!contribs.isMember("languages") || !contribs.isMember("grammars")) {
             continue;
@@ -58,7 +93,7 @@ parse::grammar_ptr grammar_from_file(const QString path, std::vector<Extension>&
             }
 
             Json::Value exts = lang["extensions"];
-            for(int j = 0; j < exts.size(); j++) {
+            for (int j = 0; j < exts.size(); j++) {
                 Json::Value ex = exts[j];
                 if (ex.asString().compare(suffix) == 0) {
                     resolvedExtension = ext;
@@ -67,16 +102,18 @@ parse::grammar_ptr grammar_from_file(const QString path, std::vector<Extension>&
                     break;
                 }
             }
-        
-            if (!resolvedLanguage.empty()) break;
+
+            if (!resolvedLanguage.empty())
+                break;
         }
 
-        if (!resolvedLanguage.empty()) break;
+        if (!resolvedLanguage.empty())
+            break;
     }
 
     if (!resolvedLanguage.empty()) {
         // std::cout << resolvedLanguage << std::endl;
-        for(int i = 0; i < resolvedGrammars.size(); i++) {
+        for (int i = 0; i < resolvedGrammars.size(); i++) {
             Json::Value g = resolvedGrammars[i];
             if (!g.isMember("language")) {
                 continue;
@@ -88,11 +125,46 @@ parse::grammar_ptr grammar_from_file(const QString path, std::vector<Extension>&
                 Json::Value root = parse::loadJson(path.toStdString());
                 grammar = parse::parse_grammar(root);
                 qDebug() << "grammar matched";
-                return grammar;
 
+                lang.grammar = grammar;
+                return lang;
+                // return grammar;
             }
         }
     }
 
-    return grammar;
+    return lang;
+}
+
+theme_ptr theme_from_name(const QString path, std::vector<Extension>& extensions)
+{
+    std::string theme_path = path.toStdString();
+    bool found = false;
+    for (auto ext : extensions) {
+        Json::Value contribs = ext.package["contributes"];
+        if (!contribs.isMember("themes")) {
+            continue;
+        }
+
+        Json::Value themes = contribs["themes"];
+        for (int i = 0; i < themes.size(); i++) {
+            Json::Value theme = themes[i];
+            if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
+                theme_path = ext.path.toStdString() + "/" + theme["path"].asString();
+                // std::cout << ext.path.toStdString() << "..." << std::endl;
+                std::cout << theme_path << std::endl;
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            break;
+        }
+    }
+
+    Json::Value json = parse::loadJson(theme_path); // "./dracula-soft.json");
+    theme_ptr theme = parse_theme(json);
+    ;
+    return theme;
 }

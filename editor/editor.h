@@ -14,7 +14,7 @@
 class MiniMap;
 class Gutter;
 
-class SublimeTextEdit : public QPlainTextEdit {
+class TextmateEdit : public QPlainTextEdit {
 public:
     QTextBlock _firstVisibleBlock()
     {
@@ -47,15 +47,15 @@ public:
     void newFile();
 
     QString fileName;
-
-private:
-    SublimeTextEdit* editor;
+    TextmateEdit* editor;
     Gutter* gutter;
     MiniMap* mini;
     Highlighter* highlighter;
+
+private:
     QTimer updateTimer;
 
-    QScrollBar *vscroll;
+    QScrollBar* vscroll;
 
     theme_ptr theme;
     parse::grammar_ptr grammar;

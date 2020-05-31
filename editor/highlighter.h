@@ -30,7 +30,6 @@ public:
     std::vector<SpanInfo> spans;
 };
 
-//! [0]
 class Highlighter : public QSyntaxHighlighter {
     Q_OBJECT
 
@@ -40,6 +39,8 @@ public:
     void setTheme(theme_ptr theme);
     void setGrammar(parse::grammar_ptr grammar);
     void setDeferRendering(bool defer);
+
+    bool isDirty() { return hasDirtyBlocks; }
 
 protected:
     void highlightBlock(const QString& text) override;
@@ -51,7 +52,7 @@ private:
     theme_ptr theme;
 
     QColor foregroundColor;
-    
+
     bool hasDirtyBlocks;
     QTextBlock updateIterator;
     QTimer updateTimer;
@@ -59,6 +60,5 @@ private:
 private Q_SLOTS:
     void onUpdate();
 };
-//! [0]
 
 #endif // HIGHLIGHTER_H

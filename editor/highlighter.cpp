@@ -1,10 +1,10 @@
 #include <QTextDocument>
 #include <iostream>
 
+#include "extension.h"
 #include "highlighter.h"
 #include "parse.h"
 #include "reader.h"
-#include "extension.h"
 #include "settings.h"
 
 Highlighter::Highlighter(QTextDocument* parent)
@@ -79,7 +79,6 @@ void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style
             s = -1;
         }
     }
-
 }
 
 void Highlighter::highlightBlock(const QString& text)
@@ -171,9 +170,9 @@ void Highlighter::highlightBlock(const QString& text)
     if (parser_state->rule) {
         QTextBlock next = currentBlock().next();
         if (next.isValid()) {
-            HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(next.userData());
-            if (blockData && parser_state->rule->rule_id != blockData->last_prev_block_rule) {
-                blockData->dirty = true;
+            HighlightBlockData* nextBlockData = reinterpret_cast<HighlightBlockData*>(next.userData());
+            if (nextBlockData && parser_state->rule->rule_id != nextBlockData->last_prev_block_rule) {
+                nextBlockData->dirty = true;
                 hasDirtyBlocks = true;
             }
         }
@@ -185,6 +184,8 @@ void Highlighter::onUpdate()
     if (!hasDirtyBlocks) {
         return;
     }
+
+    std::cout << "." << std::endl;
 
     int rendered = 0;
 

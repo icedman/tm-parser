@@ -7,7 +7,8 @@ HEADERS         = editor.h \
                   highlighter.h \
                   mainwindow.h \
                   minimap.h \
-                  settings.h
+                  settings.h \
+                  tree.h
 
 SOURCES         = editor.cpp \
                   extension.cpp \
@@ -16,6 +17,7 @@ SOURCES         = editor.cpp \
                   mainwindow.cpp \
                   minimap.cpp \
                   settings.cpp \
+                  tree.cpp \
                   main.cpp
 
 QMAKE_CXXFLAGS += -fpermissive

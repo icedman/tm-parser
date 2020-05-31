@@ -2,10 +2,10 @@
 #include <iostream>
 
 #include "editor.h"
+#include "extension.h"
 #include "gutter.h"
 #include "minimap.h"
 #include "reader.h"
-#include "extension.h"
 #include "settings.h"
 
 Editor::Editor(QWidget* parent)
@@ -41,16 +41,19 @@ void Editor::openFile(const QString& path)
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         fileName = path;
         highlighter->setGrammar(grammar);
-        
-        if (file.size() > (1024*500)) {
-            // do super load!
-            std::cout << "do threaded syntax highlighting at load" << std::endl;
-        }
 
-        std::cout << file.size() << std::endl;
-        highlighter->setDeferRendering(true);
-        editor->setPlainText(file.readAll());
-        highlightBlocks();
+        if (file.size() > (1024 * 256)) {
+            // todo do super load!
+            std::cout << "do threaded syntax highlighting at load" << std::endl;
+
+            std::cout << file.size() << std::endl;
+            highlighter->setDeferRendering(true);
+            editor->setPlainText(file.readAll());
+            highlightBlocks();
+        } else {
+            highlighter->setDeferRendering(false);
+            editor->setPlainText(file.readAll());
+        }
     }
 }
 
@@ -104,31 +107,10 @@ void Editor::setTheme(theme_ptr _theme)
         editor->setPalette(p);
     }
 
-    vscroll->setStyleSheet(" \
-    QScrollBar:vertical { \
-      width: 12px; \
-      background: " + bgColor.darker(105).name() + "; \
-      padding: 3px; \
-      border: none; \
-    } \
-    QScrollBar::handle:vertical { \
-      background: " + bgColor.lighter(150).name() + "; \
-      border-radius: 3px; \
-    } \
-    QScrollBar::add-line:vertical { \
-      border: none; \
-      background: none; \
-    } \
-    QScrollBar::sub-line:vertical { \
-      border: none; \
-      background: none; \
-    } \
-    QScrollBar::handle:hover:vertical { \
-      background: " + bgColor.lighter(180).name() + "; \
-    } \
-    ");
+    theme_scrollbar(theme, "editor.background", *vscroll);
+    theme_scrollbar(theme, "editor.background", *editor->horizontalScrollBar());
 
-    editor->setStyleSheet("QPlainTextEdit { border: 0px; } QScrollBar { width: 0px }");
+    editor->setStyleSheet("QPlainTextEdit { border: 0px; } QScrollBar:vertical { width: 0px }");
     editor->setLineWrapMode(QPlainTextEdit::NoWrap);
 }
 
@@ -156,7 +138,7 @@ void Editor::setupEditor()
     font.setFixedPitch(true);
     font.setPointSize(12);
 
-    editor = new SublimeTextEdit();
+    editor = new TextmateEdit();
     editor->setFont(font);
 
     connect(editor, SIGNAL(blockCountChanged(int)), this, SLOT(updateGutter()));
@@ -164,9 +146,10 @@ void Editor::setupEditor()
 
     gutter = new Gutter();
     gutter->font = font;
+    gutter->editor = this;
 
     mini = new MiniMap();
-    mini->editor = editor;
+    mini->editor = this;
 
     vscroll = new QScrollBar();
 
@@ -175,13 +158,14 @@ void Editor::setupEditor()
     connect(vscroll, SIGNAL(valueChanged(int)), this, SLOT(updateScrollBar(int)));
 
     QHBoxLayout* box = new QHBoxLayout();
+
+    box->setMargin(0);
+    box->setSpacing(0);
+
     box->addWidget(gutter);
     box->addWidget(editor);
     box->addWidget(mini);
     box->addWidget(vscroll);
-
-    box->setMargin(0);
-    box->setSpacing(0);
 
     setLayout(box);
 
@@ -226,13 +210,18 @@ void Editor::updateMiniMap()
 
 void Editor::updateScrollBar()
 {
-    size_t max = editor->verticalScrollBar()->maximum();
+    QScrollBar* editorScroll = editor->verticalScrollBar();
+    size_t max = editorScroll->maximum();
     if (max > 0) {
         vscroll->show();
     } else {
         vscroll->hide();
     }
     vscroll->setMaximum(max);
+
+    vscroll->setSingleStep(editorScroll->singleStep());
+    vscroll->setPageStep(editorScroll->pageStep());
+
     updateMiniMap();
 }
 
@@ -283,7 +272,6 @@ void Editor::updateGutter()
     updateScrollBar();
 }
 
-
 void Editor::highlightBlocks()
 {
     int rendered = 0;
@@ -292,7 +280,7 @@ void Editor::highlightBlocks()
         QTextDocument* doc = editor->document();
         updateIterator = doc->begin();
     }
-    
+
     while (updateIterator.isValid() && rendered < 100) {
         HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(updateIterator.userData());
         if (!blockData) {

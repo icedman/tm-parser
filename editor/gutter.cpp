@@ -1,6 +1,7 @@
-#include "gutter.h"
-
 #include <QtWidgets>
+
+#include "editor.h"
+#include "gutter.h"
 
 Gutter::Gutter(QWidget* parent)
     : QWidget(parent)

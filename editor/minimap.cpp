@@ -1,4 +1,5 @@
 #include <QTextBlock>
+#include <QTextCursor>
 #include <QTextDocument>
 #include <QtWidgets>
 
@@ -12,23 +13,50 @@ MiniMap::MiniMap(QWidget* parent)
 {
 }
 
-void MiniMap::paintEvent(QPaintEvent* event)
+static int renderOneLine(QPainter& p, QTextBlock& block, int offsetY, float advanceY)
 {
-    if (buffer.width() > 0) {
-        QPainter pt(this);
-       pt.drawPixmap(rect(), buffer, buffer.rect());
-
-       // todo update single line changed!
-
-       return;
+    if (!block.isValid()) {
+        return -1;
     }
 
-    QTextDocument* doc = editor->document();
-    int lines = doc->lineCount() + 1;
+    HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+    if (blockData) {
+        int n = block.firstLineNumber();
+        int y = n * advanceY;
+        for (auto span : blockData->spans) {
+            int x = span.start;
+            int w = span.length;
+            p.setPen(QColor(span.red, span.green, span.blue));
+            p.drawLine(x, y - offsetY, x + w, y - offsetY);
+        }
 
+        return y - offsetY;
+    }
+
+    return -1;
+}
+
+void MiniMap::paintEvent(QPaintEvent* event)
+{
     float advanceY = 2.0;
+
+    if (editor->highlighter->isDirty() || buffer.height() != height()) {
+        buffer = QPixmap();
+    }
+
+    if (buffer.width() > 0) {
+        QPainter pt(this);
+        pt.drawPixmap(rect(), buffer, buffer.rect());
+        QTextCursor cursor = editor->editor->textCursor();
+        QTextBlock block = cursor.block();
+        renderOneLine(pt, block, offsetY, advanceY);
+        return;
+    }
+
+    QTextDocument* doc = editor->editor->document();
+    int lines = doc->lineCount() + 1;
     float scaleX = 0.75;
-    
+
     offsetY = 0;
 
     float currentHeight = height();
@@ -45,10 +73,10 @@ void MiniMap::paintEvent(QPaintEvent* event)
             }
         }
     }
-    
+
     buffer = QPixmap(width(), height());
     QPainter p(&buffer);
-    
+
     QColor bg = backgroundColor.darker(105);
     QColor bgLighter = backgroundColor.lighter(120);
 
@@ -63,7 +91,7 @@ void MiniMap::paintEvent(QPaintEvent* event)
     int renderLines = (currentHeight * 4) / advanceY;
 
     // highlighted block
-    p.fillRect(0, y - offsetY, width(), vh, bgLighter);
+    p.fillRect(0, y - offsetY - (advanceY * 2), width(), vh, bgLighter);
 
     // int start = n - (offsetY / advanceY) - 4;
 
@@ -80,19 +108,9 @@ void MiniMap::paintEvent(QPaintEvent* event)
     int idx = 0;
     QTextBlock block = doc->findBlockByNumber(start);
     while (block.isValid()) {
-        HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
-        if (blockData) {
-            n = block.firstLineNumber();
-            y = n * advanceY;
-            for (auto span : blockData->spans) {
-                int x = span.start;
-                int w = span.length;
-                p.setPen(QColor(span.red, span.green, span.blue));
-                p.drawLine(x, y - offsetY, x + w, y - offsetY);
-            }
-            if (y - offsetY > height()) {
-                break;
-            }
+        int y = renderOneLine(p, block, offsetY, advanceY);
+        if (y - offsetY > height()) {
+            break;
         }
         idx++;
         block = block.next();
@@ -106,10 +124,7 @@ void MiniMap::paintEvent(QPaintEvent* event)
 
 void MiniMap::setSizes(size_t first, int visible, size_t val, size_t max)
 {
-    if (firstVisible != first ||
-        visibleLines != visible ||
-        value != val ||
-        maximum != max) {
+    if (firstVisible != first || visibleLines != visible || value != val || maximum != max) {
         buffer = QPixmap();
     }
 
@@ -119,13 +134,15 @@ void MiniMap::setSizes(size_t first, int visible, size_t val, size_t max)
     maximum = max;
 }
 
-void MiniMap::mouseMoveEvent(QMouseEvent *event) {
-    QPointF pos = event->localPos();    
+void MiniMap::mouseMoveEvent(QMouseEvent* event)
+{
+    QPointF pos = event->localPos();
     scrollByMouseY(pos.y());
 }
 
-void MiniMap::mousePressEvent(QMouseEvent *event) {
-    QPointF pos = event->localPos();    
+void MiniMap::mousePressEvent(QMouseEvent* event)
+{
+    QPointF pos = event->localPos();
     scrollByMouseY(pos.y());
 }
 
@@ -139,5 +156,6 @@ void MiniMap::scrollByMouseY(float y)
     if (lineY < 0) {
         lineY = 0;
     }
-    editor->verticalScrollBar()->setValue((int)lineY);
+
+    editor->editor->verticalScrollBar()->setValue((int)lineY);
 }
