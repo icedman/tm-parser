@@ -1,7 +1,6 @@
 #include <QTextDocument>
 #include <iostream>
 
-#include "extension.h"
 #include "highlighter.h"
 #include "parse.h"
 #include "reader.h"
@@ -23,9 +22,10 @@ void Highlighter::setTheme(theme_ptr _theme)
     theme_color(theme, "editor.foreground", foregroundColor);
 }
 
-void Highlighter::setGrammar(parse::grammar_ptr _grammar)
+void Highlighter::setLanguage(language_info_ptr _lang)
 {
-    grammar = _grammar;
+    lang = _lang;
+    grammar = _lang->grammar;
 }
 
 void Highlighter::setDeferRendering(bool defer)
@@ -68,7 +68,7 @@ void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style
         }
         if (line[i] == ' ' || i + 1 == start + length) {
             if (s != -1) {
-                SpanInfo span = {
+                span_info_t span = {
                     .start = s,
                     .length = i - s + 1,
                     .red = clr.red(),
@@ -131,7 +131,11 @@ void Highlighter::highlightBlock(const QString& text)
 
     // std::cout << str << "<<<<" << std::endl;
 
-    parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
+    if (text.length() > 500) {
+        // that would be too long to parse (unminify first)
+    } else {
+        parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
+    }
 
     blockData->spans.clear();
 
@@ -160,6 +164,95 @@ void Highlighter::highlightBlock(const QString& text)
         setFormatFromStyle(si, n - si, s, first, blockData);
     }
 
+    //----------------------
+    // langauge config
+
+    // todo.. fails with comment block within strings
+    // find block comments
+    if (lang->blockComment) {
+        int beginComment = text.indexOf(lang->blockCommentStart.c_str());
+        int endComment = text.indexOf(lang->blockCommentEnd.c_str());
+        if (endComment == -1 && (beginComment != -1 || previousBlockState() == BLOCK_STATE_COMMENT)) {
+            setCurrentBlockState(BLOCK_STATE_COMMENT);
+            int b = beginComment != -1 ? beginComment : 0;
+            int e = endComment != -1 ? endComment : (last - first);
+            style_t s = theme->styles_for_scope("comment");
+            setFormatFromStyle(b, e - b, s, first, blockData);
+
+        } else {
+            setCurrentBlockState(0);
+
+            if (endComment != -1 && previousBlockState() == BLOCK_STATE_COMMENT) {
+                style_t s = theme->styles_for_scope("comment");
+                setFormatFromStyle(0, endComment + lang->blockCommentEnd.length(), s, first, blockData);
+            }
+        }
+    }
+
+    // todo.. fails with bracket within strings
+    // gather brackets
+    blockData->brackets.clear();
+    if (lang->brackets && currentBlockState() != BLOCK_STATE_COMMENT) {
+        std::vector<bracket_info_t> brackets;
+        for(char *c=(char*)first; c<last; ) {
+            bool found = false;
+
+            // opening
+            int i=0;
+            for(auto b : lang->bracketOpen) {
+                if (strstr(c, b.c_str()) == c) {
+                    found = true;
+                    brackets.push_back({
+                        .char_idx = c - first,
+                        .bracket = i,
+                        .open = true
+                    });
+                    c += b.length();
+                    break;
+                }
+            }
+
+            if (found) {
+                continue;
+            }
+
+            // closing
+            i = 0;
+            for(auto b : lang->bracketClose) {
+                if (strstr(c, b.c_str()) == c) {
+                    found = true;
+                    brackets.push_back({
+                        .char_idx = c - first,
+                        .bracket = i,
+                        .open = false
+                    });
+                    c += b.length();
+                    break;
+                }
+            }
+
+            if (found) {
+                continue;
+            }
+
+            c++;
+        }
+
+        // bracket pairing
+        for(auto b : brackets) {
+            if (!b.open && blockData->brackets.size()) {
+                auto l = blockData->brackets.back();
+                if (l.open && l.bracket == b.bracket) {
+                    blockData->brackets.pop_back();
+                } else {
+                    std::cout << "error brackets" << std::endl;
+                }
+                continue;
+            }
+            blockData->brackets.push_back(b);
+        }
+    }
+
     blockData->parser_state = parser_state;
     blockData->dirty = false;
     currentBlock().setUserData(blockData);
@@ -186,14 +279,13 @@ void Highlighter::onUpdate()
         return;
     }
 
-    std::cout << "." << std::endl;
-
     int rendered = 0;
 
     if (!updateIterator.isValid()) {
         QTextDocument* doc = document();
         updateIterator = doc->begin();
     }
+
     while (updateIterator.isValid() && rendered < 200) {
         HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(updateIterator.userData());
         if (blockData && blockData->dirty) {

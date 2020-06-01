@@ -110,7 +110,7 @@ struct theme_t {
     style_t const& styles_for_scope(scope::scope_t const& scope);
 
     std::string theme_color_string(std::string const& name);
-    void theme_color(std::string const& name, color_info_t &color);
+    void theme_color(std::string const& name, color_info_t& color);
 
 private:
     struct shared_styles_t {

@@ -47,10 +47,9 @@ void tm_load_theme(struct textmate_t* tm, char* filename)
     // std::cout << "load " << json << std::endl;
 }
 
-
 void dump_tokens(std::map<size_t, scope::scope_t>& scopes)
 {
-    FILE *fp = fopen("./out.txt", "w");
+    FILE* fp = fopen("./out.txt", "w");
     std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
     while (it != scopes.end()) {
         size_t n = it->first;
@@ -64,7 +63,7 @@ void dump_tokens(std::map<size_t, scope::scope_t>& scopes)
     fclose(fp);
 }
 
-void tm_parse_line(struct textmate_t *tm, char const* first, char const *last)
+void tm_parse_line(struct textmate_t* tm, char const* first, char const* last)
 {
     parse::stack_ptr parser_state = tm->grammar->_grammar->seed();
     std::map<size_t, scope::scope_t> scopes;

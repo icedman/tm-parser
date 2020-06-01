@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     setupEditor();
     setupLayout();
-    setupMenu();  
+    setupMenu();
 
     applySettings();
     applyTheme();
@@ -37,6 +37,15 @@ void MainWindow::about()
            "highlighting rules using regular expressions.</p>"));
 }
 
+void MainWindow::loadTheme(const QString& name)
+{
+   theme_ptr _theme = theme_from_name(name, extensions);
+   if (_theme) {
+	theme = _theme;
+        applyTheme();
+   }
+}
+
 void MainWindow::configure()
 {
     QString userSettings = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
@@ -46,7 +55,6 @@ void MainWindow::configure()
     load_extensions(userExtensions, extensions);
     load_extensions(QString("./extensions"), extensions);
 
-    
     if (settings["theme"].isString()) {
         theme = theme_from_name(settings["theme"].asString().c_str(), extensions);
     } else {
@@ -87,8 +95,6 @@ void MainWindow::applyTheme()
 
 void MainWindow::applySettings()
 {
-    std::cout << settings["sidebar"] << std::endl;
-
     if (settings["sidebar"] == true) {
         sidebar->show();
     } else {
@@ -166,8 +172,7 @@ void MainWindow::openFile(const QString& path)
     }
 
     if (QFile::exists(fileName)) {
-        language_info_t lang = language_from_file(fileName, extensions);
-        editor->setGrammar(lang.grammar);
+        editor->setLanguage(language_from_file(fileName, extensions));
         editor->openFile(fileName);
         fileName = QFileInfo(fileName).path();
     }

@@ -8,9 +8,9 @@
 #include "tree.h"
 
 Sidebar::Sidebar(QWidget* parent)
-    : QTreeView(parent),
-    fileModel(0),
-    firstOpen(false)
+    : QTreeView(parent)
+    , fileModel(0)
+    , firstOpen(false)
 {
     setHeaderHidden(true);
 }

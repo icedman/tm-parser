@@ -9,7 +9,7 @@
 
 #include "json/json.h"
 
-void load_settings(const QString path, Json::Value &settings)
+void load_settings(const QString path, Json::Value& settings)
 {
     Json::Value obj = parse::loadJson(path.toStdString() + "/settings.json");
     if (!obj.isObject()) {
@@ -66,9 +66,7 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
 
         if (append) {
             // std::cout << ex.package["name"].asString() << std::endl;
-
             qDebug() << package;
-
             extensions.emplace_back(ex);
         }
     }
@@ -76,17 +74,55 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
     // std::cout << contribs;
 }
 
-language_info_t language_from_file(const QString path, std::vector<Extension>& extensions)
-{
-    language_info_t lang;
+static void load_language_configuration(const QString path, language_info_ptr lang) {
+    Json::Value root = parse::loadJson(path.toStdString());
+    if (root.isMember("comments")) {
+        Json::Value comments = root["comments"];
+        if (comments.isMember("blockComment")) {
+            Json::Value blockComment = comments["blockComment"];
+            if (blockComment.isArray() && blockComment.size() == 2) {
+                std::string beginComment = comments["blockComment"][0].asString();
+                std::string endComment = comments["blockComment"][1].asString();
+                if (beginComment.length() && endComment.length()) {
+                    lang->blockCommentStart = beginComment;
+                    lang->blockCommentEnd = endComment;
+                    lang->blockComment = true;
+                }
+            }
+        }
+    }
 
-    parse::grammar_ptr grammar;
+    if (root.isMember("brackets")) {
+        Json::Value brackets = root["brackets"];
+        if (brackets.isArray()) {
+            for(int i=0; i<brackets.size(); i++) {
+                Json::Value pair = brackets[i];
+                if (pair.isArray() && pair.size() == 2) {
+                    if (pair[0].isString() && pair[1].isString()) {
+                        lang->bracketOpen.push_back(pair[0].asString());
+                        lang->bracketClose.push_back(pair[1].asString());
+                    }
+                }
+            }
+            lang->brackets = lang->bracketOpen.size();
+        }
+    }
+}
+
+language_info_ptr language_from_file(const QString path, std::vector<Extension>& extensions)
+{
+    static std::map<std::string, language_info_ptr> cache;
+    language_info_ptr lang = std::make_shared<language_info_t>();
 
     QFileInfo info(path);
     std::string suffix = ".";
     suffix += info.suffix().toStdString();
 
-    std::cout << suffix << std::endl;
+    auto it = cache.find(suffix);
+    if (it != cache.end()) {
+        qDebug() << "langauge matched from cache";
+        return it->second;
+    }
 
     // check cache
     Extension resolvedExtension;
@@ -133,15 +169,17 @@ language_info_t language_from_file(const QString path, std::vector<Extension>& e
             }
 
             if (g["language"].asString().compare(resolvedLanguage) == 0) {
-                // todo .. enable caching..
                 QString path = QDir(resolvedExtension.path).filePath(g["path"].asString().c_str());
-                Json::Value root = parse::loadJson(path.toStdString());
-                grammar = parse::parse_grammar(root);
-                qDebug() << "grammar matched";
+                lang->grammar = parse::parse_grammar(parse::loadJson(path.toStdString()));
 
-                lang.grammar = grammar;
+                // language configuration
+                path = QDir(resolvedExtension.path).filePath("language-configuration.json");
+                load_language_configuration(path, lang);
+
+                qDebug() << "langauge matched";
+                
+                cache.emplace(suffix, lang);
                 return lang;
-                // return grammar;
             }
         }
     }

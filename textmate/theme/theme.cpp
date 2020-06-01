@@ -176,13 +176,13 @@ theme_t::theme_t(Json::Value const& themeItem, std::string const& fontName,
 
 std::string theme_t::theme_color_string(std::string const& name)
 {
-     if (bundle.isMember("colors")) {
+    if (bundle.isMember("colors")) {
         Json::Value colors = bundle["colors"];
         return colors[name].asString();
     }
     return "";
 }
-void theme_t::theme_color(std::string const& name, color_info_t &color)
+void theme_t::theme_color(std::string const& name, color_info_t& color)
 {
     if (bundle.isMember("colors")) {
         Json::Value colors = bundle["colors"];
@@ -234,15 +234,15 @@ theme_ptr parse_theme(Json::Value& themeItem)
     if (theme == Cache.end()) {
 
         theme_ptr _theme = std::make_shared<theme_t>(themeItem);
-        
+
         // include
         if (themeItem.isMember("include")) {
-        #if 0
+#if 0
             // not supported for now
             std::string filename = themeItem["include"].asString();
             Json::Value inc = parse::loadJson(filename);
             theme_ptr _parent_theme = parse_theme(inc);
-        #endif
+#endif
         }
 
         theme = Cache.emplace(uuid, _theme).first;

@@ -3,9 +3,9 @@
 
 #include "editor.h"
 #include "extension.h"
+#include "json/json.h"
 #include "theme.h"
 #include "tree.h"
-#include "json/json.h"
 
 #include <QMainWindow>
 #include <QTimer>
@@ -23,6 +23,7 @@ public slots:
     void newFile();
     void saveFile();
     void openFile(const QString& path = QString());
+    void loadTheme(const QString& name);
 
 private:
     void configure();

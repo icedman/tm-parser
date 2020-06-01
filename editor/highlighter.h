@@ -7,12 +7,19 @@
 
 #include "grammar.h"
 #include "theme.h"
+#include "extension.h"
 
-QT_BEGIN_NAMESPACE
-class QTextDocument;
-QT_END_NAMESPACE
+struct editor_settings_t {
+    bool miniMap : true;
+};
 
-struct SpanInfo {
+struct block_info_t {
+    int position;
+    int number;
+    bool foldable : 1;
+};
+
+struct span_info_t {
     int start;
     int length;
     int red;
@@ -20,14 +27,36 @@ struct SpanInfo {
     int blue;
 };
 
+struct bracket_info_t {
+    size_t line;
+    int char_idx;
+    int bracket;
+    bool open;
+    bool unpaired;
+};
+
+enum {
+    BLOCK_STATE_COMMENT = 1 << 1,
+    BLOCK_STATE_BLOCK = 1 << 2,
+    BLOCK_STATE_BLOCK_NESTED = 1 << 3
+};
+
 class HighlightBlockData : public QTextBlockUserData {
 public:
+    HighlightBlockData() : QTextBlockUserData(),
+        dirty(false),
+        folded(false),
+        last_prev_block_rule(0)
+    {}
+
     parse::stack_ptr parser_state;
     scope::scope_t last_scope;
     bool dirty;
+    bool folded;
     size_t last_prev_block_rule;
 
-    std::vector<SpanInfo> spans;
+    std::vector<span_info_t> spans;
+    std::vector<bracket_info_t> brackets;
 };
 
 class Highlighter : public QSyntaxHighlighter {
@@ -37,7 +66,7 @@ public:
     Highlighter(QTextDocument* parent = 0);
 
     void setTheme(theme_ptr theme);
-    void setGrammar(parse::grammar_ptr grammar);
+    void setLanguage(language_info_ptr lang);
     void setDeferRendering(bool defer);
 
     bool isDirty() { return hasDirtyBlocks; }
@@ -49,6 +78,8 @@ protected:
 
 private:
     bool deferRendering;
+
+    language_info_ptr lang;
     parse::grammar_ptr grammar;
     theme_ptr theme;
 

@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include "editor.h"
-#include "extension.h"
 #include "gutter.h"
 #include "minimap.h"
 #include "reader.h"
@@ -40,7 +39,7 @@ void Editor::openFile(const QString& path)
     QFile file(path);
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         fileName = path;
-        highlighter->setGrammar(grammar);
+        highlighter->setLanguage(lang);
 
         if (file.size() > (1024 * 256)) {
             // todo do super load!
@@ -114,13 +113,15 @@ void Editor::setTheme(theme_ptr _theme)
     editor->setLineWrapMode(QPlainTextEdit::NoWrap);
 }
 
-void Editor::setGrammar(parse::grammar_ptr _grammar)
+void Editor::setLanguage(language_info_ptr _lang)
 {
-    grammar = _grammar;
+    lang = _lang;
+    grammar = _lang->grammar;
     if (highlighter) {
-        highlighter->setGrammar(grammar);
+        highlighter->setLanguage(lang);
     }
 }
+
 
 void Editor::setupEditor()
 {
@@ -204,7 +205,6 @@ void Editor::updateMiniMap()
         mini->hide();
     }
 
-
     int sw = 60 + (width() * 0.03);
     mini->setMinimumSize(sw, 0);
     mini->update();
@@ -239,6 +239,17 @@ void Editor::updateScrollBar(int i)
     updateScrollBar();
 }
 
+static bool isFoldable(QTextBlock &block) {
+    HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+    if (blockData) {
+        if (blockData->brackets.size()) {
+            auto l = blockData->brackets.back();
+            return l.open;
+        }
+    }
+    return false;
+}
+
 void Editor::updateGutter()
 {
     if (!gutter) {
@@ -265,8 +276,7 @@ void Editor::updateGutter()
                     gutter->lineNumbers.resize(index + 1);
                 gutter->lineNumbers[index].position = rect.top();
                 gutter->lineNumbers[index].number = block.blockNumber() + 1;
-                // gutter->lineNumbers[index].foldable = d->codeFolding ? isFoldable(block.blockNumber() + 1) : false;
-                // gutter->lineNumbers[index].folded = d->codeFolding ? isFolded(block.blockNumber() + 1) : false;
+                gutter->lineNumbers[index].foldable = isFoldable(block);
                 ++index;
             }
             if (rect.top() > sidebarRect.bottom())
@@ -306,4 +316,91 @@ void Editor::highlightBlocks()
         std::cout << "all rendering done" << std::endl;
         highlighter->setDeferRendering(false);
     }
+}
+
+static QTextBlock findBracketMatch(QTextBlock &block) {
+    if (!block.isValid()) {
+        return QTextBlock();
+    }
+
+    HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+    std::vector<bracket_info_t> brackets = blockData->brackets;
+
+    if (!brackets.size()) {
+        return QTextBlock();
+    }
+
+    QTextBlock res = block.next();
+    while(res.isValid()) {
+        HighlightBlockData* resData = reinterpret_cast<HighlightBlockData*>(res.userData());
+        if (!resData) {
+            continue;
+        }
+        std::vector<bracket_info_t> resBrackets = resData->brackets;
+        for(auto b : resBrackets) {
+            if (!b.open) {
+                auto l = brackets.back();
+                if (l.open && l.bracket == b.bracket) {
+                    brackets.pop_back();
+                } else {
+                    return QTextBlock();
+                }
+
+                if (!brackets.size()) {
+                    // std::cout << "found end!" << std::endl;
+                    return res;  
+                }
+                continue;
+            }
+            brackets.push_back(b);
+        }
+        res = res.next();
+    }
+
+    return res;
+}
+
+void Editor::toggleFold(size_t line)
+{
+    QTextDocument* doc = editor->document();
+    QTextBlock folder = doc->findBlockByNumber(line-1);
+    QTextBlock end = findBracketMatch(folder);
+    QTextBlock block = doc->findBlockByNumber(line);
+
+    if (!end.isValid() ||
+        !folder.isValid() ||
+        !block.isValid()) {
+        return;
+    }
+
+    HighlightBlockData* folderBlockData = reinterpret_cast<HighlightBlockData*>(folder.userData());
+    HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+
+    if (folderBlockData && blockData) {
+        folderBlockData->folded = !folderBlockData->folded;
+
+        while(block.isValid()) {
+            blockData->folded = folderBlockData->folded;
+            if (folderBlockData->folded) {
+                block.setVisible(false);
+                block.setLineCount(0);
+            } else {
+                block.setVisible(true);
+                block.setLineCount(1);
+            }
+
+            if (block == end) {
+                break;
+            }
+            block = block.next();
+        }
+    }
+
+    editor->update();
+    updateGutter();
+}
+
+void TextmateEdit::paintEvent(QPaintEvent *e)
+{
+    QPlainTextEdit::paintEvent(e);
 }

@@ -5,6 +5,7 @@
 
 #include "grammar.h"
 #include "theme.h"
+#include "extension.h"
 
 #include <QPlainTextEdit>
 #include <QTextBlock>
@@ -30,10 +31,8 @@ public:
     {
         return contentOffset();
     }
-};
 
-struct editor_settings_t {
-    bool miniMap : true;
+    void paintEvent(QPaintEvent *e) override;
 };
 
 class Editor : public QWidget {
@@ -44,15 +43,18 @@ public:
 
     void setupEditor();
     void setTheme(theme_ptr _theme);
-    void setGrammar(parse::grammar_ptr _grammar);
+    void setLanguage(language_info_ptr _lang);
 
     void openFile(const QString& path = QString());
     void saveFile(const QString& path = QString());
     void newFile();
 
-    bool isAvailable() {
+    bool isAvailable()
+    {
         return highlighter->isReady() && !updateTimer.isActive();
     }
+
+    void toggleFold(size_t line);
 
     QString fileName;
     TextmateEdit* editor;
@@ -60,7 +62,7 @@ public:
     MiniMap* mini;
     Highlighter* highlighter;
 
-    struct editor_settings_t *settings;
+    struct editor_settings_t* settings;
 
 private:
     QTimer updateTimer;
@@ -68,6 +70,7 @@ private:
     QScrollBar* vscroll;
 
     theme_ptr theme;
+    language_info_ptr lang;
     parse::grammar_ptr grammar;
 
     QTextBlock updateIterator;

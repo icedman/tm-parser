@@ -1,14 +1,8 @@
 #ifndef GUTTER_H
 #define GUTTER_H
 
+#include "highlighter.h"
 #include <QWidget>
-
-struct BlockInfo {
-    int position;
-    int number;
-    bool foldable : 1;
-    bool folded : 1;
-};
 
 class Editor;
 
@@ -18,7 +12,7 @@ class Gutter : public QWidget {
 public:
     Gutter(QWidget* parent = 0);
 
-    QVector<BlockInfo> lineNumbers;
+    QVector<block_info_t> lineNumbers;
     QColor lineNumberColor;
     QColor backgroundColor;
     QFont font;
@@ -27,6 +21,7 @@ public:
 
 protected:
     void paintEvent(QPaintEvent* event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 };
 
 #endif // GUTTERH
