@@ -1,7 +1,7 @@
-#include <QtWidgets>
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTextDocument>
+#include <QtWidgets>
 
 #include <iostream>
 
@@ -13,7 +13,8 @@ Gutter::Gutter(QWidget* parent)
 {
 }
 
-static bool isFolded(QTextBlock &block) {
+static bool isFolded(QTextBlock& block)
+{
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
     if (blockData) {
         return blockData->folded;
@@ -21,10 +22,9 @@ static bool isFolded(QTextBlock &block) {
     return false;
 }
 
-
 void Gutter::paintEvent(QPaintEvent* event)
 {
-    TextmateEdit *tm = editor->editor;
+    TextmateEdit* tm = editor->editor;
 
     QPainter p(this);
     p.fillRect(event->rect(), backgroundColor);
@@ -52,8 +52,8 @@ void Gutter::paintEvent(QPaintEvent* event)
 
     // the brackets
     foreach (block_info_t ln, lineNumbers) {
-        QTextDocument *doc = tm->document();
-        QTextBlock block = doc->findBlockByNumber(ln.number-1);
+        QTextDocument* doc = tm->document();
+        QTextBlock block = doc->findBlockByNumber(ln.number - 1);
         if (!block.isValid()) {
             continue;
         }
@@ -72,11 +72,11 @@ void Gutter::paintEvent(QPaintEvent* event)
     }
 }
 
-void Gutter::mousePressEvent(QMouseEvent *event)
+void Gutter::mousePressEvent(QMouseEvent* event)
 {
     int fh = QFontMetrics(font).lineSpacing();
     int fw = QFontMetrics(font).width('w');
-    int foldIndicatorWidth  = fw + 4;
+    int foldIndicatorWidth = fw + 4;
     int xofs = width() - foldIndicatorWidth;
     int lineNo = -1;
     int ys = event->pos().y();

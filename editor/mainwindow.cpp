@@ -12,6 +12,7 @@
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , updateTimer(this)
+    , icons(0)
 {
     configure();
 
@@ -39,11 +40,11 @@ void MainWindow::about()
 
 void MainWindow::loadTheme(const QString& name)
 {
-   theme_ptr _theme = theme_from_name(name, extensions);
-   if (_theme) {
-	theme = _theme;
+    theme_ptr _theme = theme_from_name(name, extensions);
+    if (_theme) {
+        theme = _theme;
         applyTheme();
-   }
+    }
 }
 
 void MainWindow::configure()
@@ -58,13 +59,51 @@ void MainWindow::configure()
     if (settings["theme"].isString()) {
         theme = theme_from_name(settings["theme"].asString().c_str(), extensions);
     } else {
-        // theme = theme_from_name("Monokai", extensions);
-        // theme = theme_from_name("Monokai Dimmed", extensions);
-        // theme = theme_from_name("Solarized Dark", extensions);
-        // theme = theme_from_name("Tomorrow Night Blue", extensions);
-        theme = theme_from_name("Dracula Soft", extensions);
-        // theme = theme_from_name("Dracula", extensions);
-        // theme = theme_from_name("Shades of Purple", extensions);
+        theme = theme_from_name("Monokai", extensions);
+    }
+
+    if (settings["icon_theme"].isString()) {
+        icons = icon_theme_from_name(settings["icon_theme"].asString().c_str(), extensions);
+    }
+
+    if (settings["mini_map"] == true) {
+        editor_settings.mini_map = true;
+    }
+
+    if (settings.isMember("font")) {
+        editor_settings.font = settings["font"].asString();
+    } else {
+        editor_settings.font = "monospace";
+    }
+
+    if (settings.isMember("font_size")) {
+        editor_settings.font_size = std::stof(settings["font_size"].asString());
+    } else {
+        editor_settings.font_size = 12;
+    }
+
+    if (settings.isMember("tab_size")) {
+        editor_settings.tab_size = std::stoi(settings["tab_size"].asString());    
+    } else {
+        editor_settings.tab_size = 4;
+    }
+
+    if (settings["tab_to_spaces"] == true) {
+        editor_settings.tab_to_spaces = true;
+    }
+
+    // fix invalids
+    if (editor_settings.font_size < 6) {
+        editor_settings.font_size = 6;
+    }
+    if (editor_settings.font_size > 48) {
+        editor_settings.font_size = 48;
+    }
+    if (editor_settings.tab_size < 1) {
+        editor_settings.tab_size = 1;
+    }
+    if (editor_settings.tab_size > 8) {
+        editor_settings.tab_size = 8;
     }
 }
 
@@ -97,6 +136,13 @@ void MainWindow::applySettings()
 {
     if (settings["sidebar"] == true) {
         sidebar->show();
+
+        QFont font;
+        font.setFamily(editor_settings.font.c_str());
+        font.setPointSize(editor_settings.font_size);
+        font.setFixedPitch(true);
+
+        sidebar->setFont(font);
     } else {
         sidebar->hide();
     }
@@ -105,10 +151,6 @@ void MainWindow::applySettings()
         statusBar()->show();
     } else {
         statusBar()->hide();
-    }
-
-    if (settings["editor"].isObject()) {
-        editor_settings.miniMap = settings["editor"]["minimap"] == true;
     }
 }
 
@@ -124,12 +166,12 @@ void MainWindow::setupLayout()
 
     setStyleSheet("* { font-size: 12pt; } QPlainTextEdit { font-size: 12pt; }");
 
-    sidebar = new Sidebar();
+    sidebar = new Sidebar(this);
     sidebar->mainWindow = this;
 
     splitter->addWidget(sidebar);
     splitter->addWidget(editors);
-    splitter->setStretchFactor(1, 4);
+    splitter->setStretchFactor(1, 3);
 
     editors->addWidget(editor);
     setCentralWidget(splitter);

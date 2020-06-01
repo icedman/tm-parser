@@ -122,7 +122,6 @@ void Editor::setLanguage(language_info_ptr _lang)
     }
 }
 
-
 void Editor::setupEditor()
 {
     if (editor != 0) {
@@ -132,15 +131,13 @@ void Editor::setupEditor()
     }
 
     QFont font;
-    //'Droid Sans Mono', 'monospace', monospace, 'Droid Sans Fallback'
-    // font.setFamily("Droid Sans Mono");
-    font.setFamily("Source Code Pro for Powerline");
-
+    font.setFamily(settings->font.c_str());
+    font.setPointSize(settings->font_size);
     font.setFixedPitch(true);
-    font.setPointSize(12);
 
     editor = new TextmateEdit();
     editor->setFont(font);
+    editor->setTabStopDistance(QFontMetrics(font).horizontalAdvance('w') * settings->tab_size);
 
     connect(editor, SIGNAL(blockCountChanged(int)), this, SLOT(updateGutter()));
     connect(editor, SIGNAL(updateRequest(QRect, int)), this, SLOT(updateRequested(QRect, int)));
@@ -199,7 +196,7 @@ void Editor::updateMiniMap()
     }
 
     // todo
-    if (settings->miniMap) {
+    if (settings->mini_map) {
         mini->show();
     } else {
         mini->hide();
@@ -239,7 +236,8 @@ void Editor::updateScrollBar(int i)
     updateScrollBar();
 }
 
-static bool isFoldable(QTextBlock &block) {
+static bool isFoldable(QTextBlock& block)
+{
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
     if (blockData) {
         if (blockData->brackets.size()) {
@@ -318,7 +316,8 @@ void Editor::highlightBlocks()
     }
 }
 
-static QTextBlock findBracketMatch(QTextBlock &block) {
+static QTextBlock findBracketMatch(QTextBlock& block)
+{
     if (!block.isValid()) {
         return QTextBlock();
     }
@@ -331,13 +330,13 @@ static QTextBlock findBracketMatch(QTextBlock &block) {
     }
 
     QTextBlock res = block.next();
-    while(res.isValid()) {
+    while (res.isValid()) {
         HighlightBlockData* resData = reinterpret_cast<HighlightBlockData*>(res.userData());
         if (!resData) {
             continue;
         }
         std::vector<bracket_info_t> resBrackets = resData->brackets;
-        for(auto b : resBrackets) {
+        for (auto b : resBrackets) {
             if (!b.open) {
                 auto l = brackets.back();
                 if (l.open && l.bracket == b.bracket) {
@@ -348,7 +347,7 @@ static QTextBlock findBracketMatch(QTextBlock &block) {
 
                 if (!brackets.size()) {
                     // std::cout << "found end!" << std::endl;
-                    return res;  
+                    return res;
                 }
                 continue;
             }
@@ -363,13 +362,11 @@ static QTextBlock findBracketMatch(QTextBlock &block) {
 void Editor::toggleFold(size_t line)
 {
     QTextDocument* doc = editor->document();
-    QTextBlock folder = doc->findBlockByNumber(line-1);
+    QTextBlock folder = doc->findBlockByNumber(line - 1);
     QTextBlock end = findBracketMatch(folder);
     QTextBlock block = doc->findBlockByNumber(line);
 
-    if (!end.isValid() ||
-        !folder.isValid() ||
-        !block.isValid()) {
+    if (!end.isValid() || !folder.isValid() || !block.isValid()) {
         return;
     }
 
@@ -379,7 +376,8 @@ void Editor::toggleFold(size_t line)
     if (folderBlockData && blockData) {
         folderBlockData->folded = !folderBlockData->folded;
 
-        while(block.isValid()) {
+        while (block.isValid()) {
+            blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
             blockData->folded = folderBlockData->folded;
             if (folderBlockData->folded) {
                 block.setVisible(false);
@@ -400,7 +398,64 @@ void Editor::toggleFold(size_t line)
     updateGutter();
 }
 
-void TextmateEdit::paintEvent(QPaintEvent *e)
+void Overlay::paintEvent(QPaintEvent*)
+{
+    QPainter p(this);
+
+    TextmateEdit *editor = (TextmateEdit*)parent();
+    Editor *e = (Editor*)editor->parent();
+
+    QColor foldedBg;
+    theme_color(e->theme, "editor.selectionBackground", foldedBg);
+    foldedBg.setAlpha(64);
+
+    // draw extras here
+    QTextBlock block = editor->_firstVisibleBlock();
+    while (block.isValid()) {
+        if (block.isVisible()) {
+            QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
+
+            // folded indicator
+            HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+            if (blockData->folded) {
+                p.fillRect(rect, foldedBg);
+            }
+
+            if (rect.top() > height())
+                break;
+        }
+        block = block.next();
+    }
+}
+
+void Overlay::mousePressEvent(QMouseEvent* event)
+{
+    // std::cout << "still got ot me" << std::endl;
+    // listening to click events
+}
+
+void TextmateEdit::paintEvent(QPaintEvent* e)
 {
     QPlainTextEdit::paintEvent(e);
+    overlay->resize(width(), height());
+    overlay->update();
+}
+
+void TextmateEdit::mousePressEvent(QMouseEvent* e)
+{
+    QPlainTextEdit::mousePressEvent(e);
+    overlay->mousePressEvent(e);
+}
+
+void TextmateEdit::keyPressEvent(QKeyEvent *e)
+{
+    if (e->key() == Qt::Key_Tab && e->modifiers() == Qt::NoModifier) {
+        Editor *e = (Editor*)parent();
+        if (e->settings->tab_to_spaces) {
+            insertPlainText("    ");
+            return;
+        }
+    }
+
+    QPlainTextEdit::keyPressEvent(e);
 }

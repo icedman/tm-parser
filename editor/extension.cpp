@@ -1,6 +1,8 @@
 #include <QColor>
 #include <QDebug>
 #include <QDirIterator>
+#include <QFontDatabase>
+
 #include <iostream>
 
 #include "extension.h"
@@ -26,7 +28,8 @@ void load_settings(const QString path, Json::Value& settings)
 
 void load_extensions(const QString path, std::vector<Extension>& extensions)
 {
-    // Json::Value contribs
+    // Json::Value contribs;
+
     QDirIterator it(path);
     while (it.hasNext()) {
         QString extensionPath = it.next();
@@ -66,7 +69,7 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
 
         if (append) {
             // std::cout << ex.package["name"].asString() << std::endl;
-            qDebug() << package;
+            // qDebug() << package;
             extensions.emplace_back(ex);
         }
     }
@@ -74,7 +77,8 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
     // std::cout << contribs;
 }
 
-static void load_language_configuration(const QString path, language_info_ptr lang) {
+static void load_language_configuration(const QString path, language_info_ptr lang)
+{
     Json::Value root = parse::loadJson(path.toStdString());
     if (root.isMember("comments")) {
         Json::Value comments = root["comments"];
@@ -95,7 +99,7 @@ static void load_language_configuration(const QString path, language_info_ptr la
     if (root.isMember("brackets")) {
         Json::Value brackets = root["brackets"];
         if (brackets.isArray()) {
-            for(int i=0; i<brackets.size(); i++) {
+            for (int i = 0; i < brackets.size(); i++) {
                 Json::Value pair = brackets[i];
                 if (pair.isArray() && pair.size() == 2) {
                     if (pair[0].isString() && pair[1].isString()) {
@@ -171,13 +175,14 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
             if (g["language"].asString().compare(resolvedLanguage) == 0) {
                 QString path = QDir(resolvedExtension.path).filePath(g["path"].asString().c_str());
                 lang->grammar = parse::parse_grammar(parse::loadJson(path.toStdString()));
-
+                lang->id = resolvedLanguage;
+                
                 // language configuration
                 path = QDir(resolvedExtension.path).filePath("language-configuration.json");
                 load_language_configuration(path, lang);
 
                 qDebug() << "langauge matched";
-                
+
                 cache.emplace(suffix, lang);
                 return lang;
             }
@@ -185,6 +190,62 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
     }
 
     return lang;
+}
+
+icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& extensions)
+{
+    icon_theme_ptr icons = std::make_shared<icon_theme_t>();
+ 
+    std::string theme_path = path.toStdString();
+    std::string font_path;
+    bool found = false;
+    for (auto ext : extensions) {
+        Json::Value contribs = ext.package["contributes"];
+        if (!contribs.isMember("iconThemes")) {
+            continue;
+        }
+
+        Json::Value themes = contribs["iconThemes"];
+        for (int i = 0; i < themes.size(); i++) {
+            Json::Value theme = themes[i];
+            if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
+                theme_path = ext.path.toStdString() + "/" + theme["path"].asString();
+                font_path = ext.path.toStdString() + "/icons/";
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            break;
+        }
+    }
+
+    if (!found) {
+        return icons;
+    }
+
+    Json::Value json = parse::loadJson(theme_path);
+
+    Json::Value fonts = json["fonts"];
+    Json::Value font = fonts[0];
+    Json::Value family = font["id"];
+    Json::Value src = font["src"][0];
+    Json::Value src_path = src["path"];
+    std::string real_font_path = font_path + src_path.asString();
+    
+    QFontDatabase::addApplicationFont(real_font_path.c_str());
+
+    // icons->font.setFamily("monospace");
+    icons->font.setFamily(family.asString().c_str());
+    icons->font.setPointSize(16);
+    icons->font.setFixedPitch(true);
+    icons->definition = json;
+
+    std::cout << real_font_path << std::endl;
+    qDebug() << icons->font;
+
+    return icons;
 }
 
 theme_ptr theme_from_name(const QString path, std::vector<Extension>& extensions)
@@ -203,7 +264,7 @@ theme_ptr theme_from_name(const QString path, std::vector<Extension>& extensions
             if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
                 theme_path = ext.path.toStdString() + "/" + theme["path"].asString();
                 // std::cout << ext.path.toStdString() << "..." << std::endl;
-                std::cout << theme_path << std::endl;
+                // std::cout << theme_path << std::endl;
                 found = true;
                 break;
             }
@@ -214,8 +275,7 @@ theme_ptr theme_from_name(const QString path, std::vector<Extension>& extensions
         }
     }
 
-    Json::Value json = parse::loadJson(theme_path); // "./dracula-soft.json");
+    Json::Value json = parse::loadJson(theme_path);
     theme_ptr theme = parse_theme(json);
-    ;
     return theme;
 }

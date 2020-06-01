@@ -3,9 +3,9 @@
 
 #include "highlighter.h"
 
+#include "extension.h"
 #include "grammar.h"
 #include "theme.h"
-#include "extension.h"
 
 #include <QPlainTextEdit>
 #include <QTextBlock>
@@ -14,9 +14,28 @@
 
 class MiniMap;
 class Gutter;
+class TextmateEdit;
+
+class Overlay : public QWidget {
+public:
+    explicit Overlay(QWidget* parent = nullptr)
+        : QWidget(parent)
+    {
+        setAttribute(Qt::WA_NoSystemBackground);
+        setAttribute(Qt::WA_TransparentForMouseEvents);
+    }
+
+    void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent* event) override;
+};
 
 class TextmateEdit : public QPlainTextEdit {
 public:
+    TextmateEdit(QWidget* parent = nullptr) : QPlainTextEdit(parent)
+    {
+        overlay = new Overlay(this);
+    }
+
     QTextBlock _firstVisibleBlock()
     {
         return firstVisibleBlock();
@@ -32,7 +51,12 @@ public:
         return contentOffset();
     }
 
-    void paintEvent(QPaintEvent *e) override;
+private:
+    void paintEvent(QPaintEvent* e) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent *e) override;
+
+    Overlay* overlay;
 };
 
 class Editor : public QWidget {
@@ -64,15 +88,13 @@ public:
 
     struct editor_settings_t* settings;
 
-private:
-    QTimer updateTimer;
-
-    QScrollBar* vscroll;
-
     theme_ptr theme;
     language_info_ptr lang;
     parse::grammar_ptr grammar;
 
+private:
+    QTimer updateTimer;
+    QScrollBar* vscroll;
     QTextBlock updateIterator;
 
 public slots:

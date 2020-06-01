@@ -5,19 +5,21 @@ HEADERS         = editor.h \
                   extension.h \
                   gutter.h \
                   highlighter.h \
+                  icons.h \
                   mainwindow.h \
                   minimap.h \
                   settings.h \
-                  tree.h
+                  sidebar.h
 
 SOURCES         = editor.cpp \
                   extension.cpp \
                   gutter.cpp \
                   highlighter.cpp \
+                  icons.cpp \
                   mainwindow.cpp \
                   minimap.cpp \
                   settings.cpp \
-                  tree.cpp \
+                  sidebar.cpp \
                   main.cpp
 
 QMAKE_CXXFLAGS += -fpermissive

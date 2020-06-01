@@ -194,19 +194,17 @@ void Highlighter::highlightBlock(const QString& text)
     blockData->brackets.clear();
     if (lang->brackets && currentBlockState() != BLOCK_STATE_COMMENT) {
         std::vector<bracket_info_t> brackets;
-        for(char *c=(char*)first; c<last; ) {
+        for (char* c = (char*)first; c < last;) {
             bool found = false;
 
             // opening
-            int i=0;
-            for(auto b : lang->bracketOpen) {
+            int i = 0;
+            for (auto b : lang->bracketOpen) {
                 if (strstr(c, b.c_str()) == c) {
                     found = true;
-                    brackets.push_back({
-                        .char_idx = c - first,
+                    brackets.push_back({ .char_idx = c - first,
                         .bracket = i,
-                        .open = true
-                    });
+                        .open = true });
                     c += b.length();
                     break;
                 }
@@ -218,14 +216,12 @@ void Highlighter::highlightBlock(const QString& text)
 
             // closing
             i = 0;
-            for(auto b : lang->bracketClose) {
+            for (auto b : lang->bracketClose) {
                 if (strstr(c, b.c_str()) == c) {
                     found = true;
-                    brackets.push_back({
-                        .char_idx = c - first,
+                    brackets.push_back({ .char_idx = c - first,
                         .bracket = i,
-                        .open = false
-                    });
+                        .open = false });
                     c += b.length();
                     break;
                 }
@@ -239,7 +235,7 @@ void Highlighter::highlightBlock(const QString& text)
         }
 
         // bracket pairing
-        for(auto b : brackets) {
+        for (auto b : brackets) {
             if (!b.open && blockData->brackets.size()) {
                 auto l = blockData->brackets.back();
                 if (l.open && l.bracket == b.bracket) {

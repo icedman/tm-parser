@@ -1,0 +1,17 @@
+{
+   "_theme": "Monokai",
+   "_theme": "Dracula",
+   "theme": "Shades of Purple",
+   "icon_theme": "vs-seti",
+
+   "mini_map": true,
+   
+   "font_size": 12,
+   "font": "Source Code Pro for Powerline",
+   
+   "tab_size": 4,
+   "tab_to_spaces": true,
+   
+   "sidebar": true,
+   "statusbar": false
+}

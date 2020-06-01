@@ -5,12 +5,16 @@
 #include <QTextCharFormat>
 #include <QTimer>
 
+#include "extension.h"
 #include "grammar.h"
 #include "theme.h"
-#include "extension.h"
 
 struct editor_settings_t {
-    bool miniMap : true;
+    bool mini_map : true;
+    float font_size;
+    std::string font;
+    int tab_size;
+    bool tab_to_spaces;
 };
 
 struct block_info_t {
@@ -43,11 +47,13 @@ enum {
 
 class HighlightBlockData : public QTextBlockUserData {
 public:
-    HighlightBlockData() : QTextBlockUserData(),
-        dirty(false),
-        folded(false),
-        last_prev_block_rule(0)
-    {}
+    HighlightBlockData()
+        : QTextBlockUserData()
+        , dirty(false)
+        , folded(false)
+        , last_prev_block_rule(0)
+    {
+    }
 
     parse::stack_ptr parser_state;
     scope::scope_t last_scope;
