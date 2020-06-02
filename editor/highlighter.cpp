@@ -169,9 +169,11 @@ void Highlighter::highlightBlock(const QString& text)
 
     //----------------------
     // langauge config
+    //----------------------
 
-    // todo.. fails with comment block within strings
+    //----------------------
     // find block comments
+    // todo.. fails with comment block within strings or withing single line comment - check current scope
     if (lang->blockComment) {
         int beginComment = text.indexOf(lang->blockCommentStart.c_str());
         int endComment = text.indexOf(lang->blockCommentEnd.c_str());
@@ -184,7 +186,6 @@ void Highlighter::highlightBlock(const QString& text)
 
         } else {
             setCurrentBlockState(0);
-
             if (endComment != -1 && previousBlockState() == BLOCK_STATE_COMMENT) {
                 style_t s = theme->styles_for_scope("comment");
                 setFormatFromStyle(0, endComment + lang->blockCommentEnd.length(), s, first, blockData);
@@ -192,8 +193,9 @@ void Highlighter::highlightBlock(const QString& text)
         }
     }
 
-    // todo.. fails with bracket within strings
+    //----------------------
     // gather brackets
+    // todo.. fails with bracket within strings
     blockData->brackets.clear();
     if (lang->brackets && currentBlockState() != BLOCK_STATE_COMMENT) {
         std::vector<bracket_info_t> brackets;

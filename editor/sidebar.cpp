@@ -54,7 +54,7 @@ Sidebar::Sidebar(QWidget* parent)
     , fileModel(0)
 {
     setHeaderHidden(true);
-      connect(&timer,SIGNAL(timeout()),this,SLOT(onSingleClick()));
+    connect(&timer,SIGNAL(timeout()),this,SLOT(onSingleClick()));
 }
 
 void Sidebar::setRootPath(QString path)

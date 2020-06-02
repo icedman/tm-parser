@@ -186,8 +186,17 @@ void Editor::setupEditor()
 
 void Editor::updateRequested(const QRect& rect, int d)
 {
+    static QRect previousRect;
+    
+    if (previousRect == rect) {
+        // probably just the cursor pulse
+        return;
+    }
+
     updateGutter();
     updateMiniMap();
+
+    previousRect = rect;
 }
 
 void Editor::updateMiniMap()
@@ -285,7 +294,6 @@ void Editor::updateGutter()
     }
     gutter->lineNumbers.resize(index);
     gutter->update();
-
     updateScrollBar();
 }
 
@@ -436,6 +444,12 @@ void Overlay::mousePressEvent(QMouseEvent* event)
     // listening to click events
 }
 
+TextmateEdit::TextmateEdit(QWidget* parent)
+    : QPlainTextEdit(parent)
+{
+    overlay = new Overlay(this);  
+}
+
 void TextmateEdit::paintEvent(QPaintEvent* e)
 {
     QPlainTextEdit::paintEvent(e);
@@ -450,6 +464,14 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
 
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
+    // multiple cursors like
+    // QTextCursor cursor(document());
+    // cursor.beginEditBlock();
+    // cursor.insertText("Hello");
+    // cursor.insertText("World");
+    // cursor.endEditBlock();
+
+    // trap key bindings here
     if (e->key() == Qt::Key_Tab && e->modifiers() == Qt::NoModifier) {
         Editor* e = (Editor*)parent();
         if (e->settings->tab_to_spaces) {

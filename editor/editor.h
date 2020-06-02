@@ -31,11 +31,7 @@ public:
 
 class TextmateEdit : public QPlainTextEdit {
 public:
-    TextmateEdit(QWidget* parent = nullptr)
-        : QPlainTextEdit(parent)
-    {
-        overlay = new Overlay(this);
-    }
+    TextmateEdit(QWidget* parent = nullptr);
 
     QTextBlock _firstVisibleBlock()
     {
