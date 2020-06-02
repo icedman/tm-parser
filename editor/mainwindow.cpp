@@ -247,7 +247,9 @@ void MainWindow::openFile(const QString& path)
 
     // directory open requested
     if (QFileInfo(fileName).isDir()) {
-        newFile();
+        if (tabs->count() == 0) {
+            newFile();
+        }
         return;
     }
 
@@ -298,7 +300,9 @@ void MainWindow::tabClose(int index)
     }
 
     if (!tabs->count()) {
-        close();
+        // close();
+        newFile();
+        return;
     }
 
     tabSelected(0);
