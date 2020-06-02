@@ -1,7 +1,7 @@
 {
    "_theme": "Monokai",
-   "_theme": "Dracula",
-   "theme": "Shades of Purple",
+   "theme": "Dracula",
+   "_theme": "Shades of Purple",
    "icon_theme": "vs-seti",
 
    "mini_map": true,
@@ -13,5 +13,10 @@
    "tab_to_spaces": true,
    
    "sidebar": true,
-   "statusbar": false
+   "statusbar": true,
+
+   // copied from sublime
+   "folder_exclude_patterns": [".svn", ".git", ".hg", "CVS"],
+   "file_exclude_patterns": ["*.pyc", "*.pyo", "*.exe", "*.dll", "*.obj","*.o", "*.a", "*.lib", "*.so", "*.dylib", "*.ncb", "*.sdf", "*.suo", "*.pdb", "*.idb", ".DS_Store", "*.class", "*.psd", "*.db"],
+   "binary_file_patterns": ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.ttf", "*.tga", "*.dds", "*.ico", "*.eot", "*.pdf", "*.swf", "*.jar", "*.zip"],
 }
