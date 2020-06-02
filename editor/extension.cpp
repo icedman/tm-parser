@@ -182,6 +182,7 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
                 load_language_configuration(path, lang);
 
                 qDebug() << "langauge matched";
+                qDebug() << path;
 
                 // cache.emplace(suffix, lang);
                 // return lang;

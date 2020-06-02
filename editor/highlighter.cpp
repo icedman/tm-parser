@@ -137,6 +137,7 @@ void Highlighter::highlightBlock(const QString& text)
         // that would be too long to parse (unminify first)
     } else {
         parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
+        // parser_state = parse::parse(first, last, grammar->seed(), scopes, true);
     }
 
     blockData->spans.clear();

@@ -181,6 +181,48 @@ void test_c()
     fclose(fp);
 }
 
+void test_markdown()
+{
+    grammar_ptr gm;
+    gm = load("extensions/markdown-basics/syntaxes/markdown.tmLanguage.json");
+    // std::cout << gm->document() << std::endl;
+
+    Json::Value root = parse::loadJson("test-cases/themes/light_vs.json");
+    theme_ptr theme = parse_theme(root);
+
+    // FILE* fp = fopen("tests/cases/sqlite3.c", "r");
+    FILE* fp = fopen("tests/cases/README.md", "r");
+    // FILE* fp = fopen("tests/cases/tinywl.c", "r");
+    char str[1024];
+
+    for (int i = 0; i < 1; i++) {
+        fseek(fp, 0, SEEK_SET);
+        bool firstLine = true;
+
+        parse::stack_ptr parser_state = gm->seed();
+        while (fgets(str, 1000, fp)) {
+
+            const char* first = str;
+            const char* last = first + strlen(first);
+
+            // std::cout << ".";
+            std::cout << str << std::endl;
+
+            std::map<size_t, scope::scope_t> scopes;
+            parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
+            dump_tokens(scopes);
+
+            // theme_tokens(scopes, theme);
+            
+            firstLine = false;
+
+            // break;
+        }
+    }
+
+    fclose(fp);
+}
+
 int main(int argc, char** argv)
 {
     clock_t start, end;
@@ -190,7 +232,8 @@ int main(int argc, char** argv)
     // test_read_and_parse();
     // test_hello();
     // test_coffee();
-    test_c();
+    // test_c();
+    test_markdown();
     // test_plist();
 
     end = clock();

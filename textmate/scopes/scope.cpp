@@ -101,7 +101,7 @@ scope_t::scope_t(scope_t&& rhs) { std::swap(node, rhs.node); }
 
 scope_t::scope_t(scope_t const& rhs)
 {
-    if (node = rhs.node)
+    if ((node = rhs.node))
         node->retain();
 }
 
@@ -113,10 +113,10 @@ scope_t& scope_t::operator=(scope_t&& rhs)
 
 scope_t& scope_t::operator=(scope_t const& rhs)
 {
-    if (node != rhs.node) {
+    if ((node != rhs.node)) {
         if (node)
             node->release();
-        if (node = rhs.node)
+        if ((node = rhs.node))
             node->retain();
     }
     return *this;
@@ -149,7 +149,7 @@ void scope_t::pop_scope()
 {
     // ASSERT(node);
     node_t* old = node;
-    if (node = node->parent())
+    if ((node = node->parent()))
         node->retain();
     old->release();
 }
@@ -162,6 +162,9 @@ std::string const& scope_t::back() const
 
 size_t scope_t::size() const
 {
+    if (!node) {
+        return 0;
+    }
     size_t res = 0;
     for (node_t* n = node; n; n = n->parent())
         ++res;

@@ -126,7 +126,7 @@ void Sidebar::selectionChanged(const QItemSelection &selected, const QItemSelect
 void Sidebar::mouseDoubleClickEvent(QMouseEvent * event)
 {
   Q_UNUSED(event);
-  qDebug() << "This happens on double click";
+  // qDebug() << "This happens on double click";
 
   // open
   timer.stop();
@@ -145,7 +145,7 @@ void Sidebar::mousePressEvent(QMouseEvent * event)
 
 void Sidebar::onSingleClick()
 {
-  qDebug() << "This happens on single click";
+  // qDebug() << "This happens on single click";
 
     QModelIndex index = currentIndex();
     if (index.isValid()) {
