@@ -8,8 +8,9 @@ HEADERS         = editor.h \
                   icons.h \
                   mainwindow.h \
                   minimap.h \
+                  sidebar.h \
                   settings.h \
-                  sidebar.h
+                  tabs.h
 
 SOURCES         = editor.cpp \
                   extension.cpp \
@@ -18,9 +19,11 @@ SOURCES         = editor.cpp \
                   icons.cpp \
                   mainwindow.cpp \
                   minimap.cpp \
-                  settings.cpp \
                   sidebar.cpp \
+                  settings.cpp \
+                  tabs.cpp \
                   main.cpp
+
 
 QMAKE_CXXFLAGS += -fpermissive
 CONFIG += c++17
@@ -29,12 +32,11 @@ CONFIG += c++17
 target.path = $$[QT_INSTALL_EXAMPLES]/widgets/richtext/syntaxhighlighter
 INSTALLS += target
 
-INCPATH += ../textmate/parser/
-INCPATH += ../textmate/scopes/
-INCPATH += ../textmate/theme/
+INCPATH += textmate/parser/
+INCPATH += textmate/scopes/
+INCPATH += textmate/theme/
 
 LIBS+= ../build/textmate/libtextmate.a
-
 
 # jsoncpp (build as static library)
 INCPATH += ../subprojects/jsoncpp-1.8.4/include 

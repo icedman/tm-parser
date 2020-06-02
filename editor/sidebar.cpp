@@ -83,14 +83,34 @@ void Sidebar::setRootPath(QString path)
 
 void Sidebar::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
 {
+    MainWindow *main = mainWindow;
+    if (!main->settings.isObject()) {
+        return;
+    }
+
+    std::cout << "ignoring.." << std::endl;
+    
+    Json::Value file_exclude_patterns = main->settings["file_exclude_patterns"];
+    // std::cout << main->settings << std::endl;
+
     int rows = fileModel->rowCount(topLeft);
     for(int i=0;i<rows; i++) {
         QModelIndex rowIndex = fileModel->index(i, 0, topLeft);
         QVariant rowData = fileModel->data(rowIndex);
         QString fileName = rowData.toString();
         QFileInfo info(fileName);
-        if (info.suffix() == "o") {
-            setRowHidden(i, topLeft, true);
+
+        QString _suffix = "*." + info.suffix();
+
+        if (file_exclude_patterns.isArray()) {
+            for(int j=0; j<file_exclude_patterns.size(); j++) {
+                QString pat = file_exclude_patterns[j].asString().c_str();
+                if (_suffix == pat) {
+                    // qDebug() << fileName;
+                    setRowHidden(i, topLeft, true);
+                    break;
+                }
+            }
         }
     }
 }

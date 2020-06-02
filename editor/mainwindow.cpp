@@ -13,12 +13,15 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , updateTimer(this)
     , icons(0)
+    , editor(0)
 {
     configure();
 
-    setupEditor();
     setupLayout();
     setupMenu();
+
+    setupEditor(); // empty
+    editor->hide();
 
     applySettings();
     applyTheme();
@@ -66,6 +69,7 @@ void MainWindow::configure()
         icons = icon_theme_from_name(settings["icon_theme"].asString().c_str(), extensions);
     }
 
+    // editor settings
     if (settings["mini_map"] == true) {
         editor_settings.mini_map = true;
     }
@@ -91,6 +95,8 @@ void MainWindow::configure()
     if (settings["tab_to_spaces"] == true) {
         editor_settings.tab_to_spaces = true;
     }
+
+    // std::cout << settings << std::endl;
 
     // fix invalids
     if (editor_settings.font_size < 6) {
@@ -125,6 +131,11 @@ void MainWindow::applyTheme()
             theme_sidebar(theme, "editor", *sidebar);
         }
     }
+    if (!theme_tabbar(theme, "sideBar", *tabs)) {
+        if (!theme_tabbar(theme, "menu", *tabs)) {
+            theme_tabbar(theme, "editor", *tabs);
+        }
+    }
     if (!theme_statusbar(theme, "statusBar", *statusBar())) {
         theme_sidebar(theme, "editor", *statusBar());
     }
@@ -156,11 +167,11 @@ void MainWindow::applySettings()
 
 void MainWindow::setupLayout()
 {
+    readSettings();
+    
     QSplitter* splitter = new QSplitter(Qt::Horizontal);
     editors = new QStackedWidget();
 
-    // hbox->setMargin(0);
-    // hbox->setSpacing(0);
     // editors->setMargin(0);
     // editors->setSpacing(0);
 
@@ -169,11 +180,26 @@ void MainWindow::setupLayout()
     sidebar = new Sidebar(this);
     sidebar->mainWindow = this;
 
+    tabs = new Tabs(this);
+    tabs->setDrawBase(false);
+    tabs->setExpanding(false);
+    tabs->setTabsClosable(true);
+
+    connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(tabSelected(int)));
+    connect(tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(tabClose(int)));
+
+    QWidget *mainPane = new QWidget();
+    QVBoxLayout *vbox = new QVBoxLayout();
+    vbox->addWidget(tabs);
+    vbox->addWidget(editors);
+    vbox->setMargin(0);
+    vbox->setSpacing(0);
+    mainPane->setLayout(vbox);
+
     splitter->addWidget(sidebar);
-    splitter->addWidget(editors);
+    splitter->addWidget(mainPane);
     splitter->setStretchFactor(1, 3);
 
-    editors->addWidget(editor);
     setCentralWidget(splitter);
 
     central = splitter;
@@ -181,6 +207,7 @@ void MainWindow::setupLayout()
 
 void MainWindow::newFile()
 {
+    openTab("./untitled");
     editor->newFile();
 }
 
@@ -214,23 +241,83 @@ void MainWindow::openFile(const QString& path)
     }
 
     if (QFile::exists(fileName)) {
-        editor->setLanguage(language_from_file(fileName, extensions));
-        editor->openFile(fileName);
-        fileName = QFileInfo(fileName).path();
+        fileName = QFileInfo(fileName).absoluteFilePath();
+        openTab(fileName);
+        if (editor->fileName != fileName) {
+            editor->setLanguage(language_from_file(fileName, extensions));
+            editor->openFile(fileName);
+        }
     }
 
-    sidebar->setRootPath(fileName);
+    if (editors->count() == 1) {
+        sidebar->setRootPath(QFileInfo(fileName).path());
+    }
 }
 
 void MainWindow::setupEditor()
 {
     editor = new Editor(this);
     editor->settings = &editor_settings;
-
     editor->setTheme(theme);
     editor->setupEditor();
-
     // setCentralWidget(editor);
+}
+
+static Editor *findEditor(QStackedWidget *editors, const QString &path) {
+    for(int i=0; i<editors->count(); i++) {
+        Editor *_editor = (Editor*)editors->widget(i);
+        if (_editor->fileName == path) {
+            editors->setCurrentWidget(_editor);
+            return _editor;
+        }
+    }
+    return NULL;
+}
+
+void MainWindow::tabSelected(int index)
+{
+    // std::cout << index << std::endl;
+    if (index != -1) {
+        QString data = tabs->tabData(index).toString();
+        openTab(data);
+    }
+}
+
+void MainWindow::tabClose(int index)
+{
+    QString data = tabs->tabData(index).toString();
+    tabs->removeTab(index);
+    Editor *editor = findEditor(editors, data);
+    editors->removeWidget(editor);    
+}
+
+Editor* MainWindow::openTab(const QString& path)
+{
+    int tabIdx = -1;
+    for(int i=0;i<tabs->count();i++) {
+        QString data = tabs->tabData(i).toString();
+        if (data == path) {
+            tabIdx = i;
+            std::cout << i << std::endl;
+            break;
+        }
+    }
+
+    if (tabIdx != -1) {
+        tabs->setCurrentIndex(tabIdx);
+        editor = findEditor(editors, path);
+        editors->setCurrentWidget(editor);
+        return editor;
+    }
+
+    tabIdx = tabs->addTab(QFileInfo(path).fileName());
+    tabs->setTabData(tabIdx, path);
+    tabs->setCurrentIndex(tabIdx);
+
+    setupEditor(); // << creates a new editor
+    editors->addWidget(editor);
+    editors->setCurrentWidget(editor);
+    return editor;
 }
 
 void MainWindow::setupMenu()
@@ -277,13 +364,12 @@ void MainWindow::warmConfigure()
     std::cout << "configure" << std::endl;
 }
 
-/*
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     QSettings settings("MyCompany", "MyApp");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-    QMainWindow::closeEvent(event);
+    MainWindow::closeEvent(event);
 }
 void MainWindow::readSettings()
 {
@@ -291,4 +377,3 @@ void MainWindow::readSettings()
     restoreGeometry(settings.value("myWidget/geometry").toByteArray());
     restoreState(settings.value("myWidget/windowState").toByteArray());
 }
-*/

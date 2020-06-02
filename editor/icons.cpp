@@ -114,11 +114,14 @@ QPixmap image_from_icon(icon_theme_ptr icons, QString &filename, QString &suffix
     }
 
     if (!iconName.length()) {
+        Json::Value languageIds = icons->definition["languageIds"];
+
         std::string _fileName = "xx." + _suffix;
         language_info_ptr lang = language_from_file(_fileName.c_str(), _extensions);
-        Json::Value languageIds = icons->definition["languageIds"];
-        if (languageIds.isMember(lang->id)) {
-            iconName = languageIds[lang->id].asString();
+        if (lang) {
+            if (languageIds.isMember(lang->id)) {
+                iconName = languageIds[lang->id].asString();
+            }
         }
 
         if (!iconName.length()) {

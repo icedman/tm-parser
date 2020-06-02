@@ -400,8 +400,10 @@ void Editor::toggleFold(size_t line)
 
 void Overlay::paintEvent(QPaintEvent*)
 {
-    QPainter p(this);
+    QWidget *container = (QWidget*)parent();
+    resize(container->width(), container->height());
 
+    QPainter p(this);
     TextmateEdit *editor = (TextmateEdit*)parent();
     Editor *e = (Editor*)editor->parent();
 
@@ -414,10 +416,9 @@ void Overlay::paintEvent(QPaintEvent*)
     while (block.isValid()) {
         if (block.isVisible()) {
             QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
-
             // folded indicator
             HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
-            if (blockData->folded) {
+            if (blockData && blockData->folded) {
                 p.fillRect(rect, foldedBg);
             }
 
@@ -437,14 +438,13 @@ void Overlay::mousePressEvent(QMouseEvent* event)
 void TextmateEdit::paintEvent(QPaintEvent* e)
 {
     QPlainTextEdit::paintEvent(e);
-    overlay->resize(width(), height());
-    overlay->update();
 }
 
 void TextmateEdit::mousePressEvent(QMouseEvent* e)
 {
     QPlainTextEdit::mousePressEvent(e);
     overlay->mousePressEvent(e);
+    overlay->update();
 }
 
 void TextmateEdit::keyPressEvent(QKeyEvent *e)
@@ -458,4 +458,5 @@ void TextmateEdit::keyPressEvent(QKeyEvent *e)
     }
 
     QPlainTextEdit::keyPressEvent(e);
+    overlay->update();
 }

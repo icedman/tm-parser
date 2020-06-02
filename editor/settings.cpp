@@ -127,9 +127,15 @@ bool theme_sidebar(theme_ptr theme, std::string name, QWidget& tree)
         padding: 4px; \
         show-decoration-selected: 0 \
       } \
-      QTreeView::item::active::hover, \
-      QTreeView::item::active::!selected::focus, \
-      QTreeView::item::active::selected { \
+      QTreeView::item::hover { \
+        background: "
+        + activeBg.darker(150).name() + "; \
+        color: "
+        + activeFg.name() + "; \
+        border: none; \
+      }\
+      QTreeView::item::!selected::focus, \
+      QTreeView::item::selected { \
         background: "
         + activeBg.name() + "; \
         color: "
@@ -139,6 +145,68 @@ bool theme_sidebar(theme_ptr theme, std::string name, QWidget& tree)
       ");
 
     return true;
+}
+
+
+bool theme_tabbar(theme_ptr theme, std::string name, QWidget& tabbar)
+{
+    QColor bgColor;
+    QColor fgColor;
+    if (!theme_color(theme, name + ".background", bgColor)) {
+        return false;
+    }
+    if (!theme_color(theme, name + ".foreground", fgColor)) {
+        theme_color(theme, "editor.foreground", fgColor);
+        fgColor = fgColor.darker(110);
+    }
+
+    QColor activeBg;
+    QColor activeFg;
+
+    if (theme_color(theme, "list.activeSelectionBackground", activeBg)) {
+        theme_color(theme, "list.activeSelectionForeground", activeFg);
+    } else if (theme_color(theme, "list.focusBackground", activeBg)) {
+        theme_color(theme, "list.focusForeground", activeFg);
+    } else {
+        activeBg = bgColor.lighter(150);
+        activeFg = fgColor;
+    }
+
+    tabbar.setStyleSheet(" \
+      QTabBar { \
+       background: "
+        + bgColor.name() + "; \
+       color: "
+        + fgColor.name() + "; \
+       border: none; \
+       show-decoration-selected: 0 \
+      } \
+      QTabBar::tab { \
+        border: none; \
+        padding: 4px; \
+        padding-left: 14px; \
+        show-decoration-selected: 0 \
+      } \
+      _QTabBar::close-button::hover { \
+        border: none; \
+      }\
+      QTabBar::tab::hover { \
+        background: "
+        + activeBg.darker(150).name() + "; \
+        color: "
+        + activeFg.name() + "; \
+        border: none; \
+      }\
+      QTabBar::tab::!selected::focus, \
+      QTabBar::tab::selected { \
+        background: "
+        + activeBg.name() + "; \
+        color: "
+        + activeFg.name() + "; \
+        border: none; \
+      }\
+      ");
+  return true;
 }
 
 bool theme_statusbar(theme_ptr theme, std::string name, QWidget& statusbar)

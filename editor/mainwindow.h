@@ -6,6 +6,7 @@
 #include "json/json.h"
 #include "theme.h"
 #include "icons.h"
+#include "tabs.h"
 #include "sidebar.h"
 
 #include <QMainWindow>
@@ -34,14 +35,24 @@ public:
     void applyTheme();
     void applySettings();
 
+    Editor* openTab(const QString& path = QString());
+
+    void closeEvent(QCloseEvent *event);
+    void readSettings();
+
 public:
     Editor* editor;
     std::vector<Extension> extensions;
     theme_ptr theme;
     icon_theme_ptr icons;
 
+    struct editor_settings_t editor_settings;
+    Json::Value settings;
+
 private Q_SLOTS:
     void warmConfigure();
+    void tabSelected(int index);
+    void tabClose(int index);
 
 private:
 
@@ -50,10 +61,8 @@ private:
 
     QWidget* central;
     QStackedWidget* editors;
+    Tabs* tabs;
     Sidebar* sidebar;
-
-    struct editor_settings_t editor_settings;
-    Json::Value settings;
 
     QTimer updateTimer;
 };

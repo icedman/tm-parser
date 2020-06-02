@@ -88,6 +88,8 @@ void Highlighter::highlightBlock(const QString& text)
         return;
     }
 
+    // std::cout << "highlightBlock" << std::endl;
+
     std::map<size_t, scope::scope_t> scopes;
 
     bool firstLine = true;

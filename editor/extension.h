@@ -34,7 +34,7 @@ struct language_info_t {
 
 struct icon_theme_t {
     QFont font;
-    std::string font_path;
+    std::string icons_path;
     Json::Value definition;
 };
 

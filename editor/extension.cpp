@@ -176,19 +176,27 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
                 QString path = QDir(resolvedExtension.path).filePath(g["path"].asString().c_str());
                 lang->grammar = parse::parse_grammar(parse::loadJson(path.toStdString()));
                 lang->id = resolvedLanguage;
-                
+
                 // language configuration
                 path = QDir(resolvedExtension.path).filePath("language-configuration.json");
                 load_language_configuration(path, lang);
 
                 qDebug() << "langauge matched";
 
-                cache.emplace(suffix, lang);
-                return lang;
+                // cache.emplace(suffix, lang);
+                // return lang;
             }
         }
     }
 
+    if (!lang->grammar) {
+        Json::Value empty;
+        empty["scopeName"] = suffix;
+        lang->id = suffix; 
+        lang->grammar = parse::parse_grammar(empty);
+    }
+
+    cache.emplace(suffix, lang);
     return lang;
 }
 
@@ -197,7 +205,7 @@ icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& 
     icon_theme_ptr icons = std::make_shared<icon_theme_t>();
  
     std::string theme_path = path.toStdString();
-    std::string font_path;
+    std::string icons_path;
     bool found = false;
     for (auto ext : extensions) {
         Json::Value contribs = ext.package["contributes"];
@@ -210,7 +218,7 @@ icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& 
             Json::Value theme = themes[i];
             if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
                 theme_path = ext.path.toStdString() + "/" + theme["path"].asString();
-                font_path = ext.path.toStdString() + "/icons/";
+                icons_path = ext.path.toStdString() + "/icons/";
                 found = true;
                 break;
             }
@@ -227,23 +235,23 @@ icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& 
 
     Json::Value json = parse::loadJson(theme_path);
 
-    Json::Value fonts = json["fonts"];
-    Json::Value font = fonts[0];
-    Json::Value family = font["id"];
-    Json::Value src = font["src"][0];
-    Json::Value src_path = src["path"];
-    std::string real_font_path = font_path + src_path.asString();
-    
-    QFontDatabase::addApplicationFont(real_font_path.c_str());
+    if (json.isMember("fonts")) {
+        Json::Value fonts = json["fonts"];
+        Json::Value font = fonts[0];
+        Json::Value family = font["id"];
+        Json::Value src = font["src"][0];
+        Json::Value src_path = src["path"];
+        std::string real_font_path = icons_path + src_path.asString();
+        
+        QFontDatabase::addApplicationFont(real_font_path.c_str());
 
-    // icons->font.setFamily("monospace");
-    icons->font.setFamily(family.asString().c_str());
-    icons->font.setPointSize(16);
-    icons->font.setFixedPitch(true);
+        // icons->font.setFamily("monospace");
+        icons->font.setFamily(family.asString().c_str());
+        icons->font.setPointSize(16);
+        icons->font.setFixedPitch(true);
+    }
+
     icons->definition = json;
-
-    std::cout << real_font_path << std::endl;
-    qDebug() << icons->font;
 
     return icons;
 }
