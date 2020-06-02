@@ -32,9 +32,9 @@ CONFIG += c++17
 target.path = $$[QT_INSTALL_EXAMPLES]/widgets/richtext/syntaxhighlighter
 INSTALLS += target
 
-INCPATH += textmate/parser/
-INCPATH += textmate/scopes/
-INCPATH += textmate/theme/
+INCPATH += ../textmate/parser/
+INCPATH += ../textmate/scopes/
+INCPATH += ../textmate/theme/
 
 LIBS+= ../build/textmate/libtextmate.a
 

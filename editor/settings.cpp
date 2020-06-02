@@ -147,7 +147,6 @@ bool theme_sidebar(theme_ptr theme, std::string name, QWidget& tree)
     return true;
 }
 
-
 bool theme_tabbar(theme_ptr theme, std::string name, QWidget& tabbar)
 {
     QColor bgColor;
@@ -206,7 +205,7 @@ bool theme_tabbar(theme_ptr theme, std::string name, QWidget& tabbar)
         border: none; \
       }\
       ");
-  return true;
+    return true;
 }
 
 bool theme_statusbar(theme_ptr theme, std::string name, QWidget& statusbar)

@@ -3,12 +3,10 @@
 
 #include <QTabBar>
 
-class Tabs : public QTabBar
-{
+class Tabs : public QTabBar {
     Q_OBJECT
 public:
-
-    Tabs(QWidget *parent = 0);
+    Tabs(QWidget* parent = 0);
 };
 
 #endif // TABS_H

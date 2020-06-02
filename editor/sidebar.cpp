@@ -6,17 +6,17 @@
 #include "mainwindow.h"
 #include "sidebar.h"
 
-FileSystemModel::FileSystemModel(QObject* parent) :
-    QFileSystemModel(parent)
+FileSystemModel::FileSystemModel(QObject* parent)
+    : QFileSystemModel(parent)
 {
-    connect(this, SIGNAL(directoryLoaded(const QString &)), this, SLOT(onDirectoryLoaded(const QString &)));
+    connect(this, SIGNAL(directoryLoaded(const QString&)), this, SLOT(onDirectoryLoaded(const QString&)));
 }
 
-void FileSystemModel::onDirectoryLoaded(const QString &path)
+void FileSystemModel::onDirectoryLoaded(const QString& path)
 {
     QModelIndex dirIndex = index(path);
 
-    #if 0
+#if 0
     int rows = rowCount(dirIndex);
     for(int i=0;i<rows; i++) {
         QModelIndex rowIndex = index(i, 0, dirIndex);
@@ -27,22 +27,21 @@ void FileSystemModel::onDirectoryLoaded(const QString &path)
         // preload icons here (this being a separate thread?) << crashes!!!?
         // image_from_icon(icons, fileName, suffix);
     }
-    #endif
+#endif
 
-    emit dataChanged(dirIndex,QModelIndex());
+    emit dataChanged(dirIndex, QModelIndex());
 }
 
-QVariant FileSystemModel::data( const QModelIndex& index, int role ) const {
+QVariant FileSystemModel::data(const QModelIndex& index, int role) const
+{
 
-    if (role == Qt::DecorationRole)
-    {
+    if (role == Qt::DecorationRole) {
         QFileInfo info = FileSystemModel::fileInfo(index);
-        if (info.isFile())
-        {
+        if (info.isFile()) {
             // if (info.suffix() == "cpp") {
-                QString fileName;
-                QString suffix = info.suffix();
-                return image_from_icon(mainWindow->icons, fileName, suffix, mainWindow->extensions);
+            QString fileName;
+            QString suffix = info.suffix();
+            return image_from_icon(mainWindow->icons, fileName, suffix, mainWindow->extensions);
             // }
         }
     }
@@ -53,9 +52,9 @@ QVariant FileSystemModel::data( const QModelIndex& index, int role ) const {
 Sidebar::Sidebar(QWidget* parent)
     : QTreeView(parent)
     , fileModel(0)
-    , firstOpen(false)
 {
     setHeaderHidden(true);
+      connect(&timer,SIGNAL(timeout()),this,SLOT(onSingleClick()));
 }
 
 void Sidebar::setRootPath(QString path)
@@ -64,8 +63,8 @@ void Sidebar::setRootPath(QString path)
         return;
     }
 
-    Sidebar *sidebar = (Sidebar*)parent();
-    MainWindow *main = (MainWindow*)sidebar->parent();
+    Sidebar* sidebar = (Sidebar*)parent();
+    MainWindow* main = (MainWindow*)sidebar->parent();
 
     fileModel = new FileSystemModel(this);
     fileModel->mainWindow = main;
@@ -81,20 +80,20 @@ void Sidebar::setRootPath(QString path)
     setRootIndex(idx);
 }
 
-void Sidebar::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
+void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles)
 {
-    MainWindow *main = mainWindow;
+    MainWindow* main = mainWindow;
     if (!main->settings.isObject()) {
         return;
     }
 
     std::cout << "ignoring.." << std::endl;
-    
+
     Json::Value file_exclude_patterns = main->settings["file_exclude_patterns"];
     // std::cout << main->settings << std::endl;
 
     int rows = fileModel->rowCount(topLeft);
-    for(int i=0;i<rows; i++) {
+    for (int i = 0; i < rows; i++) {
         QModelIndex rowIndex = fileModel->index(i, 0, topLeft);
         QVariant rowData = fileModel->data(rowIndex);
         QString fileName = rowData.toString();
@@ -103,7 +102,7 @@ void Sidebar::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomR
         QString _suffix = "*." + info.suffix();
 
         if (file_exclude_patterns.isArray()) {
-            for(int j=0; j<file_exclude_patterns.size(); j++) {
+            for (int j = 0; j < file_exclude_patterns.size(); j++) {
                 QString pat = file_exclude_patterns[j].asString().c_str();
                 if (_suffix == pat) {
                     // qDebug() << fileName;
@@ -117,25 +116,42 @@ void Sidebar::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomR
 
 void Sidebar::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    QModelIndexList i = selected.indexes();
-
-    if (i.size()) {
-        QString filePath = fileModel->filePath(i[0]);
-        mainWindow->openFile(filePath);
-    }
+    // QModelIndexList i = selected.indexes();
+    // if (i.size()) {
+    //     QString filePath = fileModel->filePath(i[0]);
+    //     mainWindow->openFile(filePath);
+    // }
 }
 
-/*
-void Sidebar::currentChanged(const QModelIndex& current, const QModelIndex& previous)
+void Sidebar::mouseDoubleClickEvent(QMouseEvent * event)
 {
-    if (!firstOpen) {
-        firstOpen = true;
-        return;
-    }
+  Q_UNUSED(event);
+  qDebug() << "This happens on double click";
 
-    if (current.isValid() && previous.isValid()) {
-        QString filePath = fileModel->filePath(current);
+  // open
+  timer.stop();
+
+  QTreeView::mouseDoubleClickEvent(event);
+}
+
+
+void Sidebar::mousePressEvent(QMouseEvent * event)
+{
+  Q_UNUSED(event);
+  timer.start(50);
+
+  QTreeView::mousePressEvent(event);
+}
+
+void Sidebar::onSingleClick()
+{
+  qDebug() << "This happens on single click";
+
+    QModelIndex index = currentIndex();
+    if (index.isValid()) {
+        QString filePath = fileModel->filePath(index);
         mainWindow->openFile(filePath);
     }
+
+  timer.stop();
 }
-*/

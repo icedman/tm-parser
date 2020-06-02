@@ -20,9 +20,6 @@ MainWindow::MainWindow(QWidget* parent)
     setupLayout();
     setupMenu();
 
-    setupEditor(); // empty
-    editor->hide();
-
     applySettings();
     applyTheme();
 
@@ -87,7 +84,7 @@ void MainWindow::configure()
     }
 
     if (settings.isMember("tab_size")) {
-        editor_settings.tab_size = std::stoi(settings["tab_size"].asString());    
+        editor_settings.tab_size = std::stoi(settings["tab_size"].asString());
     } else {
         editor_settings.tab_size = 4;
     }
@@ -168,7 +165,7 @@ void MainWindow::applySettings()
 void MainWindow::setupLayout()
 {
     readSettings();
-    
+
     QSplitter* splitter = new QSplitter(Qt::Horizontal);
     editors = new QStackedWidget();
 
@@ -188,8 +185,8 @@ void MainWindow::setupLayout()
     connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(tabSelected(int)));
     connect(tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(tabClose(int)));
 
-    QWidget *mainPane = new QWidget();
-    QVBoxLayout *vbox = new QVBoxLayout();
+    QWidget* mainPane = new QWidget();
+    QVBoxLayout* vbox = new QVBoxLayout();
     vbox->addWidget(tabs);
     vbox->addWidget(editors);
     vbox->setMargin(0);
@@ -207,37 +204,51 @@ void MainWindow::setupLayout()
 
 void MainWindow::newFile()
 {
-    openTab("./untitled");
-    editor->newFile();
+    int tabIdx = tabs->addTab("untitled");
+    setupEditor();
+    editors->addWidget(editor);
+    tabs->setTabData(tabIdx, QVariant::fromValue(editor));
+    tabSelected(tabIdx);
 }
 
 void MainWindow::saveFile()
 {
     QString fileName = editor->fileName;
 
-    // std::cout << fileName.toUtf8().constData() << std::endl;
+    if (QFileInfo(fileName).fileName() == "untitled") {
+        fileName = "";
+    }
 
-    if (fileName.isNull() || fileName.isEmpty())
-        fileName = QFileDialog::getOpenFileName(this, tr("Save File"), "", "");
+    // std::cout << fileName.toUtf8().constData() << std::endl;
+    if (fileName.isNull() || fileName.isEmpty()) {
+        fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "", "");
+    }
 
     if (!fileName.isEmpty()) {
-        editor->saveFile(fileName);
+        editor->saveFile(QFileInfo(fileName).absoluteFilePath());
+        tabs->setTabText(tabs->currentIndex(), QFileInfo(editor->fileName).fileName());
     }
 }
 
 void MainWindow::openFile(const QString& path)
 {
-    if (!editor || !editor->isAvailable()) {
-        return;
-    }
-
     QString fileName = path;
 
     if (fileName.isNull())
         fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", "C, C++ Files (*.c *.cpp *.h)");
 
     if (fileName.isEmpty()) {
-        fileName = "./";
+        return;
+    }
+
+    if (!editors->count()) {
+        sidebar->setRootPath(QFileInfo(fileName).path());
+    }
+
+    // directory open requested
+    if (QFileInfo(fileName).isDir()) {
+        newFile();
+        return;
     }
 
     if (QFile::exists(fileName)) {
@@ -247,10 +258,7 @@ void MainWindow::openFile(const QString& path)
             editor->setLanguage(language_from_file(fileName, extensions));
             editor->openFile(fileName);
         }
-    }
-
-    if (editors->count() == 1) {
-        sidebar->setRootPath(QFileInfo(fileName).path());
+        return;
     }
 }
 
@@ -260,43 +268,51 @@ void MainWindow::setupEditor()
     editor->settings = &editor_settings;
     editor->setTheme(theme);
     editor->setupEditor();
-    // setCentralWidget(editor);
-}
-
-static Editor *findEditor(QStackedWidget *editors, const QString &path) {
-    for(int i=0; i<editors->count(); i++) {
-        Editor *_editor = (Editor*)editors->widget(i);
-        if (_editor->fileName == path) {
-            editors->setCurrentWidget(_editor);
-            return _editor;
-        }
-    }
-    return NULL;
 }
 
 void MainWindow::tabSelected(int index)
 {
-    // std::cout << index << std::endl;
+    // std::cout << "Tabs:" << tabs->count() << std::endl;
+    // std::cout << "Editors:" << editors->count() << std::endl;
+    // std::cout << "Selected:" << index << std::endl;
     if (index != -1) {
-        QString data = tabs->tabData(index).toString();
-        openTab(data);
+        QVariant data = tabs->tabData(index);
+        Editor* _editor = qvariant_cast<Editor*>(data);
+        editors->setCurrentWidget(_editor);
+        tabs->setCurrentIndex(index);
+        editor = _editor;
     }
 }
 
 void MainWindow::tabClose(int index)
 {
-    QString data = tabs->tabData(index).toString();
-    tabs->removeTab(index);
-    Editor *editor = findEditor(editors, data);
-    editors->removeWidget(editor);    
+    // std::cout << "Close " << index << std::endl;
+    if (index != -1) {
+        tabSelected(index);
+        QVariant data = tabs->tabData(index);
+        Editor* _editor = qvariant_cast<Editor*>(data);
+        if (_editor) {
+            editors->removeWidget(_editor);
+            tabs->removeTab(index);
+        }
+    }
+
+    if (!tabs->count()) {
+        close();
+    }
+
+    tabSelected(0);
 }
 
-Editor* MainWindow::openTab(const QString& path)
+Editor* MainWindow::openTab(const QString& _path)
 {
+    QString path = _path;
+
     int tabIdx = -1;
-    for(int i=0;i<tabs->count();i++) {
-        QString data = tabs->tabData(i).toString();
-        if (data == path) {
+    for (int i = 0; i < tabs->count(); i++) {
+        QVariant data = tabs->tabData(i);
+        Editor* _editor = qvariant_cast<Editor*>(data);
+        if (_editor->fileName == path) {
             tabIdx = i;
             std::cout << i << std::endl;
             break;
@@ -304,19 +320,21 @@ Editor* MainWindow::openTab(const QString& path)
     }
 
     if (tabIdx != -1) {
-        tabs->setCurrentIndex(tabIdx);
-        editor = findEditor(editors, path);
-        editors->setCurrentWidget(editor);
+        tabSelected(tabIdx);
         return editor;
     }
 
-    tabIdx = tabs->addTab(QFileInfo(path).fileName());
-    tabs->setTabData(tabIdx, path);
-    tabs->setCurrentIndex(tabIdx);
+    QString _fileName = QFileInfo(path).fileName();
+    if (_fileName.isEmpty()) {
+        _fileName = "untitled";
+        path = QFileInfo(_fileName).absoluteFilePath();
+    }
 
+    tabIdx = tabs->addTab(_fileName);
     setupEditor(); // << creates a new editor
     editors->addWidget(editor);
-    editors->setCurrentWidget(editor);
+    tabs->setTabData(tabIdx, QVariant::fromValue(editor));
+    tabSelected(tabIdx);
     return editor;
 }
 
@@ -364,16 +382,11 @@ void MainWindow::warmConfigure()
     std::cout << "configure" << std::endl;
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent* event)
 {
-    QSettings settings("MyCompany", "MyApp");
-    settings.setValue("geometry", saveGeometry());
-    settings.setValue("windowState", saveState());
-    MainWindow::closeEvent(event);
+    // save geometry
+    QMainWindow::closeEvent(event);
 }
 void MainWindow::readSettings()
 {
-    QSettings settings("MyCompany", "MyApp");
-    restoreGeometry(settings.value("myWidget/geometry").toByteArray());
-    restoreState(settings.value("myWidget/windowState").toByteArray());
 }

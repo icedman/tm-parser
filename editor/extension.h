@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "grammar.h"
-#include "theme.h"
 #include "json/json.h"
+#include "theme.h"
 
 class Extension {
 public:

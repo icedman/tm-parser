@@ -12,8 +12,12 @@ int main(int argc, char* argv[])
 
     if (argc > 1) {
         window.openFile(argv[1]);
+    } else {
+        window.newFile();
     }
 
     window.show();
+
+    app.setQuitOnLastWindowClosed(true);
     return app.exec();
 }

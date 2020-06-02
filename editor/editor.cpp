@@ -31,6 +31,7 @@ void Editor::saveFile(const QString& path)
     if (file.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream out(&file);
         out << editor->toPlainText();
+        fileName = path;
     }
 }
 
@@ -400,12 +401,12 @@ void Editor::toggleFold(size_t line)
 
 void Overlay::paintEvent(QPaintEvent*)
 {
-    QWidget *container = (QWidget*)parent();
+    QWidget* container = (QWidget*)parent();
     resize(container->width(), container->height());
 
     QPainter p(this);
-    TextmateEdit *editor = (TextmateEdit*)parent();
-    Editor *e = (Editor*)editor->parent();
+    TextmateEdit* editor = (TextmateEdit*)parent();
+    Editor* e = (Editor*)editor->parent();
 
     QColor foldedBg;
     theme_color(e->theme, "editor.selectionBackground", foldedBg);
@@ -447,10 +448,10 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
     overlay->update();
 }
 
-void TextmateEdit::keyPressEvent(QKeyEvent *e)
+void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
     if (e->key() == Qt::Key_Tab && e->modifiers() == Qt::NoModifier) {
-        Editor *e = (Editor*)parent();
+        Editor* e = (Editor*)parent();
         if (e->settings->tab_to_spaces) {
             insertPlainText("    ");
             return;

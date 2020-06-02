@@ -31,7 +31,8 @@ public:
 
 class TextmateEdit : public QPlainTextEdit {
 public:
-    TextmateEdit(QWidget* parent = nullptr) : QPlainTextEdit(parent)
+    TextmateEdit(QWidget* parent = nullptr)
+        : QPlainTextEdit(parent)
     {
         overlay = new Overlay(this);
     }
@@ -54,7 +55,7 @@ public:
 private:
     void paintEvent(QPaintEvent* e) override;
     void mousePressEvent(QMouseEvent* event) override;
-    void keyPressEvent(QKeyEvent *e) override;
+    void keyPressEvent(QKeyEvent* e) override;
 
     Overlay* overlay;
 };

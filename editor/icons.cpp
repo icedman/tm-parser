@@ -1,9 +1,9 @@
-#include <QPainter>
 #include <QDebug>
+#include <QPainter>
 
-#include <string>
-#include <sstream>
 #include <iostream>
+#include <sstream>
+#include <string>
 
 #include "icons.h"
 
@@ -40,51 +40,48 @@ std::string to_utf8(uint32_t cp)
 
     result.resize(count);
 
-    if (count > 1)
-    {
-        for (int i = count-1; i > 0; --i)
-        {
-            result[i] = (char) (0x80 | (cp & 0x3F));
+    if (count > 1) {
+        for (int i = count - 1; i > 0; --i) {
+            result[i] = (char)(0x80 | (cp & 0x3F));
             cp >>= 6;
         }
 
         for (int i = 0; i < count; ++i)
-            cp |= (1 << (7-i));
+            cp |= (1 << (7 - i));
     }
 
-    result[0] = (char) cp;
+    result[0] = (char)cp;
 
     return result;
 }
 
-std::string wstring_convert(std::string str) {
+std::string wstring_convert(std::string str)
+{
     std::string::size_type startIdx = 0;
-    do
-    {
+    do {
         startIdx = str.find("x\\", startIdx);
-        if (startIdx == std::string::npos) break;
+        if (startIdx == std::string::npos)
+            break;
         std::string::size_type endIdx = str.length();
         //str.find_first_not_of("0123456789abcdefABCDEF", startIdx+2);
-        if (endIdx == std::string::npos) break;
-        std::string tmpStr = str.substr(startIdx+2, endIdx-(startIdx+2));
+        if (endIdx == std::string::npos)
+            break;
+        std::string tmpStr = str.substr(startIdx + 2, endIdx - (startIdx + 2));
         std::istringstream iss(tmpStr);
 
         uint32_t cp;
-        if (iss >> std::hex >> cp)
-        {
+        if (iss >> std::hex >> cp) {
             std::string utf8 = to_utf8(cp);
-            str.replace(startIdx, 2+tmpStr.length(), utf8);
+            str.replace(startIdx, 2 + tmpStr.length(), utf8);
             startIdx += utf8.length();
-        }
-        else
+        } else
             startIdx += 2;
-    }
-    while (true);
+    } while (true);
 
     return str;
 }
 
-QPixmap image_from_icon(icon_theme_ptr icons, QString &filename, QString &suffix, std::vector<Extension>& _extensions)
+QPixmap image_from_icon(icon_theme_ptr icons, QString& filename, QString& suffix, std::vector<Extension>& _extensions)
 {
     if (!icons) {
         return QPixmap();
@@ -146,9 +143,9 @@ QPixmap image_from_icon(icon_theme_ptr icons, QString &filename, QString &suffix
 
     int w = 16;
     int h = 16;
-    px->img = QPixmap(w,h);
+    px->img = QPixmap(w, h);
     px->img.fill(Qt::transparent);
-    
+
     QPainter p(&px->img);
 
     if (fontCharacter.length()) {

@@ -192,7 +192,7 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
     if (!lang->grammar) {
         Json::Value empty;
         empty["scopeName"] = suffix;
-        lang->id = suffix; 
+        lang->id = suffix;
         lang->grammar = parse::parse_grammar(empty);
     }
 
@@ -203,7 +203,7 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
 icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& extensions)
 {
     icon_theme_ptr icons = std::make_shared<icon_theme_t>();
- 
+
     std::string theme_path = path.toStdString();
     std::string icons_path;
     bool found = false;
@@ -242,7 +242,7 @@ icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& 
         Json::Value src = font["src"][0];
         Json::Value src_path = src["path"];
         std::string real_font_path = icons_path + src_path.asString();
-        
+
         QFontDatabase::addApplicationFont(real_font_path.c_str());
 
         // icons->font.setFamily("monospace");

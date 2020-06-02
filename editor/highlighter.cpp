@@ -252,10 +252,7 @@ void Highlighter::highlightBlock(const QString& text)
 
         // hack for if-else-
         if (blockData->brackets.size() == 2) {
-            if (!blockData->brackets[0].open &&
-                blockData->brackets[1].open &&
-                blockData->brackets[0].bracket == 
-                blockData->brackets[1].bracket) {
+            if (!blockData->brackets[0].open && blockData->brackets[1].open && blockData->brackets[0].bracket == blockData->brackets[1].bracket) {
                 blockData->brackets.clear();
             }
         }

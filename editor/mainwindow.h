@@ -3,14 +3,16 @@
 
 #include "editor.h"
 #include "extension.h"
-#include "json/json.h"
-#include "theme.h"
 #include "icons.h"
-#include "tabs.h"
+#include "json/json.h"
 #include "sidebar.h"
+#include "tabs.h"
+#include "theme.h"
 
 #include <QMainWindow>
 #include <QTimer>
+
+Q_DECLARE_METATYPE(Editor*)
 
 class QStackedWidget;
 
@@ -37,11 +39,11 @@ public:
 
     Editor* openTab(const QString& path = QString());
 
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent* event);
     void readSettings();
 
 public:
-    Editor* editor;
+    Editor* editor; // todo << remove, adds confusion
     std::vector<Extension> extensions;
     theme_ptr theme;
     icon_theme_ptr icons;
@@ -55,7 +57,6 @@ private Q_SLOTS:
     void tabClose(int index);
 
 private:
-
     QMenu* fileMenu;
     QMenu* viewMenu;
 
