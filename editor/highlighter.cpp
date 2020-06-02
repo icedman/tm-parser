@@ -205,7 +205,8 @@ void Highlighter::highlightBlock(const QString& text)
             for (auto b : lang->bracketOpen) {
                 if (strstr(c, b.c_str()) == c) {
                     found = true;
-                    brackets.push_back({ .char_idx = c - first,
+                    size_t l = (c - first);
+                    brackets.push_back({ .char_idx = l,
                         .bracket = i,
                         .open = true });
                     c += b.length();
@@ -222,7 +223,8 @@ void Highlighter::highlightBlock(const QString& text)
             for (auto b : lang->bracketClose) {
                 if (strstr(c, b.c_str()) == c) {
                     found = true;
-                    brackets.push_back({ .char_idx = c - first,
+                    size_t l = (c - first);
+                    brackets.push_back({ .char_idx = l,
                         .bracket = i,
                         .open = false });
                     c += b.length();

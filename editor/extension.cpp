@@ -68,7 +68,7 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
         }
 
         if (append) {
-            // std::cout << ex.package["name"].asString() << std::endl;
+            std::cout << ex.package["name"].asString() << std::endl;
             // qDebug() << package;
             extensions.emplace_back(ex);
         }
