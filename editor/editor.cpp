@@ -28,17 +28,19 @@ void Editor::newFile()
     fileName = "";
 }
 
-void Editor::saveFile(const QString& path)
+bool Editor::saveFile(const QString& path)
 {
     QFile file(path);
     if (file.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream out(&file);
         out << editor->toPlainText();
         fileName = path;
+        return true;
     }
+    return false;
 }
 
-void Editor::openFile(const QString& path)
+bool Editor::openFile(const QString& path)
 {
     QFile file(path);
     if (file.open(QFile::ReadOnly | QFile::Text)) {
@@ -57,7 +59,10 @@ void Editor::openFile(const QString& path)
             highlighter->setDeferRendering(false);
             editor->setPlainText(file.readAll());
         }
+
+        return true;
     }
+    return false;
 }
 
 void Editor::setTheme(theme_ptr _theme)

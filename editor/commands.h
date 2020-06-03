@@ -8,6 +8,7 @@
 class Commands {
 public:
     static void insertTab(Editor const* editor, QTextCursor cursor);
+    static void removeTab(Editor const* editor, QTextCursor cursor);
     static void toggleComment(Editor const* editor);
     static void indent(Editor const* editor);
     static void unindent(Editor const* editor);

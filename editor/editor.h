@@ -66,8 +66,8 @@ public:
     void setTheme(theme_ptr _theme);
     void setLanguage(language_info_ptr _lang);
 
-    void openFile(const QString& path = QString());
-    void saveFile(const QString& path = QString());
+    bool openFile(const QString& path = QString());
+    bool saveFile(const QString& path = QString());
     void newFile();
 
     bool isAvailable()

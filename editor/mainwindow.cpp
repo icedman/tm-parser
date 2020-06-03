@@ -147,7 +147,7 @@ void MainWindow::applyTheme()
         theme_sidebar(theme, "editor", *statusBar());
     }
 
-    statusBar()->showMessage("hello", 1000);
+    // statusBar()->showMessage("hello", 1000);
 }
 
 void MainWindow::applySettings()
@@ -235,8 +235,10 @@ void MainWindow::saveFile()
     }
 
     if (!fileName.isEmpty()) {
-        editor->saveFile(QFileInfo(fileName).absoluteFilePath());
-        tabs->setTabText(tabs->currentIndex(), QFileInfo(editor->fileName).fileName());
+        if (editor->saveFile(QFileInfo(fileName).absoluteFilePath())) {
+            tabs->setTabText(tabs->currentIndex(), QFileInfo(editor->fileName).fileName());
+            statusBar()->showMessage("Saved " + editor->fileName, 5000);
+        }
     }
 }
 
