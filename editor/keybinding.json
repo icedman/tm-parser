@@ -1,0 +1,6 @@
+[
+    { "keys": "ctrl+q", "command": "app.exit()" },
+    { "keys": "ctrl+/", "command": "app.editor().toggleComment()" },
+    { "keys": "ctrl+]", "command": "app.editor().indent()" },
+    { "keys": "ctrl+[", "command": "app.editor().unindent()" }
+]

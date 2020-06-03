@@ -14,7 +14,7 @@ HEADERS         = commands.h \
                   settings.h \
                   tabs.h
 
-SOURCES         = commands.h \
+SOURCES         = commands.cpp \
                   editor.cpp \
                   extension.cpp \
                   gutter.cpp \

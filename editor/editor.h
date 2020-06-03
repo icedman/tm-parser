@@ -89,7 +89,7 @@ public:
     language_info_ptr lang;
     parse::grammar_ptr grammar;
 
-    JSEditor jsobj;
+    JSEditor *jsobj;
 
 private:
     QTimer updateTimer;

@@ -7,6 +7,7 @@
 #include "minimap.h"
 #include "reader.h"
 #include "settings.h"
+#include "commands.h"
 
 Editor::Editor(QWidget* parent)
     : QWidget(parent)
@@ -18,7 +19,7 @@ Editor::Editor(QWidget* parent)
     , editor(0)
     , updateTimer(this)
 {
-    // jsobj = JSEditor(this);
+    jsobj = new JSEditor((QObject*)this);
 }
 
 void Editor::newFile()
@@ -482,7 +483,7 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
     if (e->key() == Qt::Key_Tab && e->modifiers() == Qt::NoModifier) {
         Editor* e = (Editor*)parent();
         if (e->settings->tab_to_spaces) {
-            insertPlainText("    ");
+            Commands::insertTab(e, e->editor->textCursor());
             return;
         }
     }
