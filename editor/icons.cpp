@@ -12,6 +12,12 @@ struct pixmap_wrapper_t {
 };
 typedef std::shared_ptr<pixmap_wrapper_t> pixmap_wrapper_ptr;
 
+enum icon_type_t {
+    icon_none,
+    icon_font,
+    icon_svg
+};
+
 std::string to_utf8(uint32_t cp)
 {
     /*
@@ -81,7 +87,7 @@ std::string wstring_convert(std::string str)
     return str;
 }
 
-QPixmap image_from_icon(icon_theme_ptr icons, QString& filename, QString& suffix, std::vector<Extension>& _extensions)
+QPixmap icon_for_file(icon_theme_ptr icons, QString& filename, QString& suffix, std::vector<Extension>& _extensions)
 {
     if (!icons) {
         return QPixmap();
@@ -101,7 +107,7 @@ QPixmap image_from_icon(icon_theme_ptr icons, QString& filename, QString& suffix
 
     pixmap_wrapper_ptr px = std::make_shared<pixmap_wrapper_t>();
 
-    std::cout << "generate icon.." << std::endl;
+    // std::cout << "generate icon.." << std::endl;
 
     std::string iconName;
     std::string fontCharacter = "x";
@@ -133,12 +139,6 @@ QPixmap image_from_icon(icon_theme_ptr icons, QString& filename, QString& suffix
     if (!iconName.length()) {
         iconName = icons->definition["file"].asString();
     }
-
-    enum icon_type_t {
-        icon_none,
-        icon_font,
-        icon_svg
-    };
 
     icon_type_t icon_type = icon_none;
 
@@ -172,6 +172,7 @@ QPixmap image_from_icon(icon_theme_ptr icons, QString& filename, QString& suffix
     px->img.fill(Qt::transparent);
 
     QPainter p(&px->img);
+    p.setRenderHint(QPainter::Antialiasing);
 
     if (icon_type == icon_font && fontCharacter.length()) {
         p.setPen(QColor(fontColor.c_str()));
@@ -185,5 +186,108 @@ QPixmap image_from_icon(icon_theme_ptr icons, QString& filename, QString& suffix
         p.drawPixmap(px->img.rect(), svg, svg.rect());
     }
     cache.emplace(_suffix, px);
+    return px->img;
+}
+
+QPixmap icon_for_folder(icon_theme_ptr icons, QString& folder, bool open, std::vector<Extension>& extensions)
+{
+    if (!icons) {
+        return QPixmap();
+    }
+
+    Json::Value definitions = icons->definition["iconDefinitions"];
+
+    // std::cout << definitions std::endl;
+
+    pixmap_wrapper_ptr px = std::make_shared<pixmap_wrapper_t>();
+
+    std::string iconName;
+    std::string fontCharacter = "x";
+    std::string fontColor;
+
+    /*
+    if (extensions.isMember(_suffix)) {
+        iconName = extensions[_suffix].asString();
+    }
+
+    if (!iconName.length()) {
+        Json::Value languageIds = icons->definition["languageIds"];
+
+        std::string _fileName = "x." + _suffix;
+        language_info_ptr lang = language_from_file(_fileName.c_str(), _extensions);
+        if (lang) {
+            if (languageIds.isMember(lang->id)) {
+                iconName = languageIds[lang->id].asString();
+            }
+        }
+
+        if (!iconName.length()) {
+            if (languageIds.isMember(_suffix)) {
+                iconName = languageIds[_suffix].asString();
+            }
+        }
+    }
+    */
+
+    if (!iconName.length()) {
+        iconName = icons->definition["folder"].asString();
+    }
+
+    static std::map<std::string, pixmap_wrapper_ptr> cache;
+    auto it = cache.find(iconName);
+    if (it != cache.end()) {
+        // std::cout << "cached icon.." << std::endl;
+        return it->second->img;
+    }
+
+    // std::cout << "generate icon.." << std::endl;
+
+    icon_type_t icon_type = icon_none;
+
+    QPixmap svg;
+
+    if (definitions.isMember(iconName)) {
+        Json::Value def = definitions[iconName];
+        if (def.isMember("fontCharacter")) {
+            fontCharacter += def["fontCharacter"].asString();
+            fontCharacter += "x";
+            fontCharacter = wstring_convert(fontCharacter);
+            fontColor = def["fontColor"].asString();
+            icon_type = icon_font;
+            // std::cout << fontCharacter << std::endl;
+        }
+        
+        // image type
+        if (icon_type == icon_none && def.isMember("iconPath")) {
+            std::string imagePath = icons->icons_path + "/" + def["iconPath"].asString();
+            // QString imagePath = QString(icons->icons_path.c_str()) + def["iconPath"];
+            // std::cout << imagePath << std::endl;
+
+            svg = QPixmap(imagePath.c_str());
+            icon_type = icon_svg;
+        }
+    }
+
+    int w = 16;
+    int h = 16;
+    px->img = QPixmap(w, h);
+    px->img.fill(Qt::transparent);
+
+    QPainter p(&px->img);
+    p.setRenderHint(QPainter::Antialiasing);
+
+    if (icon_type == icon_font && fontCharacter.length()) {
+        p.setPen(QColor(fontColor.c_str()));
+        p.setFont(icons->font);
+        int fh = QFontMetrics(icons->font).height();
+        int fw = QFontMetrics(icons->font).width('w');
+        p.drawText(2, -2, w, h, Qt::AlignRight, fontCharacter.c_str());
+    }
+
+    if (icon_type = icon_svg) {
+        p.drawPixmap(px->img.rect(), svg, svg.rect());
+    }
+
+    cache.emplace(iconName, px);
     return px->img;
 }

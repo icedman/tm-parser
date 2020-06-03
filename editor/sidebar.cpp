@@ -25,7 +25,7 @@ void FileSystemModel::onDirectoryLoaded(const QString& path)
         QFileInfo info(fileName);
         QString suffix = info.suffix();
         // preload icons here (this being a separate thread?) << crashes!!!?
-        // image_from_icon(icons, fileName, suffix);
+        // icon_for_file(icons, fileName, suffix);
     }
 #endif
 
@@ -37,12 +37,12 @@ QVariant FileSystemModel::data(const QModelIndex& index, int role) const
 
     if (role == Qt::DecorationRole) {
         QFileInfo info = FileSystemModel::fileInfo(index);
+        QString fileName = info.fileName();
         if (info.isFile()) {
-            // if (info.suffix() == "cpp") {
-            QString fileName;
             QString suffix = info.suffix();
-            return image_from_icon(mainWindow->icons, fileName, suffix, mainWindow->extensions);
-            // }
+            return icon_for_file(mainWindow->icons, fileName, suffix, mainWindow->extensions);
+        } else {
+            return icon_for_folder(mainWindow->icons, fileName, false, mainWindow->extensions);
         }
     }
 
