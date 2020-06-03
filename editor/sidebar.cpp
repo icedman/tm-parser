@@ -54,7 +54,7 @@ Sidebar::Sidebar(QWidget* parent)
     , fileModel(0)
 {
     setHeaderHidden(true);
-    connect(&timer,SIGNAL(timeout()),this,SLOT(onSingleClick()));
+    connect(&timer, SIGNAL(timeout()), this, SLOT(onSingleClick()));
 }
 
 void Sidebar::setRootPath(QString path)
@@ -114,7 +114,7 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
     }
 }
 
-void Sidebar::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+void Sidebar::selectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
 {
     // QModelIndexList i = selected.indexes();
     // if (i.size()) {
@@ -123,29 +123,28 @@ void Sidebar::selectionChanged(const QItemSelection &selected, const QItemSelect
     // }
 }
 
-void Sidebar::mouseDoubleClickEvent(QMouseEvent * event)
+void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
 {
-  Q_UNUSED(event);
-  // qDebug() << "This happens on double click";
+    Q_UNUSED(event);
+    // qDebug() << "This happens on double click";
 
-  // open
-  timer.stop();
+    // open
+    timer.stop();
 
-  QTreeView::mouseDoubleClickEvent(event);
+    QTreeView::mouseDoubleClickEvent(event);
 }
 
-
-void Sidebar::mousePressEvent(QMouseEvent * event)
+void Sidebar::mousePressEvent(QMouseEvent* event)
 {
-  Q_UNUSED(event);
-  timer.start(50);
+    Q_UNUSED(event);
+    timer.start(50);
 
-  QTreeView::mousePressEvent(event);
+    QTreeView::mousePressEvent(event);
 }
 
 void Sidebar::onSingleClick()
 {
-  // qDebug() << "This happens on single click";
+    // qDebug() << "This happens on single click";
 
     QModelIndex index = currentIndex();
     if (index.isValid()) {
@@ -153,5 +152,5 @@ void Sidebar::onSingleClick()
         mainWindow->openFile(filePath);
     }
 
-  timer.stop();
+    timer.stop();
 }

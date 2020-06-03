@@ -26,7 +26,7 @@ void Gutter::paintEvent(QPaintEvent* event)
 {
     TextmateEdit* tm = editor->editor;
 
-    std::cout << "gutter paint" << std::endl;
+    // std::cout << "gutter paint" << std::endl;
 
     QPainter p(this);
     p.fillRect(event->rect(), backgroundColor);

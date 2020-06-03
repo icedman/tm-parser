@@ -1,16 +1,18 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QJSEngine>
+#include <QMainWindow>
+#include <QTimer>
+
 #include "editor.h"
 #include "extension.h"
 #include "icons.h"
+#include "js.h"
 #include "json/json.h"
 #include "sidebar.h"
 #include "tabs.h"
 #include "theme.h"
-
-#include <QMainWindow>
-#include <QTimer>
 
 Q_DECLARE_METATYPE(Editor*)
 
@@ -42,6 +44,13 @@ public:
     void closeEvent(QCloseEvent* event);
     void readSettings();
 
+    void processKeys(QString keys);
+
+    Editor* currentEditor();
+    QJSEngine& jsEngine() { return engine; }
+
+    static MainWindow* instance();
+
 public:
     Editor* editor; // todo << remove, adds confusion
     std::vector<Extension> extensions;
@@ -66,6 +75,13 @@ private:
     Sidebar* sidebar;
 
     QTimer updateTimer;
+
+    QJSEngine engine;
+    QJSValue module;
+    QJSValue keybinding;
+
+    JSConsole* console;
+    JSApp* app;
 };
 
 #endif // MAINWINDOW_H

@@ -9,12 +9,15 @@
 #include "settings.h"
 #include "theme.h"
 
+static MainWindow* _instance;
+
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , updateTimer(this)
     , icons(0)
     , editor(0)
 {
+    _instance = this;
     configure();
 
     setupLayout();
@@ -26,8 +29,15 @@ MainWindow::MainWindow(QWidget* parent)
     setWindowTitle(tr("Editor"));
     setMinimumSize(600, 400);
 
-    updateTimer.singleShot(250, this, SLOT(warmConfigure()));
+    updateTimer.singleShot(1500, this, SLOT(warmConfigure()));
 }
+
+MainWindow* MainWindow::instance()
+{
+    return _instance;
+}
+
+Editor* MainWindow::currentEditor() { return (Editor*)editors->currentWidget(); }
 
 void MainWindow::about()
 {
@@ -381,11 +391,6 @@ void MainWindow::setupMenu()
     helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
 }
 
-void MainWindow::warmConfigure()
-{
-    std::cout << "configure" << std::endl;
-}
-
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     // save geometry
@@ -393,4 +398,40 @@ void MainWindow::closeEvent(QCloseEvent* event)
 }
 void MainWindow::readSettings()
 {
+}
+
+void MainWindow::warmConfigure()
+{
+    std::cout << "warm configure" << std::endl;
+
+    //---------------------
+    // setup js engine
+    //---------------------
+    QJSValue obj;
+    console = new JSConsole(this);
+    obj = engine.newQObject(console);
+    engine.globalObject().setProperty("console", obj);
+
+    app = new JSApp(this);
+    obj = engine.newQObject(app);
+    engine.globalObject().setProperty("app", obj);
+
+    module = engine.importModule("js/init.js");
+    keybinding = module.property("keybinding");
+    QFile file("./keybinding.json");
+    if (file.open(QFile::ReadOnly | QFile::Text)) {
+        QJSValue jsfunc = keybinding.property("loadMap");
+        QJSValueList args;
+        QString jsonContent = file.readAll();
+        args << jsonContent;
+        jsfunc.call(args);
+    }
+}
+
+void MainWindow::processKeys(QString keys)
+{
+    QJSValueList args;
+    args << keys;
+    QJSValue jsfunc = keybinding.property("processKeys");
+    jsfunc.call(args);
 }

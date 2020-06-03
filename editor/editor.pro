@@ -1,29 +1,32 @@
-QT += widgets
+QT += widgets qml
 requires(qtConfig(filedialog))
 
-HEADERS         = editor.h \
+HEADERS         = commands.h \
+                  editor.h \
                   extension.h \
                   gutter.h \
                   highlighter.h \
                   icons.h \
+                  js.h \
                   mainwindow.h \
                   minimap.h \
                   sidebar.h \
                   settings.h \
                   tabs.h
 
-SOURCES         = editor.cpp \
+SOURCES         = commands.h \
+                  editor.cpp \
                   extension.cpp \
                   gutter.cpp \
                   highlighter.cpp \
                   icons.cpp \
+                  js.cpp \
                   mainwindow.cpp \
                   minimap.cpp \
                   sidebar.cpp \
                   settings.cpp \
                   tabs.cpp \
                   main.cpp
-
 
 QMAKE_CXXFLAGS += -fpermissive
 CONFIG += c++17

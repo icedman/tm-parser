@@ -1,16 +1,16 @@
 #ifndef EDITOR_WINDOW_H
 #define EDITOR_WINDOW_H
 
-#include "highlighter.h"
-
-#include "extension.h"
-#include "grammar.h"
-#include "theme.h"
-
 #include <QPlainTextEdit>
 #include <QTextBlock>
 #include <QTimer>
 #include <QWidget>
+
+#include "extension.h"
+#include "grammar.h"
+#include "highlighter.h"
+#include "js.h"
+#include "theme.h"
 
 class MiniMap;
 class Gutter;
@@ -89,6 +89,8 @@ public:
     language_info_ptr lang;
     parse::grammar_ptr grammar;
 
+    JSEditor jsobj;
+
 private:
     QTimer updateTimer;
     QScrollBar* vscroll;
@@ -102,7 +104,6 @@ public slots:
 
 private Q_SLOTS:
     void updateRequested(const QRect& rect, int d);
-
     void highlightBlocks();
 };
 

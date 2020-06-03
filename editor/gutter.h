@@ -18,7 +18,7 @@ public:
     QFont font;
 
     Editor* editor;
-    
+
 protected:
     void paintEvent(QPaintEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;

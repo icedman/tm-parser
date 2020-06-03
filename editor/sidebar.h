@@ -3,8 +3,8 @@
 
 #include <QFileSystemModel>
 #include <QModelIndex>
-#include <QTreeView>
 #include <QTimer>
+#include <QTreeView>
 
 #include "icons.h"
 

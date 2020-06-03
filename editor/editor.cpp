@@ -3,6 +3,7 @@
 
 #include "editor.h"
 #include "gutter.h"
+#include "mainwindow.h"
 #include "minimap.h"
 #include "reader.h"
 #include "settings.h"
@@ -17,6 +18,7 @@ Editor::Editor(QWidget* parent)
     , editor(0)
     , updateTimer(this)
 {
+    // jsobj = JSEditor(this);
 }
 
 void Editor::newFile()
@@ -156,7 +158,7 @@ void Editor::setupEditor()
     connect(vscroll, SIGNAL(valueChanged(int)), editor->verticalScrollBar(), SLOT(setValue(int)));
     connect(vscroll, SIGNAL(valueChanged(int)), this, SLOT(updateScrollBar(int)));
 
-    QHBoxLayout* box = new QHBoxLayout();
+    QHBoxLayout* box = new QHBoxLayout(this);
 
     box->setMargin(0);
     box->setSpacing(0);
@@ -187,7 +189,7 @@ void Editor::setupEditor()
 void Editor::updateRequested(const QRect& rect, int d)
 {
     static QRect previousRect;
-    
+
     if (previousRect == rect) {
         // probably just the cursor pulse
         return;
@@ -447,7 +449,7 @@ void Overlay::mousePressEvent(QMouseEvent* event)
 TextmateEdit::TextmateEdit(QWidget* parent)
     : QPlainTextEdit(parent)
 {
-    overlay = new Overlay(this);  
+    overlay = new Overlay(this);
 }
 
 void TextmateEdit::paintEvent(QPaintEvent* e)
@@ -464,6 +466,11 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
 
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
+    if (e->modifiers() != Qt::NoModifier) {
+        QString keys = QKeySequence(e->modifiers() | e->key()).toString();
+        MainWindow::instance()->processKeys(keys.toLower());
+    }
+
     // multiple cursors like
     // QTextCursor cursor(document());
     // cursor.beginEditBlock();

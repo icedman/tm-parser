@@ -53,7 +53,7 @@ void MiniMap::paintEvent(QPaintEvent* event)
         return;
     }
 
-    std::cout << "minimap generate" << std::endl;
+    // std::cout << "minimap generate" << std::endl;
 
     QTextDocument* doc = editor->editor->document();
     int lines = doc->lineCount() + 1;
