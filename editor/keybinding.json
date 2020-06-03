@@ -1,6 +1,16 @@
 [
-    { "keys": "ctrl+q", "command": "app.exit()" },
+    { "keys": "alt+q",  "command": "app.exit()" },
     { "keys": "ctrl+/", "command": "app.editor().toggleComment()" },
     { "keys": "ctrl+]", "command": "app.editor().indent()" },
-    { "keys": "ctrl+[", "command": "app.editor().unindent()" }
+    { "keys": "ctrl+[", "command": "app.editor().unindent()" },
+    { "keys": "alt+w",  "command": "app.close()" },
+    { "keys": "alt+1",  "command": "app.tab(0)" },
+    { "keys": "alt+2",  "command": "app.tab(1)" },
+    { "keys": "alt+3",  "command": "app.tab(2)" },
+    { "keys": "alt+4",  "command": "app.tab(3)" },
+    { "keys": "alt+5",  "command": "app.tab(4)" },
+    { "keys": "alt+6",  "command": "app.tab(5)" },
+    { "keys": "alt+7",  "command": "app.tab(6)" },
+    { "keys": "alt+8",  "command": "app.tab(7)" },
+    { "keys": "alt+9",  "command": "app.tab(8)" }
 ]

@@ -2,6 +2,7 @@
 #define COMMANDS_H
 
 #include <QTextCursor>
+#include <QKeyEvent>
 
 #include "editor.h"
 
@@ -12,6 +13,8 @@ public:
     static void toggleComment(Editor const* editor);
     static void indent(Editor const* editor);
     static void unindent(Editor const* editor);
+
+    static bool keyPressEvent(QKeyEvent* e);
 };
 
 #endif // COMMANDS_H

@@ -4,4 +4,4 @@ export {
     keybinding
 };
 
-console.log("js engine loaded");
+console.log("js engine initialize");

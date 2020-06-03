@@ -15,6 +15,7 @@
 class MiniMap;
 class Gutter;
 class TextmateEdit;
+class Editor;
 
 class Overlay : public QWidget {
 public:
@@ -27,6 +28,8 @@ public:
 
     void paintEvent(QPaintEvent*) override;
     void mousePressEvent(QMouseEvent* event) override;
+
+    QPixmap buffer;
 };
 
 class TextmateEdit : public QPlainTextEdit {
@@ -54,6 +57,7 @@ private:
     void keyPressEvent(QKeyEvent* e) override;
 
     Overlay* overlay;
+    Editor* editor;
 };
 
 class Editor : public QWidget {
@@ -83,13 +87,16 @@ public:
     MiniMap* mini;
     Highlighter* highlighter;
 
+    QColor backgroundColor;
+    QColor selectionBgColor;
+
     struct editor_settings_t* settings;
 
     theme_ptr theme;
     language_info_ptr lang;
     parse::grammar_ptr grammar;
 
-    JSEditor *jsobj;
+    JSEditor* jsobj;
 
 private:
     QTimer updateTimer;

@@ -120,11 +120,12 @@ bool theme_sidebar(theme_ptr theme, std::string name, QWidget& tree)
        color: "
         + fgColor.name() + "; \
        border: none; \
-       show-decoration-selected: 0 \
+       show-decoration-selected: 0; \
+       font-size: 12pt; \
       } \
       QTreeView::item { \
         border: none; \
-        padding: 4px; \
+        padding: 2px; \
         show-decoration-selected: 0 \
       } \
       QTreeView::item::hover { \
@@ -178,7 +179,8 @@ bool theme_tabbar(theme_ptr theme, std::string name, QWidget& tabbar)
        color: "
         + fgColor.name() + "; \
        border: none; \
-       show-decoration-selected: 0 \
+       show-decoration-selected: 0; \
+       font-size: 10pt; \
       } \
       QTabBar::tab { \
         border: none; \
@@ -222,6 +224,8 @@ bool theme_statusbar(theme_ptr theme, std::string name, QWidget& statusbar)
         + bgColor.name() + "; \
           color: "
         + fgColor.name() + "; \
+          font-size: 10pt; \
+          padding: 4px; \
         } \
         QSizeGrip { background: transparent } \
          ");

@@ -40,6 +40,23 @@ JSApp::JSApp(QObject* parent)
 {
 }
 
+void JSApp::tab(int i)
+{
+    MainWindow* mw = MainWindow::instance();
+    mw->tabSelected(i);
+}
+
+void JSApp::close()
+{
+    MainWindow* mw = MainWindow::instance();
+    mw->tabClose(mw->currentTab());
+}
+
+void JSApp::exit()
+{
+    MainWindow::instance()->close();
+}
+
 QJSValue JSApp::editor()
 {
     MainWindow* mw = MainWindow::instance();

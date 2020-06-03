@@ -44,10 +44,11 @@ public:
     void closeEvent(QCloseEvent* event);
     void readSettings();
 
-    void processKeys(QString keys);
+    bool processKeys(QString keys);
 
     Editor* currentEditor();
     QJSEngine& jsEngine() { return engine; }
+    int currentTab() { return tabs->currentIndex(); }
 
     static MainWindow* instance();
 
@@ -60,7 +61,11 @@ public:
     struct editor_settings_t editor_settings;
     Json::Value settings;
 
-private Q_SLOTS:
+public:
+
+    void keyPressEvent(QKeyEvent* e) override;
+    
+public slots:
     void warmConfigure();
     void tabSelected(int index);
     void tabClose(int index);

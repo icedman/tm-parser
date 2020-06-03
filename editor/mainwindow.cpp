@@ -8,8 +8,11 @@
 #include "reader.h"
 #include "settings.h"
 #include "theme.h"
+#include "commands.h"
 
 static MainWindow* _instance;
+
+#define UNTITLED_TEXT tr("untitled")
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -153,19 +156,26 @@ void MainWindow::applyTheme()
 void MainWindow::applySettings()
 {
     if (settings["sidebar"] == true) {
-        sidebar->show();
 
         QFont font;
         font.setFamily(editor_settings.font.c_str());
         font.setPointSize(editor_settings.font_size);
         font.setFixedPitch(true);
-
         sidebar->setFont(font);
+
+        sidebar->show();
     } else {
         sidebar->hide();
     }
 
     if (settings["statusbar"] == true) {
+
+        QFont font;
+        font.setFamily(editor_settings.font.c_str());
+        font.setPointSize(editor_settings.font_size);
+        font.setFixedPitch(true);
+        statusBar()->setFont(font);
+
         statusBar()->show();
     } else {
         statusBar()->hide();
@@ -214,7 +224,7 @@ void MainWindow::setupLayout()
 
 void MainWindow::newFile()
 {
-    int tabIdx = tabs->addTab("untitled");
+    int tabIdx = tabs->addTab(UNTITLED_TEXT);
     setupEditor();
     editors->addWidget(editor);
     tabs->setTabData(tabIdx, QVariant::fromValue(editor));
@@ -225,7 +235,7 @@ void MainWindow::saveFile()
 {
     QString fileName = editor->fileName;
 
-    if (QFileInfo(fileName).fileName() == "untitled") {
+    if (QFileInfo(fileName).fileName() == UNTITLED_TEXT) {
         fileName = "";
     }
 
@@ -286,22 +296,35 @@ void MainWindow::setupEditor()
 
 void MainWindow::tabSelected(int index)
 {
+    if (index >= tabs->count()) {
+        index = tabs->count()-1;
+    }
+
     // std::cout << "Tabs:" << tabs->count() << std::endl;
     // std::cout << "Editors:" << editors->count() << std::endl;
     // std::cout << "Selected:" << index << std::endl;
     if (index != -1) {
         QVariant data = tabs->tabData(index);
         Editor* _editor = qvariant_cast<Editor*>(data);
-        editors->setCurrentWidget(_editor);
-        tabs->setCurrentIndex(index);
-        editor = _editor;
+        if (_editor) {
+            editors->setCurrentWidget(_editor);
+            tabs->setCurrentIndex(index);
+            editor = _editor;
+        }
     }
 }
 
 void MainWindow::tabClose(int index)
 {
+    if (tabs->count() == 1) {
+        if (tabs->tabText(0) == UNTITLED_TEXT) {
+            close();
+            return;
+        }
+    }
+
     // std::cout << "Close " << index << std::endl;
-    if (index != -1) {
+    if (index >= 0 && index < tabs->count()) {
         tabSelected(index);
         QVariant data = tabs->tabData(index);
         Editor* _editor = qvariant_cast<Editor*>(data);
@@ -312,12 +335,11 @@ void MainWindow::tabClose(int index)
     }
 
     if (!tabs->count()) {
-        // close();
         newFile();
         return;
     }
 
-    tabSelected(0);
+    tabSelected(index);
 }
 
 Editor* MainWindow::openTab(const QString& _path)
@@ -342,7 +364,7 @@ Editor* MainWindow::openTab(const QString& _path)
 
     QString _fileName = QFileInfo(path).fileName();
     if (_fileName.isEmpty()) {
-        _fileName = "untitled";
+        _fileName = UNTITLED_TEXT;
         path = QFileInfo(_fileName).absoluteFilePath();
     }
 
@@ -430,10 +452,18 @@ void MainWindow::warmConfigure()
     }
 }
 
-void MainWindow::processKeys(QString keys)
+bool MainWindow::processKeys(QString keys)
 {
     QJSValueList args;
     args << keys;
     QJSValue jsfunc = keybinding.property("processKeys");
-    jsfunc.call(args);
+    QJSValue value = jsfunc.call(args);
+    return value.toBool();
+}
+
+void MainWindow::keyPressEvent(QKeyEvent* e)
+{
+    if (!Commands::keyPressEvent(e)) {
+        QMainWindow::keyPressEvent(e);
+    }
 }

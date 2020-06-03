@@ -58,6 +58,7 @@ void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style
         clr = foregroundColor;
     }
 
+    // for minimap
     int s = -1;
     for (int i = start; i < start + length; i++) {
         if (s == -1) {

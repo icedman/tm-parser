@@ -1,13 +1,13 @@
 #include <QtWidgets>
 #include <iostream>
 
+#include "commands.h"
 #include "editor.h"
 #include "gutter.h"
 #include "mainwindow.h"
 #include "minimap.h"
 #include "reader.h"
 #include "settings.h"
-#include "commands.h"
 
 Editor::Editor(QWidget* parent)
     : QWidget(parent)
@@ -82,7 +82,6 @@ void Editor::setTheme(theme_ptr _theme)
     //------------------
     QColor bgColor;
     QColor fgColor;
-    QColor selectionBgColor;
     QColor lineNumberColor;
 
     if (theme_color(theme, "editor.foreground", fgColor)) {
@@ -111,12 +110,14 @@ void Editor::setTheme(theme_ptr _theme)
 
     if (theme_color(theme, "editor.selectionBackground", selectionBgColor)) {
         QPalette p = editor->palette();
-        p.setColor(QPalette::Highlight, selectionBgColor);
+        p.setColor(QPalette::Highlight, selectionBgColor.lighter(200));
         editor->setPalette(p);
     }
 
     theme_scrollbar(theme, "editor.background", *vscroll);
     theme_scrollbar(theme, "editor.background", *editor->horizontalScrollBar());
+
+    backgroundColor = bgColor;
 
     editor->setStyleSheet("QPlainTextEdit { border: 0px; } QScrollBar:vertical { width: 0px }");
     editor->setLineWrapMode(QPlainTextEdit::NoWrap);
@@ -144,7 +145,7 @@ void Editor::setupEditor()
     font.setPointSize(settings->font_size);
     font.setFixedPitch(true);
 
-    editor = new TextmateEdit();
+    editor = new TextmateEdit(this);
     editor->setFont(font);
     editor->setTabStopDistance(QFontMetrics(font).horizontalAdvance('w') * settings->tab_size);
 
@@ -417,22 +418,31 @@ void Editor::toggleFold(size_t line)
 
 void Overlay::paintEvent(QPaintEvent*)
 {
+    // this actually draws the QPlainTextEdit widget .. with some extras
     QWidget* container = (QWidget*)parent();
     resize(container->width(), container->height());
 
     QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+
     TextmateEdit* editor = (TextmateEdit*)parent();
     Editor* e = (Editor*)editor->parent();
 
-    QColor foldedBg;
-    theme_color(e->theme, "editor.selectionBackground", foldedBg);
+    QColor selectionBg = e->selectionBgColor;
+    QColor foldedBg = selectionBg;
     foldedBg.setAlpha(64);
 
-    // draw extras here
+    if (buffer.width()) {
+        p.setOpacity(0.75);
+        p.drawPixmap(rect(), buffer, buffer.rect());
+    }
+
+    // draw extras
     QTextBlock block = editor->_firstVisibleBlock();
     while (block.isValid()) {
         if (block.isVisible()) {
             QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
+            //-----------------
             // folded indicator
             HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
             if (blockData && blockData->folded) {
@@ -456,11 +466,49 @@ TextmateEdit::TextmateEdit(QWidget* parent)
     : QPlainTextEdit(parent)
 {
     overlay = new Overlay(this);
+    editor = (Editor*)parent;
 }
 
 void TextmateEdit::paintEvent(QPaintEvent* e)
 {
     QPlainTextEdit::paintEvent(e);
+
+    if (!editor->editor->textCursor().hasSelection()) {
+        if (overlay->buffer.width()) {
+            overlay->buffer = QPixmap();
+            overlay->update();
+        }
+        return;
+    }
+
+    // cheap way to override QPlainTextEdit's ugly selection painting
+
+    // paint to buffer
+    QPixmap map(width(), height());
+    // map.fill(Qt::transparent);
+    QPainter painter(&map);
+    painter.fillRect(map.rect(), editor->backgroundColor);
+
+    QTextBlock block;
+    block = firstVisibleBlock();
+    while (block.isValid()) {
+        QRectF r = blockBoundingGeometry(block).translated(contentOffset());
+        QTextLayout* layout = block.layout();
+
+        if (!block.isVisible()) {
+            block = block.next();
+            continue;
+        } else {
+            layout->draw(&painter, r.topLeft());
+        }
+
+        if (r.top() > height())
+            break;
+
+        block = block.next();
+    }
+
+    overlay->buffer = map;
 }
 
 void TextmateEdit::mousePressEvent(QMouseEvent* e)
@@ -472,27 +520,19 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
 
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
-    if (e->modifiers() != Qt::NoModifier) {
-        QString keys = QKeySequence(e->modifiers() | e->key()).toString();
-        MainWindow::instance()->processKeys(keys.toLower());
-    }
+    bool handled = Commands::keyPressEvent(e);
 
-    // multiple cursors like
-    // QTextCursor cursor(document());
-    // cursor.beginEditBlock();
-    // cursor.insertText("Hello");
-    // cursor.insertText("World");
-    // cursor.endEditBlock();
-
-    // trap key bindings here
-    if (e->key() == Qt::Key_Tab && e->modifiers() == Qt::NoModifier) {
-        Editor* e = (Editor*)parent();
+    if (!handled && e->key() == Qt::Key_Tab && e->modifiers() == Qt::NoModifier) {
+        Editor* e = MainWindow::instance()->currentEditor();
         if (e->settings->tab_to_spaces) {
             Commands::insertTab(e, e->editor->textCursor());
-            return;
+            handled = true;
         }
     }
 
-    QPlainTextEdit::keyPressEvent(e);
+    if (!handled) {
+        QPlainTextEdit::keyPressEvent(e);
+    }
+
     overlay->update();
 }

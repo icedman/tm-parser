@@ -1,4 +1,4 @@
-QT += widgets qml
+QT += widgets qml svg
 requires(qtConfig(filedialog))
 
 HEADERS         = commands.h \

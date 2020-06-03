@@ -1,6 +1,7 @@
 #include <QColor>
 #include <QDebug>
 #include <QDirIterator>
+#include <QFileInfo>
 #include <QFontDatabase>
 
 #include <iostream>
@@ -68,7 +69,7 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
         }
 
         if (append) {
-            std::cout << ex.package["name"].asString() << std::endl;
+            // std::cout << ex.package["name"].asString() << std::endl;
             // qDebug() << package;
             extensions.emplace_back(ex);
         }
@@ -219,7 +220,8 @@ icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& 
             Json::Value theme = themes[i];
             if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
                 theme_path = ext.path.toStdString() + "/" + theme["path"].asString();
-                icons_path = ext.path.toStdString() + "/icons/";
+                // icons_path = ext.path.toStdString() + "/icons/";
+                icons_path = QFileInfo(QString(theme_path.c_str())).path().toStdString() + "/";
                 found = true;
                 break;
             }
@@ -235,6 +237,7 @@ icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& 
     }
 
     Json::Value json = parse::loadJson(theme_path);
+    icons->icons_path = icons_path;
 
     if (json.isMember("fonts")) {
         Json::Value fonts = json["fonts"];
@@ -243,7 +246,6 @@ icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& 
         Json::Value src = font["src"][0];
         Json::Value src_path = src["path"];
         std::string real_font_path = icons_path + src_path.asString();
-
         QFontDatabase::addApplicationFont(real_font_path.c_str());
 
         // icons->font.setFamily("monospace");
@@ -252,8 +254,9 @@ icon_theme_ptr icon_theme_from_name(const QString path, std::vector<Extension>& 
         icons->font.setFixedPitch(true);
     }
 
-    icons->definition = json;
+    // todo implement svg icons
 
+    icons->definition = json;
     return icons;
 }
 

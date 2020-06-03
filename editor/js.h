@@ -34,6 +34,9 @@ public:
 
 public slots:
     QJSValue editor();
+    void tab(int i);
+    void close();
+    void exit();
 };
 
 #endif // JS_H

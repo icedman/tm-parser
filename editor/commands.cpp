@@ -1,9 +1,12 @@
-#include "commands.h"
+
 #include <QDebug>
+
+#include "commands.h"
+#include "mainwindow.h"
 
 static void Commands::insertTab(Editor const* editor, QTextCursor cursor)
 {
-    for(int i=0; i<4; i++) {
+    for (int i = 0; i < 4; i++) {
         cursor.insertText(" ");
     }
 }
@@ -12,7 +15,7 @@ static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
 {
     QTextBlock block = cursor.block();
     QString s = block.text();
-    for(int i=0; i<4 && i<s.length(); i++) {
+    for (int i = 0; i < 4 && i < s.length(); i++) {
         if (s[i] == ' ') {
             cursor.deleteChar();
         } else {
@@ -31,7 +34,7 @@ static void Commands::toggleComment(Editor const* editor)
 
         QTextBlock block = cursor.block();
         QString s = block.text();
-        int commentPosition = s.indexOf(singleLineComment); 
+        int commentPosition = s.indexOf(singleLineComment);
         int hasComments = commentPosition != -1;
 
         cursor.beginEditBlock();
@@ -40,7 +43,7 @@ static void Commands::toggleComment(Editor const* editor)
             cursor.insertText(singleLineComment);
         } else {
             cursor.setPosition(cursor.position() + commentPosition);
-            for(int i=0;i<singleLineComment.length();i++) {
+            for (int i = 0; i < singleLineComment.length(); i++) {
                 cursor.deleteChar();
             }
         }
@@ -53,11 +56,11 @@ static void Commands::toggleComment(Editor const* editor)
 
         QTextBlock block = cs.block();
         QString s = block.text();
-        int commentPosition = s.indexOf(singleLineComment); 
+        int commentPosition = s.indexOf(singleLineComment);
         bool hasComments = commentPosition != -1;
 
         cs.beginEditBlock();
-        while(cs.position() <= cursor.selectionEnd()) {
+        while (cs.position() <= cursor.selectionEnd()) {
             if (!hasComments) {
                 cs.insertText(singleLineComment);
             } else {
@@ -66,7 +69,7 @@ static void Commands::toggleComment(Editor const* editor)
                 commentPosition = s.indexOf(singleLineComment);
                 if (commentPosition != -1) {
                     cs.setPosition(cs.position() + commentPosition);
-                    for(int i=0;i<singleLineComment.length();i++) {
+                    for (int i = 0; i < singleLineComment.length(); i++) {
                         cs.deleteChar();
                     }
                 }
@@ -94,7 +97,7 @@ static void Commands::indent(Editor const* editor)
         cs.setPosition(start);
         cs.movePosition(QTextCursor::StartOfLine);
         cs.beginEditBlock();
-        while(cs.position() <= cursor.selectionEnd()) {
+        while (cs.position() <= cursor.selectionEnd()) {
             insertTab(editor, cs);
             if (!cs.movePosition(QTextCursor::Down)) {
                 break;
@@ -121,7 +124,7 @@ static void Commands::unindent(Editor const* editor)
         cs.setPosition(start);
         cs.movePosition(QTextCursor::StartOfLine);
         cs.beginEditBlock();
-        while(cs.position() <= cursor.selectionEnd()) {
+        while (cs.position() <= cursor.selectionEnd()) {
             removeTab(editor, cs);
             if (!cs.movePosition(QTextCursor::Down)) {
                 break;
@@ -129,4 +132,15 @@ static void Commands::unindent(Editor const* editor)
         }
         cs.endEditBlock();
     }
+}
+
+
+static bool Commands::keyPressEvent(QKeyEvent* e)
+{
+    if (e->modifiers() != Qt::NoModifier) {
+        QString keys = QKeySequence(e->modifiers() | e->key()).toString();
+        return MainWindow::instance()->processKeys(keys.toLower());
+    }
+
+    return false;
 }
