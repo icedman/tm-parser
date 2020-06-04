@@ -124,39 +124,12 @@ void MainWindow::configure()
 
 void MainWindow::applyTheme()
 {
-    QColor menuBarBg;
-    QColor menuBarFg;
-    if (theme_color(theme, "menu.background", menuBarBg)) {
-        theme_color(theme, "menu.foreground", menuBarFg);
-        menuBar()->setStyleSheet("QMenuBar{ color: " + menuBarFg.name() + "; background: " + menuBarBg.name() + " }");
-    }
-
-    theme_splitter(theme, "editor.background", *splitter);
-    theme_splitter(theme, "editor.background", *splitterv);
-    theme_sidebar(theme, "editor.background", *sidebar);
-    theme_scrollbar(theme, "editor.background", *sidebar->horizontalScrollBar());
-    theme_scrollbar(theme, "editor.background", *sidebar->verticalScrollBar());
-    if (!theme_sidebar(theme, "sideBar", *sidebar)) {
-        if (!theme_sidebar(theme, "menu", *sidebar)) {
-            theme_sidebar(theme, "editor", *sidebar);
-        }
-    }
-    if (!theme_tabbar(theme, "sideBar", *tabs)) {
-        if (!theme_tabbar(theme, "menu", *tabs)) {
-            theme_tabbar(theme, "editor", *tabs);
-        }
-    }
-    if (!theme_statusbar(theme, "statusBar", *statusBar())) {
-        theme_sidebar(theme, "editor", *statusBar());
-    }
-
-    // statusBar()->showMessage("hello", 1000);
+    theme_application(theme);
 }
 
 void MainWindow::applySettings()
 {
-    if (settings["sidebar"] == true) {
-
+    if (settings.isMember("sidebar") && settings["sidebar"] == true) {
         QFont font;
         font.setFamily(editor_settings->font.c_str());
         font.setPointSize(editor_settings->font_size);
@@ -168,8 +141,7 @@ void MainWindow::applySettings()
         sidebar->hide();
     }
 
-    if (settings["statusbar"] == true) {
-
+    if (settings.isMember("statusbar") == true) {
         QFont font;
         font.setFamily(editor_settings->font.c_str());
         font.setPointSize(editor_settings->font_size);
@@ -190,11 +162,6 @@ void MainWindow::setupLayout()
     splitter = new QSplitter(Qt::Horizontal);
     editors = new QStackedWidget();
     panels = new QStackedWidget();
-
-    // editors->setMargin(0);
-    // editors->setSpacing(0);
-
-    setStyleSheet("* { font-size: 12pt; } QPlainTextEdit { font-size: 12pt; }");
 
     sidebar = new Sidebar(this);
     sidebar->mainWindow = this;
@@ -493,6 +460,12 @@ Panel* MainWindow::createPanel(QString name)
 
     Panel *p = new Panel(this);
     p->setObjectName(name);
+    p->setProperty("ui", true);
+
+    QStyle *style = qobject_cast<QApplication*>(QApplication::instance())->style();    
+    style->unpolish(p);
+    style->polish(p);
+
     panels->addWidget(p);
     panels->setCurrentWidget(p);
     panels->show();

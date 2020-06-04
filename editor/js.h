@@ -5,6 +5,7 @@
 #include <QObject>
 
 typedef void set_text_t(QObject *obj, QString);
+typedef QString get_text_t(QObject *obj);
 
 class JSConsole : public QObject {
     Q_OBJECT
@@ -66,6 +67,7 @@ public slots:
 
     // all
     QJSValue setText(QString text);
+    QJSValue getText();
     QJSValue setFocus();
     QJSValue setMinimumSize(int w, int h);
     QJSValue setMaximumSize(int w, int h);
@@ -80,6 +82,7 @@ private Q_SLOTS:
 
 public:
     set_text_t *set_text;
+    get_text_t *get_text;
 };
 
 class JSApp : public QObject {

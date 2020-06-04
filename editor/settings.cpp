@@ -1,7 +1,13 @@
 #include <QColor>
 #include <QWidget>
+#include <QDebug>
+#include <QFile>
+#include <QApplication>
+#include <QRegularExpression>
+#include <QStatusBar>
 
 #include "settings.h"
+#include "mainwindow.h"
 
 bool theme_color(theme_ptr theme, std::string name, QColor& qcolor)
 {
@@ -16,220 +22,76 @@ bool theme_color(theme_ptr theme, std::string name, QColor& qcolor)
     return true;
 }
 
-bool theme_scrollbar(theme_ptr theme, std::string name, QWidget& scrollbar)
+bool theme_application(theme_ptr theme)
 {
-    QColor bgColor;
+  QFile file("./style.css");        
 
-    if (!theme_color(theme, name, bgColor)) {
-        return false;
-    }
-
-    scrollbar.setStyleSheet(" \
-        QScrollBar:vertical { \
-          width: 12px; \
-          background: "
-        + bgColor.darker(105).name() + "; \
-          padding: 3px; \
-          border: none; \
-        } \
-        QScrollBar::handle:vertical { \
-          background: "
-        + bgColor.lighter(150).name() + "; \
-          border-radius: 3px; \
-        } \
-        QScrollBar::add-line:vertical { \
-          border: none; \
-          background: none; \
-        } \
-        QScrollBar::sub-line:vertical { \
-          border: none; \
-          background: none; \
-        } \
-        QScrollBar::handle:hover:vertical { \
-          background: "
-        + bgColor.lighter(180).name() + "; \
-        } \
-        QScrollBar:horizontal { \
-          height: 12px; \
-          background: "
-        + bgColor.darker(105).name() + "; \
-          padding: 3px; \
-          border: none; \
-        } \
-        QScrollBar::handle:horizontal { \
-          background: "
-        + bgColor.lighter(150).name() + "; \
-          border-radius: 3px; \
-        } \
-        QScrollBar::add-line:horizontal { \
-          border: none; \
-          background: none; \
-        } \
-        QScrollBar::sub-line:horizontal { \
-          border: none; \
-          background: none; \
-        } \
-        QScrollBar::handle:hover:horizontal { \
-          background: "
-        + bgColor.lighter(180).name() + "; \
-        } \
-        ");
-
+  if (!file.open(QFile::ReadOnly | QFile::Text)) {
     return true;
-}
+  }
 
-bool theme_splitter(theme_ptr theme, std::string name, QWidget& splitter)
-{
-    QColor bgColor;
-    if (!theme_color(theme, name, bgColor)) {
-        return false;
+  QString css = "";
+
+  QColor bgColor;
+  if (!theme_color(theme, "editor.background", bgColor)) {
+      // return false;
+  }
+  QColor fgColor;
+  if (!theme_color(theme, "editor.foreground", fgColor)) {
+      // return false;
+  }
+
+  QColor treeBg = bgColor.darker(110);
+  QColor treeFg = fgColor.darker(115);
+  QColor itemActiveBg;
+  QColor itemActiveFg;
+  QColor itemHoverBg;
+  QColor itemHoverFg;
+  if (!theme_color(theme, "list.activeSelectionBackground", itemActiveBg)) {
+    itemActiveBg = bgColor.light(150);
+  }
+  if (!theme_color(theme, "list.activeSelectionForeground", itemActiveFg)) {
+    itemActiveFg = fgColor.light(150);
+  }
+  itemHoverBg = itemActiveBg.darker(120);
+  itemHoverFg = itemActiveFg.darker(110);
+
+  QRegularExpression regex(QStringLiteral("\\@[a-zA-Z]*"));
+
+  QMap<QString, QString> colors;
+  colors["@bgColor"] = bgColor.name();
+  colors["@fgColor"] = fgColor.name();
+
+  colors["@scrollBg"] = bgColor.darker(105).name();
+  colors["@scrollHandleBg"] = bgColor.lighter(150).name();
+  colors["@scrollHandleHoverBg"] = bgColor.lighter(180).name();
+  colors["@splitterBg"] = bgColor.name();
+
+  colors["@treeBg"] = treeBg.name();
+  colors["@treeFg"] = treeFg.name();
+  colors["@treeItemActiveBg"] = itemActiveBg.name();
+  colors["@treeItemHoverBg"] = itemHoverBg.name();
+  colors["@treeItemActiveFg"] = itemActiveFg.name();
+  colors["@treeItemHoverFg"] = itemHoverFg.name();
+
+  colors["@statusBg"] = treeBg.darker(150).name();
+  colors["@statusFg"] = treeFg.name();
+
+  QTextStream in(&file);
+  while (!in.atEnd())
+  {
+    QString line = in.readLine();
+    QRegularExpressionMatch match = regex.match(line);
+    if (match.hasMatch()) {
+      QString color = colors[match.captured()];
+      line = line.replace(match.capturedStart(), match.capturedLength(), color);
     }
-
-    splitter.setStyleSheet("QSplitter::handle { background: red" + bgColor.name() + " }");
-    return true;
-}
-
-bool theme_sidebar(theme_ptr theme, std::string name, QWidget& tree)
-{
-    QColor bgColor;
-    QColor fgColor;
-    if (!theme_color(theme, name + ".background", bgColor)) {
-        return false;
-    }
-    if (!theme_color(theme, name + ".foreground", fgColor)) {
-        theme_color(theme, "editor.foreground", fgColor);
-        fgColor = fgColor.darker(110);
-    }
-
-    QColor activeBg;
-    QColor activeFg;
-
-    if (theme_color(theme, "list.activeSelectionBackground", activeBg)) {
-        theme_color(theme, "list.activeSelectionForeground", activeFg);
-    } else if (theme_color(theme, "list.focusBackground", activeBg)) {
-        theme_color(theme, "list.focusForeground", activeFg);
-    } else {
-        activeBg = bgColor.lighter(150);
-        activeFg = fgColor;
-    }
-
-    tree.setStyleSheet(" \
-      QTreeView { \
-       background: "
-        + bgColor.name() + "; \
-       color: "
-        + fgColor.name() + "; \
-       border: none; \
-       show-decoration-selected: 0; \
-       font-size: 12pt; \
-       outline: 0 \
-      } \
-      QTreeView::item { \
-        border: none; \
-        padding: 2px; \
-        show-decoration-selected: 0 \
-      } \
-      QTreeView::item::hover { \
-        background: "
-        + activeBg.darker(150).name() + "; \
-        color: "
-        + activeFg.name() + "; \
-        border: none; \
-      }\
-      QTreeView::item::!selected::focus, \
-      QTreeView::item::selected { \
-        background: "
-        + activeBg.name() + "; \
-        color: "
-        + activeFg.name() + "; \
-        border: none; \
-      }\
-      ");
-
-    return true;
-}
-
-bool theme_tabbar(theme_ptr theme, std::string name, QWidget& tabbar)
-{
-    QColor bgColor;
-    QColor fgColor;
-    if (!theme_color(theme, name + ".background", bgColor)) {
-        return false;
-    }
-    if (!theme_color(theme, name + ".foreground", fgColor)) {
-        theme_color(theme, "editor.foreground", fgColor);
-        fgColor = fgColor.darker(110);
-    }
-
-    QColor activeBg;
-    QColor activeFg;
-
-    if (theme_color(theme, "list.activeSelectionBackground", activeBg)) {
-        theme_color(theme, "list.activeSelectionForeground", activeFg);
-    } else if (theme_color(theme, "list.focusBackground", activeBg)) {
-        theme_color(theme, "list.focusForeground", activeFg);
-    } else {
-        activeBg = bgColor.lighter(150);
-        activeFg = fgColor;
-    }
-
-    tabbar.setStyleSheet(" \
-      QTabBar { \
-       background: "
-        + bgColor.name() + "; \
-       color: "
-        + fgColor.name() + "; \
-       border: none; \
-       show-decoration-selected: 0; \
-       font-size: 10pt; \
-      } \
-      QTabBar::tab { \
-        border: none; \
-        padding: 4px; \
-        padding-left: 14px; \
-        show-decoration-selected: 0 \
-      } \
-      _QTabBar::close-button::hover { \
-        border: none; \
-      }\
-      QTabBar::tab::hover { \
-        background: "
-        + activeBg.darker(150).name() + "; \
-        color: "
-        + activeFg.name() + "; \
-        border: none; \
-      }\
-      QTabBar::tab::!selected::focus, \
-      QTabBar::tab::selected { \
-        background: "
-        + activeBg.name() + "; \
-        color: "
-        + activeFg.name() + "; \
-        border: none; \
-      }\
-      ");
-    return true;
-}
-
-bool theme_statusbar(theme_ptr theme, std::string name, QWidget& statusbar)
-{
-    QColor bgColor;
-    QColor fgColor;
-    if (!theme_color(theme, name + ".background", bgColor)) {
-        return false;
-    }
-    theme_color(theme, name + ".foreground", fgColor);
-    statusbar.setStyleSheet(" \
-        QStatusBar { \
-          background: "
-        + bgColor.name() + "; \
-          color: "
-        + fgColor.name() + "; \
-          font-size: 10pt; \
-          padding: 4px; \
-        } \
-        QSizeGrip { background: transparent } \
-         ");
-
-    return true;
+    // qDebug() << line;
+    css += line + "\n";
+  }
+  file.close();
+  
+  qobject_cast<QApplication*>(QApplication::instance())->setStyleSheet(css);
+  
+  return true;
 }

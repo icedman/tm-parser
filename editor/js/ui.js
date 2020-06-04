@@ -22,8 +22,8 @@ export const ui = {
                 // console.log(v);
             }
             input.onSubmit = () => {
-                console.log("search for " + input.value + "...");
-                app.editor().find(input.value);
+                console.log("search for " + input.getText() + "...");
+                app.editor().find(input.getText());
             }
             btn.onClick = () => {
                 input.onSubmit();

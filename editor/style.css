@@ -1,0 +1,144 @@
+
+QWidget {
+  background: @bgColor;
+  color: @fgColor;
+  border: none;
+}
+
+/* scrollbars */
+QScrollBar:vertical {
+  width: 12px;
+  background: @scrollBg;
+  padding: 3px;
+  border: none;
+}
+QScrollBar::handle:vertical {
+  background: @scrollHandleBg;
+  border-radius: 3px;
+}
+QScrollBar::add-line:vertical {
+  border: none;
+  background: none;
+}
+QScrollBar::sub-line:vertical {
+  border: none;
+  background: none;
+}
+QScrollBar::handle:hover:vertical {
+  background: @scrollHandleHoverBg;
+}
+QScrollBar:horizontal {
+  height: 12px;
+  background: @scrollBg;
+  padding: 3px;
+  border: none;
+}
+QScrollBar::handle:horizontal {
+  background: @scrollHandleBg;
+  border-radius: 3px;
+}
+QScrollBar::add-line:horizontal {
+  border: none;
+  background: none;
+}
+QScrollBar::sub-line:horizontal {
+  border: none;
+  background: none;
+}
+QScrollBar::handle:hover:horizontal {
+  background: @scrollHandleHoverBg;
+}
+
+/* splitter */
+QSplitter::handle {
+  background: @splitterBg;
+}
+
+/* sidebar */
+QTreeView {
+ background: @treeBg;
+ color: @treeFg;
+ border: none;
+ show-decoration-selected: 0;
+ font-size: 12pt;
+ outline: 0
+}
+QTreeView::item {
+  border: none;
+  padding: 2px;
+  show-decoration-selected: 0
+}
+QTreeView::item::hover {
+  background: @treeItemHoverBg;
+  color: @treeItemHoverFg;
+  border: none;
+}
+QTreeView::item::!selected::focus,
+QTreeView::item::selected {
+  background: @treeItemActiveBg;
+  color: @treeItemActiveFg;
+  border: none;
+}
+
+/* Tabbar */
+QTabBar {
+ background: @treeBg;
+ color: @treeFg;
+ border: none;
+ show-decoration-selected: 0;
+ font-size: 10pt;
+}
+QTabBar::tab {
+  border: none;
+  padding: 4px;
+  padding-left: 14px;
+  show-decoration-selected: 0
+}
+_QTabBar::close-button::hover {
+  border: none;
+}
+QTabBar::tab::hover {
+  background: @treeItemHoverBg;
+  color: @treeItemHoverFg;
+  border: none;
+}
+QTabBar::tab::!selected::focus,
+QTabBar::tab::selected {
+  background: @treeItemActiveBg;
+  color: @treeItemActiveFg;
+  border: none;
+}
+
+/* statusbar */
+QStatusBar {
+  background: @statusBg;
+  color: @statusFg;
+  font-size: 10pt;
+  padding: 4px;
+}
+
+QSizeGrip { background: transparent }
+
+/* lineedit */
+QLineEdit {
+  border: none;
+  padding: 6px;
+  background: @treeBg;
+  color: @treeFg;
+}
+
+/* button */
+QPushButton {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  background: @treeItemHoverBg;
+  color: @treeItemHoverFg;
+}
+
+QPushButton::hover {
+  background: @treeItemActiveBg;
+  color: @treeItemActiveFg;
+  border: none;
+}

@@ -5,7 +5,11 @@
 
 int main(int argc, char* argv[])
 {
-    QApplication app(argc, argv);
+    // QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
+    // qobject_cast<QApplication *>(app.data())
+    QApplication *app = new QApplication(argc, argv);
+    app->setQuitOnLastWindowClosed(true);
+
     MainWindow window;
     // window.resize(640, 512);
     window.resize(1200, 700);
@@ -18,6 +22,5 @@ int main(int argc, char* argv[])
 
     window.show();
 
-    app.setQuitOnLastWindowClosed(true);
-    return app.exec();
+    return app->exec();
 }

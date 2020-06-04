@@ -114,18 +114,12 @@ void Editor::setTheme(theme_ptr _theme)
         editor->setPalette(p);
     }
 
-    theme_scrollbar(theme, "editor.background", *vscroll);
-    theme_scrollbar(theme, "editor.background", *editor->horizontalScrollBar());
-
     backgroundColor = bgColor;
 
     editor->setStyleSheet("QPlainTextEdit { border: 0px; } QScrollBar:vertical { width: 0px }");
 
     if (!settings->word_wrap) {
         editor->setLineWrapMode(QPlainTextEdit::NoWrap);
-        editor->textCursor().blockFormat().setIndent(4);
-        // void QTextBlockFormat::setIndent ( int indentation )
-        // void QTextCursor::setBlockFormat ( const QTextBlockFormat & format )
     }
 }
 

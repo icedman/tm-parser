@@ -128,6 +128,13 @@ void button_set_text(QObject *obj, QString text)
     t->setText(text);
 }
 
+
+QString button_get_text(QObject *obj)
+{
+    QPushButton *t = (QPushButton*)obj;
+    return t->text();
+}
+
 QJSValue JSUIObject::button(QString text, QJSValue layout) {
     UI_CONTAINER(UI_PANEL, Panel, container, true);
     QPushButton *btn = container->addButton(text, JS_TO_OBJ(QBoxLayout, layout));
@@ -136,6 +143,7 @@ QJSValue JSUIObject::button(QString text, QJSValue layout) {
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
     jsobj->self.setProperty("onClick", QJSValue());
     jsobj->set_text = button_set_text;
+    jsobj->set_text = button_get_text;
     return jsobj->self;
 }
 
@@ -145,6 +153,12 @@ void label_set_text(QObject *obj, QString text)
     t->setText(text);
 }
 
+QString label_get_text(QObject *obj)
+{
+    QLabel *t = (QLabel*)obj;
+    return t->text();
+}
+
 QJSValue JSUIObject::label(QString text, QJSValue layout) {
     UI_CONTAINER(UI_PANEL, Panel, container, true);
     Panel *panel = (Panel*)parent();
@@ -152,6 +166,7 @@ QJSValue JSUIObject::label(QString text, QJSValue layout) {
     JSUIObject *jsobj = new JSUIObject((QObject*)label, UI_LABEL);
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
     jsobj->set_text = label_set_text;
+    jsobj->get_text = label_get_text;
     return jsobj->self;
 }
 
@@ -161,6 +176,12 @@ void input_set_text(QObject *obj, QString text)
     t->setText(text);
 }
 
+QString input_get_text(QObject *obj)
+{
+    QLineEdit *t = (QLineEdit*)obj;
+    return t->text();
+}
+
 QJSValue JSUIObject::inputText(QString text, QJSValue layout) {
     UI_CONTAINER(UI_PANEL, Panel, container, true);
     QLineEdit *line = container->addInputText(text, JS_TO_OBJ(QBoxLayout, layout));
@@ -168,8 +189,8 @@ QJSValue JSUIObject::inputText(QString text, QJSValue layout) {
     connect(line, SIGNAL(textEdited(QString)), jsobj, SLOT(valueChanged(QString)));
     connect(line, SIGNAL(returnPressed()), jsobj, SLOT(submitted()));
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
-    jsobj->self.setProperty("value", text);
     jsobj->set_text = input_set_text;
+    jsobj->get_text = input_get_text;
     return jsobj->self;
 }
 
@@ -207,6 +228,14 @@ QJSValue JSUIObject::setText(QString text)
         set_text(parent(), text);
     }
     return QJSValue();
+}
+
+QJSValue JSUIObject::getText()
+{
+    if (get_text) {
+        return get_text(parent());
+    }
+    return QJSValue();   
 }
 
 QJSValue JSUIObject::setFocus()
