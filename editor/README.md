@@ -1,9 +1,16 @@
 This app is a simple SublimeText replacement.
 It uses the textmate parser. And reuses some visual studio code extensions.
 
-# mvp
+# features
+* syntax highlighting
 * keybindings
 * scripting
+* themes
+* extensions
 
-# features
-
+# todo
+* multi-cursor
+* git gutter
+* folder search
+* regex search
+* commands

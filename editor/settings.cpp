@@ -41,6 +41,8 @@ bool theme_application(theme_ptr theme)
       // return false;
   }
 
+  QColor fgDisabledColor = fgColor.darker(180);
+  
   QColor treeBg = bgColor.darker(110);
   QColor treeFg = fgColor.darker(115);
   QColor itemActiveBg;
@@ -61,6 +63,7 @@ bool theme_application(theme_ptr theme)
   QMap<QString, QString> colors;
   colors["@bgColor"] = bgColor.name();
   colors["@fgColor"] = fgColor.name();
+  colors["@fgDisabledColor"] = fgDisabledColor.name();
 
   colors["@scrollBg"] = bgColor.darker(105).name();
   colors["@scrollHandleBg"] = bgColor.lighter(150).name();
