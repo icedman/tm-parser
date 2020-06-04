@@ -10,6 +10,7 @@ HEADERS         = commands.h \
                   js.h \
                   mainwindow.h \
                   minimap.h \
+                  panel.h \
                   sidebar.h \
                   settings.h \
                   tabs.h
@@ -23,6 +24,7 @@ SOURCES         = commands.cpp \
                   js.cpp \
                   mainwindow.cpp \
                   minimap.cpp \
+                  panel.cpp \
                   sidebar.cpp \
                   settings.cpp \
                   tabs.cpp \

@@ -12,11 +12,13 @@
 #include "json/json.h"
 #include "sidebar.h"
 #include "tabs.h"
+#include "panel.h"
 #include "theme.h"
 
 Q_DECLARE_METATYPE(Editor*)
 
 class QStackedWidget;
+class QSplitter;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -47,6 +49,7 @@ public:
 
     Editor* createEditor();
     Editor* currentEditor();
+    Panel* createPanel(QString name);
 
     QJSEngine& jsEngine() { return engine; }
     int currentTab() { return tabs->currentIndex(); }
@@ -74,10 +77,13 @@ private:
     QMenu* fileMenu;
     QMenu* viewMenu;
 
-    QWidget* central;
+    QSplitter* splitter;
+    QSplitter* splitterv;
     QStackedWidget* editors;
+    QStackedWidget* panels;
     Tabs* tabs;
     Sidebar* sidebar;
+    Panel* panel;
 
     QTimer updateTimer;
 

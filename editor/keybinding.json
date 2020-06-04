@@ -8,7 +8,7 @@
     { "keys": "ctrl+shift+d", "command": "app.editor().duplicateLine()" },
     { "keys": "ctrl+l",       "command": "app.editor().expandSelectionToLine()" },
 
-    { "keys": "alt+w",        "command": "app.close_tab()" },
+    { "keys": "alt+w",        "command": "app.closeTab()" },
     { "keys": "alt+1",        "command": "app.tab(0)" },
     { "keys": "alt+2",        "command": "app.tab(1)" },
     { "keys": "alt+3",        "command": "app.tab(2)" },
@@ -18,8 +18,8 @@
     { "keys": "alt+7",        "command": "app.tab(6)" },
     { "keys": "alt+8",        "command": "app.tab(7)" },
     { "keys": "alt+9",        "command": "app.tab(8)" },
-    { "keys": "alt+t",        "command": "app.new_tab()" },
-    { "keys": "ctrl+w",       "command": "app.close_tab()" },
+    { "keys": "alt+t",        "command": "app.newTab()" },
+    { "keys": "ctrl+w",       "command": "app.closeTab()" },
     { "keys": "ctrl+1",       "command": "app.tab(0)" },
     { "keys": "ctrl+2",       "command": "app.tab(1)" },
     { "keys": "ctrl+3",       "command": "app.tab(2)" },
@@ -29,5 +29,5 @@
     { "keys": "ctrl+7",       "command": "app.tab(6)" },
     { "keys": "ctrl+8",       "command": "app.tab(7)" },
     { "keys": "ctrl+9",       "command": "app.tab(8)" },
-    { "keys": "ctrl+n",       "command": "app.new_tab()" }
+    { "keys": "ctrl+n",       "command": "app.newTab()" }
 ]

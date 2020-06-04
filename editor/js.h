@@ -29,6 +29,23 @@ public slots:
     void expandSelectionToLine();
 };
 
+class JSUIObject : public QObject {
+    Q_OBJECT
+
+public:
+    JSUIObject(QObject* parent = 0);
+    QJSValue self;
+
+public slots:
+    QJSValue vbox(QJSValue parent = QJSValue());
+    QJSValue hbox(QJSValue parent = QJSValue());
+    QJSValue button(QJSValue text, QJSValue parent = QJSValue());
+
+private Q_SLOTS:
+    void clicked();
+    void valueChanged(QString value);
+};
+
 class JSApp : public QObject {
     Q_OBJECT
 
@@ -37,9 +54,11 @@ public:
 
 public slots:
     QJSValue editor();
+    QJSValue createPanel(QJSValue name);
+
     void tab(int i);
-    void new_tab();
-    void close_tab();
+    void newTab();
+    void closeTab();
     void exit();
 };
 

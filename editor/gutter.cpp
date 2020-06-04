@@ -92,8 +92,6 @@ void Gutter::mousePressEvent(QMouseEvent* event)
             }
     }
     if (lineNo >= 0) {
-        // std::cout << lineNo << std::endl;
-        // AshlarEdit *editor = qobject_cast<AshlarEdit*>(parent());
         if (editor) {
             editor->toggleFold(lineNo);
         }

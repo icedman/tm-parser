@@ -81,9 +81,8 @@ void MainWindow::configure()
     }
 
     // editor settings
-    if (settings["mini_map"] == true) {
-        editor_settings->mini_map = true;
-    }
+    editor_settings->mini_map = settings.isMember("mini_map") && settings["mini_map"] == true;
+    editor_settings->gutter = settings.isMember("gutter") && settings["gutter"] == true;
 
     if (settings.isMember("font")) {
         editor_settings->font = settings["font"].asString();
@@ -103,14 +102,8 @@ void MainWindow::configure()
         editor_settings->tab_size = 4;
     }
 
-    if (settings.isMember("tab_to_spaces") && settings["tab_to_spaces"] == true) {
-        editor_settings->tab_to_spaces = true;
-        std::cout << editor_settings->tab_to_spaces << std::endl;
-    }
-
-    if (settings.isMember("word_wrap") && settings["word_wrap"] == true) {
-        editor_settings->word_wrap = true;
-    }
+    editor_settings->tab_to_spaces = settings.isMember("tab_to_spaces") && settings["tab_to_spaces"] == true;
+    editor_settings->word_wrap = settings.isMember("word_wrap") && settings["word_wrap"] == true;
 
     // std::cout << settings << std::endl;
 
@@ -138,7 +131,8 @@ void MainWindow::applyTheme()
         menuBar()->setStyleSheet("QMenuBar{ color: " + menuBarFg.name() + "; background: " + menuBarBg.name() + " }");
     }
 
-    theme_splitter(theme, "editor.background", *central);
+    theme_splitter(theme, "editor.background", *splitter);
+    theme_splitter(theme, "editor.background", *splitterv);
     theme_sidebar(theme, "editor.background", *sidebar);
     theme_scrollbar(theme, "editor.background", *sidebar->horizontalScrollBar());
     theme_scrollbar(theme, "editor.background", *sidebar->verticalScrollBar());
@@ -192,8 +186,10 @@ void MainWindow::setupLayout()
 {
     readSettings();
 
-    QSplitter* splitter = new QSplitter(Qt::Horizontal);
+    splitterv = new QSplitter(Qt::Vertical);
+    splitter = new QSplitter(Qt::Horizontal);
     editors = new QStackedWidget();
+    panels = new QStackedWidget();
 
     // editors->setMargin(0);
     // editors->setSpacing(0);
@@ -213,19 +209,22 @@ void MainWindow::setupLayout()
 
     QWidget* mainPane = new QWidget();
     QVBoxLayout* vbox = new QVBoxLayout();
+
+    mainPane->setLayout(vbox);
     vbox->addWidget(tabs);
     vbox->addWidget(editors);
     vbox->setMargin(0);
     vbox->setSpacing(0);
-    mainPane->setLayout(vbox);
+
+    splitterv->addWidget(splitter);
+    splitterv->addWidget(panels); 
+    // splitterv->setStretchFactor(3, 1);
 
     splitter->addWidget(sidebar);
     splitter->addWidget(mainPane);
     splitter->setStretchFactor(1, 3);
 
-    setCentralWidget(splitter);
-
-    central = splitter;
+    setCentralWidget(splitterv);
 }
 
 void MainWindow::newFile()
@@ -472,4 +471,12 @@ void MainWindow::keyPressEvent(QKeyEvent* e)
     if (!Commands::keyPressEvent(e)) {
         QMainWindow::keyPressEvent(e);
     }
+}
+
+Panel* MainWindow::createPanel(QString name)
+{
+    Panel *p = new Panel(this);
+    panels->addWidget(p);
+    panels->setCurrentWidget(p);
+    return p;
 }

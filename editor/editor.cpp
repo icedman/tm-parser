@@ -220,11 +220,11 @@ void Editor::updateMiniMap()
         return;
     }
 
-    // todo
     if (settings->mini_map) {
         mini->show();
     } else {
         mini->hide();
+        return;
     }
 
     int sw = 60 + (width() * 0.03);
@@ -276,6 +276,13 @@ static bool isFoldable(QTextBlock& block)
 void Editor::updateGutter()
 {
     if (!gutter) {
+        return;
+    }
+
+    if (settings->gutter) {
+        gutter->show();
+    } else {
+        gutter->hide();
         return;
     }
 

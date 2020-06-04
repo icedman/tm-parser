@@ -18,7 +18,8 @@ class TextmateEdit;
 class Editor;
 
 struct editor_settings_t {
-    bool mini_map : true;
+    bool mini_map;
+    bool gutter;
     float font_size;
     std::string font;
     int tab_size;

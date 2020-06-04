@@ -63,8 +63,7 @@ void Sidebar::setRootPath(QString path)
         return;
     }
 
-    Sidebar* sidebar = (Sidebar*)parent();
-    MainWindow* main = (MainWindow*)sidebar->parent();
+    MainWindow* main = MainWindow::instance();
 
     fileModel = new FileSystemModel(this);
     fileModel->mainWindow = main;
@@ -154,3 +153,7 @@ void Sidebar::onSingleClick()
 
     timer.stop();
 }
+
+/*
+You could use the QTreeView's signal expanded(const QModelIndex & index), and connect it to a slot of some object which can access the model->setData(OpenIcon, Qt::DecorationRole), and similarly use the QTreeView's signal collapsed(const QModelIndex & index), and connect it to a slot of some object which can access the model->setData(CloseIcon, Qt::DecorationRole).
+*/
