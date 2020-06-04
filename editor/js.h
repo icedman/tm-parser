@@ -22,8 +22,11 @@ public:
 public slots:
 
     void toggleComment();
+    void toggleBlockComment();
     void indent();
     void unindent();
+    void duplicateLine();
+    void expandSelectionToLine();
 };
 
 class JSApp : public QObject {
@@ -35,7 +38,8 @@ public:
 public slots:
     QJSValue editor();
     void tab(int i);
-    void close();
+    void new_tab();
+    void close_tab();
     void exit();
 };
 

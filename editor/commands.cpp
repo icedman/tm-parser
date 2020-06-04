@@ -4,19 +4,33 @@
 #include "commands.h"
 #include "mainwindow.h"
 
+#define NO_IMPLEMENTATION(s) qDebug() << s << " not yet implemented";
+
 static void Commands::insertTab(Editor const* editor, QTextCursor cursor)
 {
-    for (int i = 0; i < 4; i++) {
-        cursor.insertText(" ");
+    editor_settings_ptr settings = MainWindow::instance()->editor_settings;
+    if (settings->tab_to_spaces) {
+        for (int i = 0; i < settings->tab_size; i++) {
+            cursor.insertText(" ");
+        }
+    } else {
+        cursor.insertText("\t");
     }
 }
 
 static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
 {
+    editor_settings_ptr settings = MainWindow::instance()->editor_settings;
     QTextBlock block = cursor.block();
     QString s = block.text();
-    for (int i = 0; i < 4 && i < s.length(); i++) {
-        if (s[i] == ' ') {
+    for (int i = 0; i < settings->tab_size && i < s.length(); i++) {
+        if (settings->tab_to_spaces) {
+            if (s[i] == '\t') {
+                cursor.deleteChar();
+                break;
+            }   
+        }
+        if (s[i] == ' ' || s[i] == '\t') {
             cursor.deleteChar();
         } else {
             break;
@@ -26,8 +40,12 @@ static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
 
 static void Commands::toggleComment(Editor const* editor)
 {
+    if (!editor->lang->lineComment.length()) {
+        return;
+    }
+    
     // qDebug() << "comment";
-    QString singleLineComment = "//";
+    QString singleLineComment = editor->lang->lineComment.c_str();
 
     QTextCursor cursor = editor->editor->textCursor();
     if (!cursor.hasSelection()) {
@@ -82,6 +100,15 @@ static void Commands::toggleComment(Editor const* editor)
     }
 }
 
+static void Commands::toggleBlockComment(Editor const* editor)
+{
+    if (!editor->lang->blockCommentStart.length()) {
+        return;
+    }
+
+    NO_IMPLEMENTATION("toggleBlockComment")
+}
+
 static void Commands::indent(Editor const* editor)
 {
     // qDebug() << "indent";
@@ -134,6 +161,43 @@ static void Commands::unindent(Editor const* editor)
     }
 }
 
+
+static void Commands::duplicateLine(Editor const* editor)
+{
+    QTextCursor cursor = editor->editor->textCursor();
+    if (!cursor.hasSelection()) {
+        QTextCursor cs(cursor);
+        cs.select(QTextCursor::LineUnderCursor);
+        QString selectedText = cs.selectedText();
+        cursor.beginEditBlock();
+        cursor.movePosition(QTextCursor::EndOfLine);
+        cursor.insertText(QString("\n") + selectedText);
+        cursor.endEditBlock();
+    } else {
+        QString selectedText = cursor.selectedText();
+        QTextCursor cs(cursor);
+        cs.setPosition(cursor.selectionStart());
+        cs.beginEditBlock();
+        cs.insertText(selectedText);
+        cs.endEditBlock();
+    }
+}
+
+static void Commands::expandSelectionToLine(Editor const* editor)
+{
+    QTextCursor cursor = editor->editor->textCursor();
+    if (!cursor.hasSelection()) {
+        cursor.select(QTextCursor::LineUnderCursor);
+        editor->editor->setTextCursor(cursor);
+    } else {
+        QTextCursor cs(cursor);
+        cs.setPosition(cursor.selectionStart());
+        cs.movePosition(QTextCursor::StartOfLine);
+        cs.setPosition(cursor.selectionEnd(), QTextCursor::KeepAnchor);
+        cs.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+        editor->editor->setTextCursor(cs);
+    }
+}
 
 static bool Commands::keyPressEvent(QKeyEvent* e)
 {

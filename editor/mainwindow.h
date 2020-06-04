@@ -33,7 +33,6 @@ public slots:
 public:
     void loadTheme(const QString& name);
     void configure();
-    void setupEditor();
     void setupMenu();
     void setupLayout();
     void applyTheme();
@@ -46,19 +45,20 @@ public:
 
     bool processKeys(QString keys);
 
+    Editor* createEditor();
     Editor* currentEditor();
+
     QJSEngine& jsEngine() { return engine; }
     int currentTab() { return tabs->currentIndex(); }
 
     static MainWindow* instance();
 
 public:
-    Editor* editor; // todo << remove, adds confusion
     std::vector<Extension> extensions;
     theme_ptr theme;
     icon_theme_ptr icons;
 
-    struct editor_settings_t editor_settings;
+    editor_settings_ptr editor_settings;
     Json::Value settings;
 
 public:

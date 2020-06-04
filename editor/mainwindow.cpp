@@ -18,7 +18,6 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , updateTimer(this)
     , icons(0)
-    , editor(0)
 {
     _instance = this;
     configure();
@@ -62,6 +61,8 @@ void MainWindow::loadTheme(const QString& name)
 
 void MainWindow::configure()
 {
+	editor_settings = std::make_shared<editor_settings_t>();
+
     QString userSettings = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
     load_settings(userSettings, settings);
 
@@ -81,45 +82,50 @@ void MainWindow::configure()
 
     // editor settings
     if (settings["mini_map"] == true) {
-        editor_settings.mini_map = true;
+        editor_settings->mini_map = true;
     }
 
     if (settings.isMember("font")) {
-        editor_settings.font = settings["font"].asString();
+        editor_settings->font = settings["font"].asString();
     } else {
-        editor_settings.font = "monospace";
+        editor_settings->font = "monospace";
     }
 
     if (settings.isMember("font_size")) {
-        editor_settings.font_size = std::stof(settings["font_size"].asString());
+        editor_settings->font_size = std::stof(settings["font_size"].asString());
     } else {
-        editor_settings.font_size = 12;
+        editor_settings->font_size = 12;
     }
 
     if (settings.isMember("tab_size")) {
-        editor_settings.tab_size = std::stoi(settings["tab_size"].asString());
+        editor_settings->tab_size = std::stoi(settings["tab_size"].asString());
     } else {
-        editor_settings.tab_size = 4;
+        editor_settings->tab_size = 4;
     }
 
-    if (settings["tab_to_spaces"] == true) {
-        editor_settings.tab_to_spaces = true;
+    if (settings.isMember("tab_to_spaces") && settings["tab_to_spaces"] == true) {
+        editor_settings->tab_to_spaces = true;
+        std::cout << editor_settings->tab_to_spaces << std::endl;
+    }
+
+    if (settings.isMember("word_wrap") && settings["word_wrap"] == true) {
+        editor_settings->word_wrap = true;
     }
 
     // std::cout << settings << std::endl;
 
     // fix invalids
-    if (editor_settings.font_size < 6) {
-        editor_settings.font_size = 6;
+    if (editor_settings->font_size < 6) {
+        editor_settings->font_size = 6;
     }
-    if (editor_settings.font_size > 48) {
-        editor_settings.font_size = 48;
+    if (editor_settings->font_size > 48) {
+        editor_settings->font_size = 48;
     }
-    if (editor_settings.tab_size < 1) {
-        editor_settings.tab_size = 1;
+    if (editor_settings->tab_size < 1) {
+        editor_settings->tab_size = 1;
     }
-    if (editor_settings.tab_size > 8) {
-        editor_settings.tab_size = 8;
+    if (editor_settings->tab_size > 8) {
+        editor_settings->tab_size = 8;
     }
 }
 
@@ -158,8 +164,8 @@ void MainWindow::applySettings()
     if (settings["sidebar"] == true) {
 
         QFont font;
-        font.setFamily(editor_settings.font.c_str());
-        font.setPointSize(editor_settings.font_size);
+        font.setFamily(editor_settings->font.c_str());
+        font.setPointSize(editor_settings->font_size);
         font.setFixedPitch(true);
         sidebar->setFont(font);
 
@@ -171,8 +177,8 @@ void MainWindow::applySettings()
     if (settings["statusbar"] == true) {
 
         QFont font;
-        font.setFamily(editor_settings.font.c_str());
-        font.setPointSize(editor_settings.font_size);
+        font.setFamily(editor_settings->font.c_str());
+        font.setPointSize(editor_settings->font_size);
         font.setFixedPitch(true);
         statusBar()->setFont(font);
 
@@ -225,7 +231,7 @@ void MainWindow::setupLayout()
 void MainWindow::newFile()
 {
     int tabIdx = tabs->addTab(UNTITLED_TEXT);
-    setupEditor();
+    Editor *editor = createEditor();
     editors->addWidget(editor);
     tabs->setTabData(tabIdx, QVariant::fromValue(editor));
     tabSelected(tabIdx);
@@ -233,7 +239,7 @@ void MainWindow::newFile()
 
 void MainWindow::saveFile()
 {
-    QString fileName = editor->fileName;
+    QString fileName = currentEditor()->fileName;
 
     if (QFileInfo(fileName).fileName() == UNTITLED_TEXT) {
         fileName = "";
@@ -245,9 +251,9 @@ void MainWindow::saveFile()
     }
 
     if (!fileName.isEmpty()) {
-        if (editor->saveFile(QFileInfo(fileName).absoluteFilePath())) {
-            tabs->setTabText(tabs->currentIndex(), QFileInfo(editor->fileName).fileName());
-            statusBar()->showMessage("Saved " + editor->fileName, 5000);
+        if (currentEditor()->saveFile(QFileInfo(fileName).absoluteFilePath())) {
+            tabs->setTabText(tabs->currentIndex(), QFileInfo(currentEditor()->fileName).fileName());
+            statusBar()->showMessage("Saved " + currentEditor()->fileName, 5000);
         }
     }
 }
@@ -278,20 +284,21 @@ void MainWindow::openFile(const QString& path)
     if (QFile::exists(fileName)) {
         fileName = QFileInfo(fileName).absoluteFilePath();
         openTab(fileName);
-        if (editor->fileName != fileName) {
-            editor->setLanguage(language_from_file(fileName, extensions));
-            editor->openFile(fileName);
+        if (currentEditor()->fileName != fileName) {
+            currentEditor()->setLanguage(language_from_file(fileName, extensions));
+            currentEditor()->openFile(fileName);
         }
         return;
     }
 }
 
-void MainWindow::setupEditor()
+Editor* MainWindow::createEditor()
 {
-    editor = new Editor(this);
-    editor->settings = &editor_settings;
+    Editor *editor = new Editor(this);
+    editor->settings = editor_settings;
     editor->setTheme(theme);
     editor->setupEditor();
+    return editor;
 }
 
 void MainWindow::tabSelected(int index)
@@ -309,7 +316,6 @@ void MainWindow::tabSelected(int index)
         if (_editor) {
             editors->setCurrentWidget(_editor);
             tabs->setCurrentIndex(index);
-            editor = _editor;
         }
     }
 }
@@ -359,7 +365,7 @@ Editor* MainWindow::openTab(const QString& _path)
 
     if (tabIdx != -1) {
         tabSelected(tabIdx);
-        return editor;
+        return currentEditor();
     }
 
     QString _fileName = QFileInfo(path).fileName();
@@ -369,11 +375,11 @@ Editor* MainWindow::openTab(const QString& _path)
     }
 
     tabIdx = tabs->addTab(_fileName);
-    setupEditor(); // << creates a new editor
-    editors->addWidget(editor);
-    tabs->setTabData(tabIdx, QVariant::fromValue(editor));
+    Editor *_editor= createEditor(); // << creates a new editor
+    editors->addWidget(_editor);
+    tabs->setTabData(tabIdx, QVariant::fromValue(_editor));
     tabSelected(tabIdx);
-    return editor;
+    return _editor;
 }
 
 void MainWindow::setupMenu()
@@ -400,7 +406,7 @@ void MainWindow::setupMenu()
     //     this, [this]() { sidebar->toggle(); });
     // viewMenu->addAction(
     //     tr("Toggle Minimap"),
-    //     this, [this]() { editor_settings.miniMap = !editor_settings.miniMap; });
+    //     this, [this]() { editor_settings->miniMap = !editor_settings->miniMap; });
     // viewMenu->addAction(
     //     tr("Toggle Statusbar"),
     //     this, [this]() { saveFile(); });

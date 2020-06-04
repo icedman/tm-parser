@@ -83,6 +83,11 @@ static void load_language_configuration(const QString path, language_info_ptr la
     Json::Value root = parse::loadJson(path.toStdString());
     if (root.isMember("comments")) {
         Json::Value comments = root["comments"];
+
+        if (comments.isMember("lineComment")) {
+            lang->lineComment = comments["lineComment"].asString();
+        }
+
         if (comments.isMember("blockComment")) {
             Json::Value blockComment = comments["blockComment"];
             if (blockComment.isArray() && blockComment.size() == 2) {
@@ -91,7 +96,6 @@ static void load_language_configuration(const QString path, language_info_ptr la
                 if (beginComment.length() && endComment.length()) {
                     lang->blockCommentStart = beginComment;
                     lang->blockCommentEnd = endComment;
-                    lang->blockComment = true;
                 }
             }
         }

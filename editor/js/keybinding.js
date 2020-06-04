@@ -17,7 +17,11 @@ export const keybinding = {
         }
         last_key.time = t;
         last_key.keys = k;
-        kb.func.call();
+        try {
+            kb.func.call();
+        } catch(err) {
+            console.log(err);
+        }
         return true;
     },
     

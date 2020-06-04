@@ -9,14 +9,6 @@
 #include "grammar.h"
 #include "theme.h"
 
-struct editor_settings_t {
-    bool mini_map : true;
-    float font_size;
-    std::string font;
-    int tab_size;
-    bool tab_to_spaces;
-};
-
 struct block_info_t {
     int position;
     int number;

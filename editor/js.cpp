@@ -25,6 +25,11 @@ void JSEditor::toggleComment()
     Commands::toggleComment((Editor*)parent());
 }
 
+void JSEditor::toggleBlockComment()
+{
+    Commands::toggleBlockComment((Editor*)parent());
+}
+
 void JSEditor::indent()
 {
     Commands::indent((Editor*)parent());
@@ -33,6 +38,16 @@ void JSEditor::indent()
 void JSEditor::unindent()
 {
     Commands::unindent((Editor*)parent());
+}
+
+void JSEditor::duplicateLine()
+{
+    Commands::duplicateLine((Editor*)parent());
+}
+
+void JSEditor::expandSelectionToLine()
+{
+    Commands::expandSelectionToLine((Editor*)parent());
 }
 
 JSApp::JSApp(QObject* parent)
@@ -46,7 +61,13 @@ void JSApp::tab(int i)
     mw->tabSelected(i);
 }
 
-void JSApp::close()
+void JSApp::new_tab()
+{
+    MainWindow* mw = MainWindow::instance();
+    mw->newFile();
+}
+
+void JSApp::close_tab()
 {
     MainWindow* mw = MainWindow::instance();
     mw->tabClose(mw->currentTab());

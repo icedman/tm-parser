@@ -122,6 +122,7 @@ bool theme_sidebar(theme_ptr theme, std::string name, QWidget& tree)
        border: none; \
        show-decoration-selected: 0; \
        font-size: 12pt; \
+       outline: 0 \
       } \
       QTreeView::item { \
         border: none; \

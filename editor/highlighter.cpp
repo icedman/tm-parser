@@ -175,7 +175,7 @@ void Highlighter::highlightBlock(const QString& text)
     //----------------------
     // find block comments
     // todo.. fails with comment block within strings or withing single line comment - check current scope
-    if (lang->blockComment) {
+    if (lang->blockCommentStart.length()) {
         int beginComment = text.indexOf(lang->blockCommentStart.c_str());
         int endComment = text.indexOf(lang->blockCommentEnd.c_str());
         if (endComment == -1 && (beginComment != -1 || previousBlockState() == BLOCK_STATE_COMMENT)) {

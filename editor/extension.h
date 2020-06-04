@@ -21,9 +21,9 @@ struct language_info_t {
 
     std::string id;
 
-    bool blockComment;
     std::string blockCommentStart;
     std::string blockCommentEnd;
+    std::string lineComment;
 
     bool brackets;
     std::vector<std::string> bracketOpen;

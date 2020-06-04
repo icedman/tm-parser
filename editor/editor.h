@@ -17,6 +17,17 @@ class Gutter;
 class TextmateEdit;
 class Editor;
 
+struct editor_settings_t {
+    bool mini_map : true;
+    float font_size;
+    std::string font;
+    int tab_size;
+    bool tab_to_spaces;
+    bool word_wrap;
+};
+
+typedef std::shared_ptr<editor_settings_t> editor_settings_ptr;
+
 class Overlay : public QWidget {
 public:
     explicit Overlay(QWidget* parent = nullptr)
@@ -90,7 +101,7 @@ public:
     QColor backgroundColor;
     QColor selectionBgColor;
 
-    struct editor_settings_t* settings;
+    editor_settings_ptr settings;
 
     theme_ptr theme;
     language_info_ptr lang;
