@@ -7,6 +7,8 @@ class QBoxLayout;
 class QHBoxLayout;
 class QVBoxLayout;
 class QPushButton;
+class QLineEdit;
+class QLabel;
 
 class Panel : public QWidget {
     Q_OBJECT
@@ -18,6 +20,8 @@ public:
     QVBoxLayout* vbox(QBoxLayout *layout);
     QHBoxLayout* hbox(QBoxLayout *layout);
     QPushButton* addButton(QString text, QBoxLayout *layout = 0);
+    QLineEdit* addInputText(QString value, QBoxLayout *layout = 0);
+    QLabel* addLabel(QString text, QBoxLayout *layout = 0);
 
 private:
     QVBoxLayout *layout;

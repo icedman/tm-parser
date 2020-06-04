@@ -468,6 +468,12 @@ bool MainWindow::processKeys(QString keys)
 
 void MainWindow::keyPressEvent(QKeyEvent* e)
 {
+    if (e->key() == Qt::Key_Escape) {
+        panels->hide();
+        currentEditor()->editor->setFocus(Qt::ActiveWindowFocusReason);
+        return;
+    }
+
     if (!Commands::keyPressEvent(e)) {
         QMainWindow::keyPressEvent(e);
     }
@@ -475,8 +481,21 @@ void MainWindow::keyPressEvent(QKeyEvent* e)
 
 Panel* MainWindow::createPanel(QString name)
 {
+    for(int i=0;i<panels->count();i++) {
+        Panel *p = (Panel*)panels->widget(i);
+        if (p->objectName() == name) {
+            panels->setCurrentWidget(p);
+            panels->show();
+            qDebug() << "show panel";
+            return p;
+        }
+    }
+
     Panel *p = new Panel(this);
+    p->setObjectName(name);
     panels->addWidget(p);
     panels->setCurrentWidget(p);
+    panels->show();
+    qDebug() << "create panel";
     return p;
 }

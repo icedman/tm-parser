@@ -4,6 +4,8 @@
 #include <QJSEngine>
 #include <QObject>
 
+typedef void set_text_t(QObject *obj, QString);
+
 class JSConsole : public QObject {
     Q_OBJECT
 
@@ -27,23 +29,57 @@ public slots:
     void unindent();
     void duplicateLine();
     void expandSelectionToLine();
+
+    void find(QString string);
+
+    QString selectedText();
+};
+
+enum ui_type_t {
+    UI_UNKNOWN      = 0,
+    UI_PANEL        = 1 << 1,
+    UI_HBOX         = 1 << 2,
+    UI_VBOX         = 1 << 3,
+    UI_LABEL        = 1 << 4,
+    UI_INPUTTEXT    = 1 << 5,
+    UI_BUTTON       = 1 << 6
 };
 
 class JSUIObject : public QObject {
     Q_OBJECT
 
 public:
-    JSUIObject(QObject* parent = 0);
+    JSUIObject(QObject* parent = 0, ui_type_t type = UI_UNKNOWN);
     QJSValue self;
+    ui_type_t type;
 
 public slots:
+    // panel
     QJSValue vbox(QJSValue parent = QJSValue());
     QJSValue hbox(QJSValue parent = QJSValue());
-    QJSValue button(QJSValue text, QJSValue parent = QJSValue());
+    QJSValue button(QString text, QJSValue parent = QJSValue());
+    QJSValue label(QString text, QJSValue parent = QJSValue());
+    QJSValue inputText(QString text, QJSValue parent = QJSValue());
+
+    // layout
+    QJSValue addStretch(QJSValue stretch = QJSValue(1));
+
+    // all
+    QJSValue setText(QString text);
+    QJSValue setFocus();
+    QJSValue setMinimumSize(int w, int h);
+    QJSValue setMaximumSize(int w, int h);
+    QJSValue setStyleSheet(QString s);
+    QJSValue show();
+    QJSValue hide();
 
 private Q_SLOTS:
     void clicked();
     void valueChanged(QString value);
+    void submitted();
+
+public:
+    set_text_t *set_text;
 };
 
 class JSApp : public QObject {

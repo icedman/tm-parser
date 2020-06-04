@@ -86,11 +86,7 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
         return;
     }
 
-    std::cout << "ignoring.." << std::endl;
-
     Json::Value file_exclude_patterns = main->settings["file_exclude_patterns"];
-    // std::cout << main->settings << std::endl;
-
     int rows = fileModel->rowCount(topLeft);
     for (int i = 0; i < rows; i++) {
         QModelIndex rowIndex = fileModel->index(i, 0, topLeft);

@@ -1,5 +1,7 @@
 #include <QDebug>
 #include <QPushButton>
+#include <QLineEdit>
+#include <QLabel>
 #include <QBoxLayout>
 
 #include "commands.h"
@@ -9,7 +11,10 @@
 
 #include "js.h"
 
-#define JS_TO_OBJ(T, V) ((V).toQObject() && (V).toQObject()->parent() ? qobject_cast<T*>((V).toQObject()->parent()) : 0);
+//-----------------
+// some macros to make code less verbose
+//-----------------
+#define JS_TO_OBJ(T, V) ((V).toQObject() && (V).toQObject()->parent() ? qobject_cast<T*>((V).toQObject()->parent()) : 0)
 /*
 // shorthand for
 QObject *obj = layout.toQObject();
@@ -19,6 +24,19 @@ if (obj) {
 }
 */
 
+#define UI_CONTAINER(ContainerTypeEnum, ContainerType, ContainerVar, ReturnOnFail) \
+    ContainerType* ContainerVar = 0; \
+    if (type & ContainerTypeEnum) { \
+        ContainerVar = (ContainerType*)parent(); \
+    } else { \
+        if (ReturnOnFail) { \
+            return QJSValue(); \
+        } \
+    }
+
+//-----------------
+// console
+//-----------------
 JSConsole::JSConsole(QObject* parent)
     : QObject(parent)
 {
@@ -29,6 +47,9 @@ void JSConsole::log(QString msg)
     qDebug() << msg;
 }
 
+//-----------------
+// editor
+//-----------------
 JSEditor::JSEditor(QObject* parent)
     : QObject(parent)
 {
@@ -64,39 +85,91 @@ void JSEditor::expandSelectionToLine()
     Commands::expandSelectionToLine((Editor*)parent());
 }
 
-JSUIObject::JSUIObject(QObject* parent)
+QString JSEditor::selectedText()
+{
+    return ((Editor*)parent())->editor->textCursor().selectedText();
+}
+
+void JSEditor::find(QString string)
+{
+    Commands::find((Editor*)parent(), string);
+}
+
+//-----------------
+// panels
+//-----------------
+JSUIObject::JSUIObject(QObject* parent, ui_type_t _type)
     : QObject(parent)
+    , type(_type)
+    , set_text(0)
 {}
 
 QJSValue JSUIObject::vbox(QJSValue layout) {
-    Panel *panel = (Panel*)parent();
+    UI_CONTAINER(UI_PANEL, Panel, container, true);
     QObject *obj = layout.toQObject();
-    QBoxLayout *l = JS_TO_OBJ(QBoxLayout, layout);
-    QVBoxLayout *box = panel->vbox(l);
-    JSUIObject *jsobj = new JSUIObject((QObject*)box);
+    QVBoxLayout *box = container->vbox(JS_TO_OBJ(QBoxLayout, layout));
+    JSUIObject *jsobj = new JSUIObject((QObject*)box, UI_VBOX);
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
     return jsobj->self;
 }
 
 QJSValue JSUIObject::hbox(QJSValue layout) {
-    Panel *panel = (Panel*)parent();
+    UI_CONTAINER(UI_PANEL, Panel, container, true);
     QObject *obj = layout.toQObject();
-    QBoxLayout *l = JS_TO_OBJ(QBoxLayout, layout);
-    QHBoxLayout *box = panel->hbox(l);
-    JSUIObject *jsobj = new JSUIObject((QObject*)box);
+    QHBoxLayout *box = container->hbox(JS_TO_OBJ(QBoxLayout, layout));
+    JSUIObject *jsobj = new JSUIObject((QObject*)box, UI_HBOX);
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
     return jsobj->self;
 }
 
-QJSValue JSUIObject::button(QJSValue text, QJSValue layout) {
-    Panel *panel = (Panel*)parent();
-    QString t = text.toString();
-    QBoxLayout *l = JS_TO_OBJ(QBoxLayout, layout);
-    QPushButton *btn = panel->addButton(t, l);
-    JSUIObject *jsobj = new JSUIObject((QObject*)btn);
+void button_set_text(QObject *obj, QString text)
+{
+    QPushButton *t = (QPushButton*)obj;
+    t->setText(text);
+}
+
+QJSValue JSUIObject::button(QString text, QJSValue layout) {
+    UI_CONTAINER(UI_PANEL, Panel, container, true);
+    QPushButton *btn = container->addButton(text, JS_TO_OBJ(QBoxLayout, layout));
+    JSUIObject *jsobj = new JSUIObject((QObject*)btn, UI_BUTTON);
     connect(btn, SIGNAL(clicked(bool)), jsobj, SLOT(clicked()));
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
     jsobj->self.setProperty("onClick", QJSValue());
+    jsobj->set_text = button_set_text;
+    return jsobj->self;
+}
+
+void label_set_text(QObject *obj, QString text)
+{
+    QLabel *t = (QLabel*)obj;
+    t->setText(text);
+}
+
+QJSValue JSUIObject::label(QString text, QJSValue layout) {
+    UI_CONTAINER(UI_PANEL, Panel, container, true);
+    Panel *panel = (Panel*)parent();
+    QLabel *label = panel->addLabel(text, JS_TO_OBJ(QBoxLayout, layout));
+    JSUIObject *jsobj = new JSUIObject((QObject*)label, UI_LABEL);
+    jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
+    jsobj->set_text = label_set_text;
+    return jsobj->self;
+}
+
+void input_set_text(QObject *obj, QString text)
+{
+    QLineEdit *t = (QLineEdit*)obj;
+    t->setText(text);
+}
+
+QJSValue JSUIObject::inputText(QString text, QJSValue layout) {
+    UI_CONTAINER(UI_PANEL, Panel, container, true);
+    QLineEdit *line = container->addInputText(text, JS_TO_OBJ(QBoxLayout, layout));
+    JSUIObject *jsobj = new JSUIObject((QObject*)line, UI_INPUTTEXT);
+    connect(line, SIGNAL(textEdited(QString)), jsobj, SLOT(valueChanged(QString)));
+    connect(line, SIGNAL(returnPressed()), jsobj, SLOT(submitted()));
+    jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
+    jsobj->self.setProperty("value", text);
+    jsobj->set_text = input_set_text;
     return jsobj->self;
 }
 
@@ -108,9 +181,75 @@ void JSUIObject::clicked()
 
 void JSUIObject::valueChanged(QString val)
 {
-    // pass-on to value listener
+    QJSValueList args;
+    args << val;
+    self.setProperty("value", QJSValue(val));
+    QJSValue onChange = self.property("onChange");
+    onChange.call(args);
 }
 
+void JSUIObject::submitted()
+{
+    QJSValue onSubmit = self.property("onSubmit");
+    onSubmit.call();
+}
+
+QJSValue JSUIObject::addStretch(QJSValue stretch)
+{
+    UI_CONTAINER((UI_VBOX | UI_HBOX), QBoxLayout, container, true);
+    container->addStretch(stretch.toInt());
+    return QJSValue();
+}
+
+QJSValue JSUIObject::setText(QString text)
+{
+    if (set_text) {
+        set_text(parent(), text);
+    }
+    return QJSValue();
+}
+
+QJSValue JSUIObject::setFocus()
+{
+    QWidget *widget = (QWidget*)parent();
+    widget->setFocus(Qt::ActiveWindowFocusReason);
+    return QJSValue();
+}
+
+QJSValue JSUIObject::setMinimumSize(int w, int h)
+{
+    QWidget *widget = (QWidget*)parent();
+    widget->setMinimumSize(w, h);
+    return QJSValue();
+}
+
+QJSValue JSUIObject::setMaximumSize(int w, int h)
+{
+    QWidget *widget = (QWidget*)parent();
+    widget->setMaximumSize(w, h);
+    return QJSValue();
+}
+
+QJSValue JSUIObject::setStyleSheet(QString s)
+{
+    QWidget *widget = (QWidget*)parent();
+    widget->setStyleSheet(s);
+    return QJSValue();
+}
+
+QJSValue JSUIObject::show()
+{
+    return QJSValue();
+}
+
+QJSValue JSUIObject::hide()
+{
+    return QJSValue();
+}
+
+//-----------------
+// main app
+//-----------------
 JSApp::JSApp(QObject* parent)
     : QObject(parent)
 {
@@ -144,7 +283,7 @@ QJSValue JSApp::createPanel(QJSValue name)
     QString n = name.toString();
     MainWindow* mw = MainWindow::instance();
     Panel *p = mw->createPanel(n);
-    JSUIObject *jsobj = new JSUIObject((QObject*)p);
+    JSUIObject *jsobj = new JSUIObject((QObject*)p, UI_PANEL);
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
     return jsobj->self;
 }

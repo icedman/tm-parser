@@ -16,6 +16,7 @@ public:
     static void unindent(Editor const* editor);
     static void duplicateLine(Editor const* editor);
     static void expandSelectionToLine(Editor const* editor);
+    static void find(Editor const* editor, QString words);
 
     static bool keyPressEvent(QKeyEvent* e);
 };

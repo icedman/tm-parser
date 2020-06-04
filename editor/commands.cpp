@@ -199,6 +199,19 @@ static void Commands::expandSelectionToLine(Editor const* editor)
     }
 }
 
+static void Commands::find(Editor const* editor, QString string)
+{
+    if (!editor->editor->find(string)) {
+        QTextCursor cursor = editor->editor->textCursor();
+        QTextCursor cs(cursor);
+        cs.movePosition(QTextCursor::Start);
+        editor->editor->setTextCursor(cs);
+        if (!editor->editor->find(string)) {
+            editor->editor->setTextCursor(cursor);     
+        }
+    }
+}
+
 static bool Commands::keyPressEvent(QKeyEvent* e)
 {
     if (e->modifiers() != Qt::NoModifier) {

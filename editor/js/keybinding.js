@@ -1,8 +1,12 @@
+import { ui as _ui } from './ui.js';
+
 const key_mapping = {};
 const last_key = {
     time: 0,
     keys: ""
 };
+
+const ui = _ui;
 
 export const keybinding = {
     processKeys: (k) => {
@@ -33,3 +37,5 @@ export const keybinding = {
         });
     }
 }
+
+console.log("js::keybinding");
