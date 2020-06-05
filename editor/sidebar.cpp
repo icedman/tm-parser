@@ -16,25 +16,11 @@ void FileSystemModel::onDirectoryLoaded(const QString& path)
 {
     QModelIndex dirIndex = index(path);
 
-#if 0
-    int rows = rowCount(dirIndex);
-    for(int i=0;i<rows; i++) {
-        QModelIndex rowIndex = index(i, 0, dirIndex);
-        QVariant rowData = data(rowIndex);
-        QString fileName = rowData.toString();
-        QFileInfo info(fileName);
-        QString suffix = info.suffix();
-        // preload icons here (this being a separate thread?) << crashes!!!?
-        // icon_for_file(icons, fileName, suffix);
-    }
-#endif
-
     emit dataChanged(dirIndex, QModelIndex());
 }
 
 QVariant FileSystemModel::data(const QModelIndex& index, int role) const
 {
-
     if (role == Qt::DecorationRole) {
         QFileInfo info = FileSystemModel::fileInfo(index);
         QString fileName = info.fileName();
@@ -94,6 +80,7 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
         QString fileName = rowData.toString();
         QFileInfo info(fileName);
 
+        // todo convert to QRegExp
         QString _suffix = "*." + info.suffix();
 
         if (file_exclude_patterns.isArray()) {
@@ -121,8 +108,6 @@ void Sidebar::selectionChanged(const QItemSelection& selected, const QItemSelect
 void Sidebar::mouseDoubleClickEvent(QMouseEvent* event)
 {
     Q_UNUSED(event);
-    // qDebug() << "This happens on double click";
-
     // open
     timer.stop();
 

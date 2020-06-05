@@ -199,14 +199,42 @@ static void Commands::expandSelectionToLine(Editor const* editor)
     }
 }
 
-static void Commands::find(Editor const* editor, QString string)
+static void Commands::find(Editor const* editor, QString string, QString options)
 {
-    if (!editor->editor->find(string)) {
+    if (string.isEmpty()) {
+        return;
+
+    }
+
+    bool regex = options.indexOf("regular_") != -1;
+    int flags = 0;
+    if (options.indexOf("case_") != -1) {
+        flags = QTextDocument::FindCaseSensitively;
+    }
+    if (options.indexOf("whole_") != -1) {
+        flags |= QTextDocument::FindWholeWords;
+    }
+
+    if (!regex) {
+        if (!editor->editor->find(string, flags)) {
+            QTextCursor cursor = editor->editor->textCursor();
+            QTextCursor cs(cursor);
+            cs.movePosition(QTextCursor::Start);
+            editor->editor->setTextCursor(cs);
+            if (!editor->editor->find(string, flags)) {
+                editor->editor->setTextCursor(cursor);     
+            }
+        }
+        return;
+    }
+
+    QRegExp regx(string);
+    if (!editor->editor->find(regx, flags)) {
         QTextCursor cursor = editor->editor->textCursor();
         QTextCursor cs(cursor);
         cs.movePosition(QTextCursor::Start);
         editor->editor->setTextCursor(cs);
-        if (!editor->editor->find(string)) {
+        if (!editor->editor->find(regx, flags)) {
             editor->editor->setTextCursor(cursor);     
         }
     }

@@ -7,6 +7,8 @@
 
 #include "editor.h"
 #include "minimap.h"
+// #include "mainwindow.h"
+// #include "settings.h"
 
 MiniMap::MiniMap(QWidget* parent)
     : QWidget(parent)
@@ -79,8 +81,13 @@ void MiniMap::paintEvent(QPaintEvent* event)
     buffer = QPixmap(width(), height());
     QPainter p(&buffer);
 
+    // bool isDark = theme_is_dark(MainWindow::instance()->theme);
     QColor bg = backgroundColor.darker(105);
     QColor bgLighter = backgroundColor.lighter(120);
+    // if (!isDark) {
+    //     bg = backgroundColor.lighter(105);
+    //     bgLighter = backgroundColor.darker(120);
+    // }
 
     p.fillRect(event->rect(), bg);
     p.setRenderHint(QPainter::Antialiasing);

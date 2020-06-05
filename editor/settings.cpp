@@ -9,6 +9,17 @@
 #include "settings.h"
 #include "mainwindow.h"
 
+bool theme_is_dark(theme_ptr theme) {
+  color_info_t clr;
+  theme->theme_color("editor.background", clr);
+  return color_is_dark(clr);
+}
+
+bool color_is_dark(color_info_t& color)
+{
+    return 0.30 * color.red + 0.59 * color.green + 0.11 * color.blue < 0.5;
+}
+
 bool theme_color(theme_ptr theme, std::string name, QColor& qcolor)
 {
     color_info_t clr;
@@ -43,6 +54,11 @@ bool theme_application(theme_ptr theme)
 
   QColor fgDisabledColor = fgColor.darker(180);
   
+  // widgets in general
+  QColor widgetBg = bgColor.darker(105);
+  QColor widgetFg = fgColor.darker(110);
+
+  // tree
   QColor treeBg = bgColor.darker(110);
   QColor treeFg = fgColor.darker(115);
   QColor itemActiveBg;
@@ -58,11 +74,56 @@ bool theme_application(theme_ptr theme)
   itemHoverBg = itemActiveBg.darker(120);
   itemHoverFg = itemActiveFg.darker(110);
 
+  // tab
+  QColor tabBg = widgetBg.darker(105);
+  QColor tabFg = widgetFg.darker(110);
+  QColor tabItemBg;
+  QColor tabItemFg;
+  QColor tabItemActiveBg;
+  QColor tabItemActiveFg;
+  QColor tabItemHoverBg;
+  QColor tabItemHoverFg;
+  // The tabs
+
+  if (!theme_color(theme, "tab.activeBackground", tabItemActiveBg) ||
+    !theme_color(theme, "tab.activeForeground", tabItemActiveFg)) {
+    tabItemActiveBg = itemActiveBg;
+    tabItemActiveFg = itemActiveFg;
+  }
+  if (!theme_color(theme, "tab.inactiveBackground", tabItemBg) ||
+    !theme_color(theme, "tab.inactiveForeground", tabItemFg)) {
+    tabItemBg = itemActiveBg;
+    tabItemFg = itemActiveFg;
+  }
+  tabItemHoverBg = tabItemActiveBg.darker(110);
+  tabItemHoverFg = tabItemActiveFg.darker(115);
+
+  // status bar
+  QColor statusBg;
+  QColor statusFg;
+  
+  if (!theme_color(theme, "statusBar.background", statusBg) ||
+       !theme_color(theme, "statusBar.foreground", statusFg)) {
+      statusBg = treeBg.darker(150);
+      statusBg = treeFg;
+  }
+
+  // input
+  QColor inputBg;
+  QColor inputFg;
+  if (!theme_color(theme, "input.background", inputBg) ||
+    !theme_color(theme, "input.foreground", inputFg)) {
+    inputBg = widgetBg;
+    inputFg = widgetFg;
+  }
+
   QRegularExpression regex(QStringLiteral("\\@[a-zA-Z]*"));
 
   QMap<QString, QString> colors;
   colors["@bgColor"] = bgColor.name();
   colors["@fgColor"] = fgColor.name();
+  colors["@widgetBg"] = widgetBg.name();
+  colors["@widgetFg"] = widgetFg.name();
   colors["@fgDisabledColor"] = fgDisabledColor.name();
 
   colors["@scrollBg"] = bgColor.darker(105).name();
@@ -77,8 +138,21 @@ bool theme_application(theme_ptr theme)
   colors["@treeItemActiveFg"] = itemActiveFg.name();
   colors["@treeItemHoverFg"] = itemHoverFg.name();
 
-  colors["@statusBg"] = treeBg.darker(150).name();
-  colors["@statusFg"] = treeFg.name();
+  colors["@tabBg"] = tabBg.name();
+  colors["@tabFg"] = tabFg.name();
+  colors["@tabItemBg"] = tabItemBg.name();
+  colors["@tabItemFg"] = tabItemFg.name();
+  colors["@tabItemActiveBg"] = tabItemActiveBg.name();
+  colors["@tabItemHoverBg"] = tabItemHoverBg.name();
+  colors["@tabItemActiveFg"] = tabItemActiveFg.name();
+  colors["@tabItemHoverFg"] = tabItemHoverFg.name();
+
+  colors["@inputBg"] = inputBg.name();
+  colors["@inputFg"] = inputFg.name();
+  colors["@inputBorder"] = inputBg.darker(130).name();
+
+  colors["@statusBg"] = statusBg.name();
+  colors["@statusFg"] = statusFg.name();
 
   QTextStream in(&file);
   while (!in.atEnd())

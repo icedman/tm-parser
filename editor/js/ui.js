@@ -16,14 +16,27 @@ export const ui = {
             }
             
             let box = panel.hbox();
+            let toggleRegex = panel.toggleButton(".*", box);
+            let toggleCase = panel.toggleButton("Aa", box);
+            let toggleWord = panel.toggleButton("❝❞", box);
             let input = panel.inputText(keywords, box);
             let btn = panel.button("search", box);
             input.onChange = (v) => {
                 // console.log(v);
             }
             input.onSubmit = () => {
-                console.log("search for " + input.getText() + "...");
-                app.editor().find(input.getText());
+                let options = [];
+                if (toggleRegex.isChecked()) {
+                    options.push("regular_expression");
+                }
+                if (toggleCase.isChecked()) {
+                    options.push("case_sensitive");
+                }
+                if (toggleWord.isChecked()) {
+                    options.push("whole_word");
+                }
+                // console.log("search for " + input.getText() + "...");
+                app.editor().find(input.getText(), options.join(','));
             }
             btn.onClick = () => {
                 input.onSubmit();

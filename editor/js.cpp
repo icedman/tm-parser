@@ -24,10 +24,10 @@ if (obj) {
 }
 */
 
-#define UI_CONTAINER(ContainerTypeEnum, ContainerType, ContainerVar, ReturnOnFail) \
-    ContainerType* ContainerVar = 0; \
-    if (type & ContainerTypeEnum) { \
-        ContainerVar = (ContainerType*)parent(); \
+#define UI_CONTAINED(ContainedTypeEnum, ContainedType, ContainedVar, ReturnOnFail) \
+    ContainedType* ContainedVar = 0; \
+    if (type & ContainedTypeEnum) { \
+        ContainedVar = (ContainedType*)parent(); \
     } else { \
         if (ReturnOnFail) { \
             return QJSValue(); \
@@ -90,9 +90,9 @@ QString JSEditor::selectedText()
     return ((Editor*)parent())->editor->textCursor().selectedText();
 }
 
-void JSEditor::find(QString string)
+void JSEditor::find(QString string, QString options)
 {
-    Commands::find((Editor*)parent(), string);
+    Commands::find((Editor*)parent(), string, options);
 }
 
 //-----------------
@@ -104,19 +104,30 @@ JSUIObject::JSUIObject(QObject* parent, ui_type_t _type)
     , set_text(0)
 {}
 
+QJSValue JSUIObject::addWidget(QJSValue widget, QJSValue parent)
+{
+//    UI_CONTAINED(UI_PANEL, Panel, contained, true);
+//    QPushButton *btn = contained->addButton(text, JS_TO_OBJ(QBoxLayout, layout));
+//    JSUIObject *jsobj = new JSUIObject((QObject*)btn, UI_BUTTON);
+//    connect(btn, SIGNAL(clicked(bool)), jsobj, SLOT(clicked()));
+//    jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
+//    return jsobj->self;
+    return QJSValue();        
+}
+
 QJSValue JSUIObject::vbox(QJSValue layout) {
-    UI_CONTAINER(UI_PANEL, Panel, container, true);
+    UI_CONTAINED(UI_PANEL, Panel, contained, true);
     QObject *obj = layout.toQObject();
-    QVBoxLayout *box = container->vbox(JS_TO_OBJ(QBoxLayout, layout));
+    QVBoxLayout *box = contained->vbox(JS_TO_OBJ(QBoxLayout, layout));
     JSUIObject *jsobj = new JSUIObject((QObject*)box, UI_VBOX);
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
     return jsobj->self;
 }
 
 QJSValue JSUIObject::hbox(QJSValue layout) {
-    UI_CONTAINER(UI_PANEL, Panel, container, true);
+    UI_CONTAINED(UI_PANEL, Panel, contained, true);
     QObject *obj = layout.toQObject();
-    QHBoxLayout *box = container->hbox(JS_TO_OBJ(QBoxLayout, layout));
+    QHBoxLayout *box = contained->hbox(JS_TO_OBJ(QBoxLayout, layout));
     JSUIObject *jsobj = new JSUIObject((QObject*)box, UI_HBOX);
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
     return jsobj->self;
@@ -128,7 +139,6 @@ void button_set_text(QObject *obj, QString text)
     t->setText(text);
 }
 
-
 QString button_get_text(QObject *obj)
 {
     QPushButton *t = (QPushButton*)obj;
@@ -136,15 +146,28 @@ QString button_get_text(QObject *obj)
 }
 
 QJSValue JSUIObject::button(QString text, QJSValue layout) {
-    UI_CONTAINER(UI_PANEL, Panel, container, true);
-    QPushButton *btn = container->addButton(text, JS_TO_OBJ(QBoxLayout, layout));
+    UI_CONTAINED(UI_PANEL, Panel, contained, true);
+    QPushButton *btn = contained->addButton(text, JS_TO_OBJ(QBoxLayout, layout));
     JSUIObject *jsobj = new JSUIObject((QObject*)btn, UI_BUTTON);
     connect(btn, SIGNAL(clicked(bool)), jsobj, SLOT(clicked()));
     jsobj->self = MainWindow::instance()->jsEngine().newQObject(jsobj);
-    jsobj->self.setProperty("onClick", QJSValue());
     jsobj->set_text = button_set_text;
-    jsobj->set_text = button_get_text;
+    jsobj->get_text = button_get_text;
     return jsobj->self;
+}
+
+QJSValue JSUIObject::isChecked()
+{
+    UI_CONTAINED(UI_BUTTON, QPushButton, contained, true);
+    return contained->isChecked();
+}
+
+QJSValue JSUIObject::toggleButton(QString text, QJSValue layout)
+{
+    QJSValue jbtn = button(text, layout);
+    QPushButton *btn = JS_TO_OBJ(QPushButton, jbtn);
+    btn->setCheckable(true);
+    return jbtn;
 }
 
 void label_set_text(QObject *obj, QString text)
@@ -160,7 +183,7 @@ QString label_get_text(QObject *obj)
 }
 
 QJSValue JSUIObject::label(QString text, QJSValue layout) {
-    UI_CONTAINER(UI_PANEL, Panel, container, true);
+    UI_CONTAINED(UI_PANEL, Panel, contained, true);
     Panel *panel = (Panel*)parent();
     QLabel *label = panel->addLabel(text, JS_TO_OBJ(QBoxLayout, layout));
     JSUIObject *jsobj = new JSUIObject((QObject*)label, UI_LABEL);
@@ -183,8 +206,8 @@ QString input_get_text(QObject *obj)
 }
 
 QJSValue JSUIObject::inputText(QString text, QJSValue layout) {
-    UI_CONTAINER(UI_PANEL, Panel, container, true);
-    QLineEdit *line = container->addInputText(text, JS_TO_OBJ(QBoxLayout, layout));
+    UI_CONTAINED(UI_PANEL, Panel, contained, true);
+    QLineEdit *line = contained->addInputText(text, JS_TO_OBJ(QBoxLayout, layout));
     JSUIObject *jsobj = new JSUIObject((QObject*)line, UI_INPUTTEXT);
     connect(line, SIGNAL(textEdited(QString)), jsobj, SLOT(valueChanged(QString)));
     connect(line, SIGNAL(returnPressed()), jsobj, SLOT(submitted()));
@@ -217,8 +240,8 @@ void JSUIObject::submitted()
 
 QJSValue JSUIObject::addStretch(QJSValue stretch)
 {
-    UI_CONTAINER((UI_VBOX | UI_HBOX), QBoxLayout, container, true);
-    container->addStretch(stretch.toInt());
+    UI_CONTAINED((UI_VBOX | UI_HBOX), QBoxLayout, contained, true);
+    contained->addStretch(stretch.toInt());
     return QJSValue();
 }
 

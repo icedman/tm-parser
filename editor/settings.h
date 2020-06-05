@@ -3,6 +3,10 @@
 
 #include "theme.h"
 
+bool color_is_dark(color_info_t& color);
+
+bool theme_is_dark(theme_ptr theme);
+
 bool theme_color(theme_ptr theme, std::string name, QColor& qcolor);
 
 /*

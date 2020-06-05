@@ -1,7 +1,7 @@
 
 QWidget {
-  background: @bgColor;
-  color: @fgColor;
+  background: @widgetBg;
+  color: @widgetFg;
   border: none;
 }
 
@@ -82,8 +82,8 @@ QTreeView::item::selected {
 
 /* Tabbar */
 QTabBar {
- background: @treeBg;
- color: @treeFg;
+ background: @tabBg;
+ color: @tabFg;
  border: none;
  show-decoration-selected: 0;
  font-size: 10pt;
@@ -92,20 +92,19 @@ QTabBar::tab {
   border: none;
   padding: 4px;
   padding-left: 14px;
-  show-decoration-selected: 0
-}
-_QTabBar::close-button::hover {
-  border: none;
+  show-decoration-selected: 0;
+  background: @tabItemBg;
+  color: @tabItemFg;
 }
 QTabBar::tab::hover {
-  background: @treeItemHoverBg;
-  color: @treeItemHoverFg;
+  background: @tabItemHoverBg;
+  color: @tabItemHoverFg;
   border: none;
 }
 QTabBar::tab::!selected::focus,
 QTabBar::tab::selected {
-  background: @treeItemActiveBg;
-  color: @treeItemActiveFg;
+  background: @tabItemActiveBg;
+  color: @tabItemActiveFg;
   border: none;
 }
 
@@ -144,7 +143,7 @@ QMenuBar::item::selected {
 
 /* menu */
 QMenu {
-  background: @bgColor;
+  background: @treeItemBg;
   color: @fgColor;
   border: none;
 }
@@ -161,6 +160,8 @@ QMenu::item {
   padding-left: 8px;
   padding-right: 8px;
   min-width: 100px;
+  background: @treeItemBg;
+  color: @treeItemFg;
 }
 QMenu::item::hover {
   background: @treeItemHoverBg;
@@ -175,7 +176,7 @@ QMenu::item::selected {
 
 /* lineedit */
 QLineEdit {
-  border: none;
+  border: 1px solid @inputBorder;
   padding: 6px;
   background: @treeBg;
   color: @treeFg;
@@ -187,12 +188,20 @@ QPushButton {
   padding-bottom: 4px;
   padding-left: 8px;
   padding-right: 8px;
-  background: @treeItemHoverBg;
-  color: @treeItemHoverFg;
+  background: @treeItemBg;
+  color: @treeItemFg;
+  border: 1px solid @inputBorder;
 }
 
-QPushButton::hover {
+
+QPushButton[checkable=true] {
+  background: transparent;
+}
+QPushButton::checked {
   background: @treeItemActiveBg;
   color: @treeItemActiveFg;
-  border: none;
+}
+QPushButton::hover {
+  background: @treeItemHoverBg;
+  color: @treeItemHoverFg;
 }

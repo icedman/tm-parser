@@ -31,7 +31,7 @@ public slots:
     void duplicateLine();
     void expandSelectionToLine();
 
-    void find(QString string);
+    void find(QString string, QString options);
 
     QString selectedText();
 };
@@ -43,7 +43,8 @@ enum ui_type_t {
     UI_VBOX         = 1 << 3,
     UI_LABEL        = 1 << 4,
     UI_INPUTTEXT    = 1 << 5,
-    UI_BUTTON       = 1 << 6
+    UI_BUTTON       = 1 << 6,
+    UI_WIDGET       = 1 << 7
 };
 
 class JSUIObject : public QObject {
@@ -59,9 +60,13 @@ public slots:
     QJSValue vbox(QJSValue parent = QJSValue());
     QJSValue hbox(QJSValue parent = QJSValue());
     QJSValue button(QString text, QJSValue parent = QJSValue());
+    QJSValue toggleButton(QString text, QJSValue parent = QJSValue());
     QJSValue label(QString text, QJSValue parent = QJSValue());
     QJSValue inputText(QString text, QJSValue parent = QJSValue());
 
+    // button
+    QJSValue isChecked();
+    
     // layout
     QJSValue addStretch(QJSValue stretch = QJSValue(1));
 
@@ -74,6 +79,9 @@ public slots:
     QJSValue setStyleSheet(QString s);
     QJSValue show();
     QJSValue hide();
+
+    // custom widget
+    QJSValue addWidget(QJSValue widget, QJSValue parent = QJSValue());
 
 private Q_SLOTS:
     void clicked();

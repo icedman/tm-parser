@@ -80,6 +80,7 @@ void Editor::setTheme(theme_ptr _theme)
     //------------------
     // editor theme
     //------------------
+    bool isDark = theme_is_dark(theme);
     QColor bgColor;
     QColor fgColor;
     QColor lineNumberColor;
@@ -110,7 +111,11 @@ void Editor::setTheme(theme_ptr _theme)
 
     if (theme_color(theme, "editor.selectionBackground", selectionBgColor)) {
         QPalette p = editor->palette();
-        p.setColor(QPalette::Highlight, selectionBgColor.lighter(200));
+        if (isDark) {
+            p.setColor(QPalette::Highlight, selectionBgColor.lighter(200));
+        } else {
+            p.setColor(QPalette::Highlight, selectionBgColor.darker(200));
+        }
         editor->setPalette(p);
     }
 
