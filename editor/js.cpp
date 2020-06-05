@@ -90,6 +90,16 @@ QString JSEditor::selectedText()
     return ((Editor*)parent())->editor->textCursor().selectedText();
 }
 
+void JSEditor::zoomIn()
+{
+    return ((Editor*)parent())->editor->zoomIn();
+}
+
+void JSEditor::zoomOut()
+{
+    return ((Editor*)parent())->editor->zoomOut();
+}
+
 void JSEditor::find(QString string, QString options)
 {
     Commands::find((Editor*)parent(), string, options);

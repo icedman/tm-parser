@@ -9,6 +9,9 @@
     { "keys": "ctrl+shift+d", "command": "app.editor().duplicateLine()" },
     { "keys": "ctrl+l",       "command": "app.editor().expandSelectionToLine()" },
 
+    { "keys": "ctrl+=",       "command": "app.editor().zoomIn()" },
+    { "keys": "ctrl+-",       "command": "app.editor().zoomOut()" },
+
     { "keys": "alt+w",        "command": "app.closeTab()" },
     { "keys": "alt+1",        "command": "app.tab(0)" },
     { "keys": "alt+2",        "command": "app.tab(1)" },

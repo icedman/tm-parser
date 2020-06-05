@@ -1,11 +1,12 @@
 #ifndef MINIMAP_H
 #define MINIMAP_H
 
-#include <QWidget>
+#include <QScrollBar>
+#include <QTimer>
 
 class Editor;
 
-class MiniMap : public QWidget {
+class MiniMap : public QScrollBar {
     Q_OBJECT
 
 public:
@@ -23,16 +24,23 @@ public:
     int visibleLines;
 
     float offsetY;
+    float scrollToY;
 
     QPixmap buffer;
 
 private:
     void scrollByMouseY(float y);
 
+private Q_SLOTS:
+    void updateScroll();
+
 protected:
     void paintEvent(QPaintEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
+
+private:
+    QTimer updateTimer;
 };
 
 #endif // MINIMAP_H

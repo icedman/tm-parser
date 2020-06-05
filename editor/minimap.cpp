@@ -7,12 +7,12 @@
 
 #include "editor.h"
 #include "minimap.h"
-// #include "mainwindow.h"
-// #include "settings.h"
 
 MiniMap::MiniMap(QWidget* parent)
-    : QWidget(parent)
+    : QScrollBar(parent)
+    , updateTimer(this)
 {
+    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(updateScroll()));
 }
 
 static int renderOneLine(QPainter& p, QTextBlock& block, int offsetY, float advanceY)
@@ -81,9 +81,10 @@ void MiniMap::paintEvent(QPaintEvent* event)
     buffer = QPixmap(width(), height());
     QPainter p(&buffer);
 
-    // bool isDark = theme_is_dark(MainWindow::instance()->theme);
     QColor bg = backgroundColor.darker(105);
     QColor bgLighter = backgroundColor.lighter(120);
+
+    // bool isDark = theme_is_dark(MainWindow::instance()->theme);
     // if (!isDark) {
     //     bg = backgroundColor.lighter(105);
     //     bgLighter = backgroundColor.darker(120);
@@ -145,26 +146,41 @@ void MiniMap::setSizes(size_t first, int visible, size_t val, size_t max)
 
 void MiniMap::mouseMoveEvent(QMouseEvent* event)
 {
+    QScrollBar::mouseMoveEvent(event);
     QPointF pos = event->localPos();
     scrollByMouseY(pos.y());
+    updateTimer.stop();
+    setValue(scrollToY);
 }
 
 void MiniMap::mousePressEvent(QMouseEvent* event)
 {
+    // QScrollBar::mousePressEvent(event);
     QPointF pos = event->localPos();
     scrollByMouseY(pos.y());
+    updateTimer.start(50);
 }
 
 void MiniMap::scrollByMouseY(float y)
 {
     float advanceY = 2.0;
     float totalHeight = visibleLines * advanceY;
-
     float lineY = (y - 20) / advanceY;
     lineY += (offsetY / advanceY);
     if (lineY < 0) {
         lineY = 0;
     }
+    scrollToY = lineY;
+}
 
-    editor->editor->verticalScrollBar()->setValue((int)lineY);
+void MiniMap::updateScroll()
+{   
+    float val = (float)QScrollBar::value();
+    float d = (scrollToY - val) * 0.2;
+    float newVal = val + d;
+    if (d * d < 50) {
+        newVal = scrollToY;
+        updateTimer.stop();
+    }
+    setValue(newVal);
 }

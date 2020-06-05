@@ -168,6 +168,10 @@ void Editor::setupEditor()
 
     connect(editor->verticalScrollBar(), SIGNAL(valueChanged(int)), vscroll, SLOT(setValue(int)));
     connect(vscroll, SIGNAL(valueChanged(int)), editor->verticalScrollBar(), SLOT(setValue(int)));
+    connect(editor->verticalScrollBar(), SIGNAL(valueChanged(int)), mini, SLOT(setValue(int)));
+    connect(mini, SIGNAL(valueChanged(int)), editor->verticalScrollBar(), SLOT(setValue(int)));
+
+    // updates everyone
     connect(vscroll, SIGNAL(valueChanged(int)), this, SLOT(updateScrollBar(int)));
 
     QHBoxLayout* box = new QHBoxLayout(this);
@@ -246,11 +250,16 @@ void Editor::updateScrollBar()
     } else {
         vscroll->hide();
     }
+    
     vscroll->setMaximum(max);
-
     vscroll->setSingleStep(editorScroll->singleStep());
     vscroll->setPageStep(editorScroll->pageStep());
-
+    
+    // yep-minimap is a scrollbar
+    mini->setMaximum(max);
+    mini->setSingleStep(editorScroll->singleStep());
+    mini->setPageStep(editorScroll->pageStep());
+    
     updateMiniMap();
 }
 

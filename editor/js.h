@@ -30,6 +30,8 @@ public slots:
     void unindent();
     void duplicateLine();
     void expandSelectionToLine();
+    void zoomIn();
+    void zoomOut();
 
     void find(QString string, QString options);
 
@@ -66,7 +68,7 @@ public slots:
 
     // button
     QJSValue isChecked();
-    
+
     // layout
     QJSValue addStretch(QJSValue stretch = QJSValue(1));
 

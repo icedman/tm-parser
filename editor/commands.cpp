@@ -6,6 +6,15 @@
 
 #define NO_IMPLEMENTATION(s) qDebug() << s << " not yet implemented";
 
+size_t detect_non_whitespace(QString s) {
+  for (int i = 0; i < s.length(); i++) {
+    if (s[i] != ' ' && s[i] != " ") {
+        return i;
+    }  
+  }
+  return 0;
+}
+
 static void Commands::insertTab(Editor const* editor, QTextCursor cursor)
 {
     editor_settings_ptr settings = MainWindow::instance()->editor_settings;
@@ -44,8 +53,8 @@ static void Commands::toggleComment(Editor const* editor)
         return;
     }
     
-    // qDebug() << "comment";
     QString singleLineComment = editor->lang->lineComment.c_str();
+    singleLineComment += " ";
 
     QTextCursor cursor = editor->editor->textCursor();
     if (!cursor.hasSelection()) {
@@ -54,10 +63,11 @@ static void Commands::toggleComment(Editor const* editor)
         QString s = block.text();
         int commentPosition = s.indexOf(singleLineComment);
         int hasComments = commentPosition != -1;
-
+        size_t skip = detect_non_whitespace(s);
         cursor.beginEditBlock();
         cursor.movePosition(QTextCursor::StartOfLine);
         if (!hasComments) {
+            cursor.setPosition(cursor.position() + skip);
             cursor.insertText(singleLineComment);
         } else {
             cursor.setPosition(cursor.position() + commentPosition);
@@ -79,16 +89,21 @@ static void Commands::toggleComment(Editor const* editor)
 
         cs.beginEditBlock();
         while (cs.position() <= cursor.selectionEnd()) {
-            if (!hasComments) {
-                cs.insertText(singleLineComment);
-            } else {
-                block = cs.block();
-                s = block.text();
-                commentPosition = s.indexOf(singleLineComment);
-                if (commentPosition != -1) {
-                    cs.setPosition(cs.position() + commentPosition);
-                    for (int i = 0; i < singleLineComment.length(); i++) {
-                        cs.deleteChar();
+            cs.movePosition(QTextCursor::StartOfLine);
+            block = cs.block();
+            s = block.text();
+            if (!s.isEmpty()) {
+                if (!hasComments) {
+                    size_t skip = detect_non_whitespace(s);
+                    cs.setPosition(cs.position() + skip);
+                    cs.insertText(singleLineComment);
+                } else {
+                    commentPosition = s.indexOf(singleLineComment);
+                    if (commentPosition != -1) {
+                        cs.setPosition(cs.position() + commentPosition);
+                        for (int i = 0; i < singleLineComment.length(); i++) {
+                            cs.deleteChar();
+                        }
                     }
                 }
             }

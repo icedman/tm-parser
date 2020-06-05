@@ -10,6 +10,7 @@ const ui = _ui;
 
 export const keybinding = {
     processKeys: (k) => {
+        console.log(k);
         let kb = key_mapping[k];
         if (!kb) {
             return false;
