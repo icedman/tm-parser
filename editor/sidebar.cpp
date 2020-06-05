@@ -87,7 +87,6 @@ void Sidebar::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomR
             for (int j = 0; j < file_exclude_patterns.size(); j++) {
                 QString pat = file_exclude_patterns[j].asString().c_str();
                 if (_suffix == pat) {
-                    // qDebug() << fileName;
                     setRowHidden(i, topLeft, true);
                     break;
                 }
@@ -136,5 +135,8 @@ void Sidebar::onSingleClick()
 }
 
 /*
-You could use the QTreeView's signal expanded(const QModelIndex & index), and connect it to a slot of some object which can access the model->setData(OpenIcon, Qt::DecorationRole), and similarly use the QTreeView's signal collapsed(const QModelIndex & index), and connect it to a slot of some object which can access the model->setData(CloseIcon, Qt::DecorationRole).
+You could use the QTreeView's signal expanded(const QModelIndex & index),
+and connect it to a slot of some object which can access the model->setData(OpenIcon, Qt::DecorationRole),
+and similarly use the QTreeView's signal collapsed(const QModelIndex & index), and connect it
+to a slot of some object which can access the model->setData(CloseIcon, Qt::DecorationRole).
 */

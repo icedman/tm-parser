@@ -336,7 +336,7 @@ void Editor::highlightBlocks()
         updateIterator = doc->begin();
     }
 
-    while (updateIterator.isValid() && rendered < 100) {
+    while (updateIterator.isValid() && rendered < 200) {
         HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(updateIterator.userData());
         if (!blockData) {
             rendered++;
