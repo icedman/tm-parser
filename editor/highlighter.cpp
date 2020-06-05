@@ -1,4 +1,6 @@
 #include <QTextDocument>
+#include <QDebug>
+
 #include <iostream>
 
 #include "highlighter.h"
@@ -13,7 +15,7 @@ Highlighter::Highlighter(QTextDocument* parent)
     , deferRendering(false)
 {
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdate()));
-    updateTimer.start(250);
+    updateTimer.start(100);
 }
 
 void Highlighter::setTheme(theme_ptr _theme)
@@ -33,15 +35,10 @@ void Highlighter::setDeferRendering(bool defer)
     deferRendering = defer;
 }
 
-void dump_color(color_info_t clr)
+void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style, const char* line, HighlightBlockData* blockData, std::string scope)
 {
-    std::cout << " r:" << (int)(clr.red * 255)
-              << " g:" << (int)(clr.green * 255)
-              << " b:" << (int)(clr.blue * 255);
-}
+    // std::cout << scope << std::endl;
 
-void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style, const char* line, HighlightBlockData* blockData)
-{
     QColor clr;
     if (style.bold == bool_true || style.italic == bool_true || style.underlined == bool_true || style.strikethrough == bool_true || !style.foreground.is_blank()) {
         clr = QColor(style.foreground.red * 255, style.foreground.green * 255, style.foreground.blue * 255, 255);
@@ -51,6 +48,15 @@ void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style
         f.setFontUnderline(style.underlined == bool_true);
         f.setFontStrikeOut(style.strikethrough == bool_true);
         f.setForeground(clr);
+
+        if (scope.find("comment") != std::string::npos) {
+            f.setProperty(SCOPE_PROPERTY_ID, SCOPE_COMMENT);
+        } else if (scope.find("string") != std::string::npos) {
+            f.setProperty(SCOPE_PROPERTY_ID, SCOPE_STRING);
+        } else {
+            f.setProperty(SCOPE_PROPERTY_ID, SCOPE_OTHER);
+        }
+
         setFormat(start, length, f);
     }
 
@@ -137,8 +143,7 @@ void Highlighter::highlightBlock(const QString& text)
     if (text.length() > 500) {
         // that would be too long to parse (unminify first)
     } else {
-        parser_state = parse::parse(first, last, parser_state, scopes, firstLine);
-        // parser_state = parse::parse(first, last, grammar->seed(), scopes, true);
+        parser_state = parse::parse(first, last, parser_state, scopes, firstLine);;
     }
 
     blockData->spans.clear();
@@ -155,7 +160,7 @@ void Highlighter::highlightBlock(const QString& text)
 
         if (n > si) {
             style_t s = theme->styles_for_scope(prevScopeName);
-            setFormatFromStyle(si, n - si, s, first, blockData);
+            setFormatFromStyle(si, n - si, s, first, blockData, prevScopeName);
         }
 
         prevScopeName = scopeName;
@@ -165,7 +170,7 @@ void Highlighter::highlightBlock(const QString& text)
     n = last - first;
     if (n > si) {
         style_t s = theme->styles_for_scope(prevScopeName);
-        setFormatFromStyle(si, n - si, s, first, blockData);
+        setFormatFromStyle(si, n - si, s, first, blockData, prevScopeName);
     }
 
     //----------------------
@@ -174,34 +179,47 @@ void Highlighter::highlightBlock(const QString& text)
 
     //----------------------
     // find block comments
-    // todo.. fails with comment block within strings or withing single line comment - check current scope
+    QTextCharFormat format;
     if (lang->blockCommentStart.length()) {
         int beginComment = text.indexOf(lang->blockCommentStart.c_str());
         int endComment = text.indexOf(lang->blockCommentEnd.c_str());
+        
+        if (beginComment != -1) {
+            format = QSyntaxHighlighter::format(beginComment); 
+            if (format.intProperty(SCOPE_PROPERTY_ID) != SCOPE_COMMENT) {
+                beginComment = -1;
+            }
+        }
+
         if (endComment == -1 && (beginComment != -1 || previousBlockState() == BLOCK_STATE_COMMENT)) {
             setCurrentBlockState(BLOCK_STATE_COMMENT);
             int b = beginComment != -1 ? beginComment : 0;
             int e = endComment != -1 ? endComment : (last - first);
             style_t s = theme->styles_for_scope("comment");
-            setFormatFromStyle(b, e - b, s, first, blockData);
+            setFormatFromStyle(b, e - b, s, first, blockData, "comment");
 
         } else {
             setCurrentBlockState(0);
             if (endComment != -1 && previousBlockState() == BLOCK_STATE_COMMENT) {
                 style_t s = theme->styles_for_scope("comment");
-                setFormatFromStyle(0, endComment + lang->blockCommentEnd.length(), s, first, blockData);
+                setFormatFromStyle(0, endComment + lang->blockCommentEnd.length(), s, first, blockData, "comment");
             }
         }
     }
 
     //----------------------
     // gather brackets
-    // todo.. fails with bracket within strings
     blockData->brackets.clear();
-    if (lang->brackets && currentBlockState() != BLOCK_STATE_COMMENT) {
+    if (lang->brackets) {
         std::vector<bracket_info_t> brackets;
         for (char* c = (char*)first; c < last;) {
             bool found = false;
+        
+            format = QSyntaxHighlighter::format(c-first);
+            if (format.intProperty(SCOPE_PROPERTY_ID) != SCOPE_OTHER) {
+                c++;
+                continue;
+            }
 
             // opening
             int i = 0;
@@ -249,7 +267,7 @@ void Highlighter::highlightBlock(const QString& text)
                 if (l.open && l.bracket == b.bracket) {
                     blockData->brackets.pop_back();
                 } else {
-                    std::cout << "error brackets" << std::endl;
+                    // std::cout << "error brackets" << std::endl;
                 }
                 continue;
             }

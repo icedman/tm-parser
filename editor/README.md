@@ -6,11 +6,13 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * keybindings
 * scripting
 * themes
-* extensions
+* search
+* minimap
 
 # todo
+* completions
+* auto-close
 * multi-cursor
 * git gutter
 * folder search
-* regex search
-* commands
+* command palette

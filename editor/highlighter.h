@@ -31,10 +31,19 @@ struct bracket_info_t {
     bool unpaired;
 };
 
+#define SCOPE_PROPERTY_ID 0x99
+
 enum {
-    BLOCK_STATE_COMMENT = 1 << 1,
-    BLOCK_STATE_BLOCK = 1 << 2,
-    BLOCK_STATE_BLOCK_NESTED = 1 << 3
+    SCOPE_UNSET     = 0,
+    SCOPE_STRING    = 1,
+    SCOPE_COMMENT   = 2,
+    SCOPE_OTHER     = 3,
+};
+
+enum {
+    BLOCK_STATE_COMMENT         = 1 << 1,
+    BLOCK_STATE_BLOCK           = 1 << 2,
+    BLOCK_STATE_BLOCK_NESTED    = 1 << 3
 };
 
 class HighlightBlockData : public QTextBlockUserData {
@@ -72,7 +81,7 @@ public:
 
 protected:
     void highlightBlock(const QString& text) override;
-    void setFormatFromStyle(size_t start, size_t length, style_t& style, const char* line, HighlightBlockData* blockData);
+    void setFormatFromStyle(size_t start, size_t length, style_t& style, const char* line, HighlightBlockData* blockData, std::string scope);
 
 private:
     bool deferRendering;
