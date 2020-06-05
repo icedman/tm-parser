@@ -178,7 +178,7 @@ void MiniMap::updateScroll()
     float val = (float)QScrollBar::value();
     float d = (scrollToY - val) * 0.2;
     float newVal = val + d;
-    if (d * d < 50) {
+    if (sqrt(d * d) < 2) {
         newVal = scrollToY;
         updateTimer.stop();
     }

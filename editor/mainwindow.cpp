@@ -366,7 +366,7 @@ void MainWindow::setupMenu()
         &QApplication::quit, QKeySequence::Quit);
 
     // View
-    viewMenu = new QMenu(tr("&View"), this);
+    // viewMenu = new QMenu(tr("&View"), this);
     // viewMenu->addAction(
     //     tr("Toggle Sidebar"),
     //     this, [this]() { sidebar->toggle(); });
