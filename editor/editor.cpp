@@ -476,7 +476,6 @@ float computeX(QRectF r, QPlainTextEdit *editor, QTextCursor cs, int relativePos
         if (diff == 0) {
             break;
         }
-        // qDebug() << i << "?? " << computedW << ":" << diff << " width should be" << (computedW + (fw * diff));
         computedW += (fw * diff);
     }
 
@@ -509,7 +508,7 @@ void Overlay::paintEvent(QPaintEvent*)
 
     QFontMetrics fm(font());
     float fw = (fm.boundingRect("ABCDEFGHIJKLMNOPQRSTUVWXYZ").width() - fm.horizontalAdvance('Z')) /25;
-    // float fw = fm.horizontalAdvance('w');
+    float fs = fw * 1.2;
 
     //-----------------
     // selections
@@ -540,6 +539,9 @@ void Overlay::paintEvent(QPaintEvent*)
 
                 float x = computeX(r, editor, ss, cs.position() - ss.position(), fw);
                 float w = computeX(r, editor, cs, se.position() - ss.position(), fw) - x;
+                if (w < fs) {
+                    w = fs;
+                }
 
                 r.setWidth(w);
                 p.fillRect(QRect(r.left()+x,r.top(),w,r.height()), e->selectionBgColor);
@@ -758,7 +760,7 @@ void TextmateEdit::updateExtraCursors(QKeyEvent *e)
         return;
     }
 
-    if (!e->text().isEmpty()) {
+    if (!e->text().isEmpty() && e->modifiers() == Qt::NoModifier) {
         for(auto c : extraCursors) {
             c.insertText(e->text());
         }
