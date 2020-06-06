@@ -248,37 +248,41 @@ static void Commands::duplicateLine(Editor const* editor)
     }
 }
 
-static void expandSelectionToLineForCursor(Editor const* editor, QTextCursor cursor)
+static QTextCursor expandSelectionToLineForCursor(Editor const* editor, QTextCursor cursor)
 {
     if (!cursor.hasSelection()) {
         cursor.select(QTextCursor::LineUnderCursor);
-        editor->editor->setTextCursor(cursor);
+        return cursor;
+        // editor->editor->setTextCursor(cursor);
     } else {
         QTextCursor cs(cursor);
         cs.setPosition(cursor.selectionStart());
         cs.movePosition(QTextCursor::StartOfLine);
         cs.setPosition(cursor.selectionEnd(), QTextCursor::KeepAnchor);
         cs.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
-        editor->editor->setTextCursor(cs);
+        return cs;
+        // editor->editor->setTextCursor(cs);
     }
 }
 
 static void Commands::expandSelectionToLine(Editor const* editor)
 {
-    QList<QTextCursor> cursors;
-    cursors << editor->editor->extraCursors;
-    cursors << editor->editor->textCursor();
+    QTextCursor res = expandSelectionToLineForCursor(editor, editor->editor->textCursor());
+    editor->editor->setTextCursor(res);
 
-    for(auto cursor : cursors) {
-        expandSelectionToLineForCursor(editor, cursor);
+    QList<QTextCursor> cursors;
+    for(auto cursor : editor->editor->extraCursors) {
+        cursors << expandSelectionToLineForCursor(editor, cursor);
     }
+
+    editor->editor->extraCursors.clear();
+    editor->editor->extraCursors << cursors;
 }
 
-static void Commands::find(Editor const* editor, QString string, QString options)
+static bool Commands::find(Editor const* editor, QString string, QString options)
 {
     if (string.isEmpty()) {
-        return;
-
+        return false;
     }
 
     bool regex = options.indexOf("regular_") != -1;
@@ -297,10 +301,11 @@ static void Commands::find(Editor const* editor, QString string, QString options
             cs.movePosition(QTextCursor::Start);
             editor->editor->setTextCursor(cs);
             if (!editor->editor->find(string, flags)) {
-                editor->editor->setTextCursor(cursor);     
+                editor->editor->setTextCursor(cursor);   
+                return false;  
             }
         }
-        return;
+        return true;
     }
 
     QRegExp regx(string);
@@ -310,9 +315,12 @@ static void Commands::find(Editor const* editor, QString string, QString options
         cs.movePosition(QTextCursor::Start);
         editor->editor->setTextCursor(cs);
         if (!editor->editor->find(regx, flags)) {
-            editor->editor->setTextCursor(cursor);     
+            editor->editor->setTextCursor(cursor);
+            return false;   
         }
     }
+
+    return true;
 }
 
 static bool Commands::keyPressEvent(QKeyEvent* e)

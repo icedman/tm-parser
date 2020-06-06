@@ -32,8 +32,10 @@ public slots:
     void expandSelectionToLine();
     void zoomIn();
     void zoomOut();
-
-    void find(QString string, QString options);
+    void addExtraCursor();
+    void removeExtraCursors();
+    bool find(QString string, QString options = QString());
+    bool findAndCreateCursor(QString string, QString options = QString());
 
     QString selectedText();
 };

@@ -8,6 +8,7 @@
     { "keys": "ctrl+[",       "command": "app.editor().unindent()" },
     { "keys": "ctrl+shift+d", "command": "app.editor().duplicateLine()" },
     { "keys": "ctrl+l",       "command": "app.editor().expandSelectionToLine()" },
+    { "keys": "ctrl+d",       "command": "app.editor().findAndCreateCursor(app.editor().selectedText())" },
 
     { "keys": "ctrl+=",       "command": "app.editor().zoomIn()" },
     { "keys": "ctrl+-",       "command": "app.editor().zoomOut()" },

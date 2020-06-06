@@ -100,9 +100,35 @@ void JSEditor::zoomOut()
     return ((Editor*)parent())->editor->zoomOut();
 }
 
-void JSEditor::find(QString string, QString options)
+void JSEditor::addExtraCursor() {
+    ((Editor*)parent())->editor->addExtraCursor();
+}
+
+void JSEditor::removeExtraCursors() {
+    ((Editor*)parent())->editor->removeExtraCursors();
+}
+
+bool JSEditor::find(QString string, QString options)
 {
-    Commands::find((Editor*)parent(), string, options);
+    return Commands::find((Editor*)parent(), string, options);
+}
+
+bool JSEditor::findAndCreateCursor(QString string, QString options)
+{
+    Editor *editor = (Editor*)parent();
+    QTextCursor prev = editor->editor->textCursor(); 
+
+    if (string.isEmpty()) {
+        prev.select(QTextCursor::WordUnderCursor);
+        editor->editor->setTextCursor(prev);
+        return !prev.selectedText().isEmpty();
+    }
+
+    bool res = Commands::find(editor, string, options);
+    if (res) {
+        editor->editor->extraCursors.push_back(prev);
+    }
+    return res;
 }
 
 //-----------------
