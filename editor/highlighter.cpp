@@ -89,6 +89,9 @@ void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style
     }
 }
 
+void Highlighter::setFormatFromScopes(const char* start, const char *last, HighlightBlockData* blockData, std::map<size_t, scope::scope_t> scopes)
+{}
+
 void Highlighter::highlightBlock(const QString& text)
 {
     if (!theme || !grammar) {
@@ -96,7 +99,6 @@ void Highlighter::highlightBlock(const QString& text)
     }
 
     // std::cout << "highlightBlock" << std::endl;
-
     std::map<size_t, scope::scope_t> scopes;
 
     bool firstLine = true;

@@ -73,6 +73,8 @@ public:
     void updateExtraCursors(QKeyEvent *e);
     QList<QTextCursor> extraCursors;
 
+    void paintToBuffer();
+
 private:
     void paintEvent(QPaintEvent* e) override;
     void mousePressEvent(QMouseEvent* event) override;

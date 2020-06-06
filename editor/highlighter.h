@@ -64,6 +64,7 @@ public:
 
     std::vector<span_info_t> spans;
     std::vector<bracket_info_t> brackets;
+    std::map<size_t, scope::scope_t> scopes;
 };
 
 class Highlighter : public QSyntaxHighlighter {
@@ -82,6 +83,7 @@ public:
 protected:
     void highlightBlock(const QString& text) override;
     void setFormatFromStyle(size_t start, size_t length, style_t& style, const char* line, HighlightBlockData* blockData, std::string scope);
+    void setFormatFromScopes(const char* start, const char *last, HighlightBlockData* blockData, std::map<size_t, scope::scope_t> scopes);
 
 private:
     bool deferRendering;

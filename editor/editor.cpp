@@ -275,6 +275,8 @@ void Editor::updateScrollBar()
     mini->setPageStep(editorScroll->pageStep());
     
     updateMiniMap();
+
+    editor->paintToBuffer();
 }
 
 void Editor::updateScrollBar(int i)
@@ -619,10 +621,8 @@ void TextmateEdit::contextMenuEvent(QContextMenuEvent *event)
     // delete menu;
 }
 
-void TextmateEdit::paintEvent(QPaintEvent* e)
+void TextmateEdit::paintToBuffer()
 {
-    // QPlainTextEdit::paintEvent(e);
-
     // paint to buffer
     QPixmap map(width(), height());
     map.fill(Qt::transparent);
@@ -648,6 +648,13 @@ void TextmateEdit::paintEvent(QPaintEvent* e)
 
     extraCursors.pop_front();
     overlay->buffer = map;
+    overlay->update();
+
+    qDebug() << ".";
+}
+
+void TextmateEdit::paintEvent(QPaintEvent* e)
+{
 }
 
 void TextmateEdit::mousePressEvent(QMouseEvent* e)
@@ -660,7 +667,6 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
 
     QPlainTextEdit::mousePressEvent(e);
     overlay->mousePressEvent(e);
-    overlay->update();
 }
 
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
@@ -686,6 +692,7 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
     }
 
     overlay->update();
+    paintToBuffer();
 }
 
 void TextmateEdit::updateExtraCursors(QKeyEvent *e)
