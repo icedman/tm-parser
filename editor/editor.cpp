@@ -368,6 +368,13 @@ static QTextBlock findBracketMatch(QTextBlock& block)
         return QTextBlock();
     }
 
+    // todo .. 
+    // format = QSyntaxHighlighter::format(c-first);
+    // if (format.intProperty(SCOPE_PROPERTY_ID) != SCOPE_OTHER) {
+    //     c++;
+    //     continue;
+    // }
+
     QTextBlock res = block.next();
     while (res.isValid()) {
         HighlightBlockData* resData = reinterpret_cast<HighlightBlockData*>(res.userData());
@@ -456,6 +463,26 @@ void Overlay::updateCursor() {
     update();
 }
 
+// xxx::hacky
+float computeX(QRectF r, QPlainTextEdit *editor, QTextCursor cs, int relativePosition, float fw) {
+    QTextCursor ac(cs);
+    ac.movePosition(QTextCursor::StartOfLine);
+    ac.setPosition(ac.position() + relativePosition);
+    
+    float computedW = relativePosition * fw;
+    for(int i=0; i<2;i ++) {
+        QTextCursor oc = editor->cursorForPosition(QPoint(r.left() + computedW, r.top()));
+        int diff = ac.position() - oc.position();
+        if (diff == 0) {
+            break;
+        }
+        // qDebug() << i << "?? " << computedW << ":" << diff << " width should be" << (computedW + (fw * diff));
+        computedW += (fw * diff);
+    }
+
+    return computedW;
+}
+
 void Overlay::paintEvent(QPaintEvent*)
 {
     // this actually draws the QPlainTextEdit widget .. with some extras
@@ -472,24 +499,70 @@ void Overlay::paintEvent(QPaintEvent*)
     QColor foldedBg = selectionBg;
     foldedBg.setAlpha(64);
 
-    // if (buffer.width()) {
-        // p.setOpacity(0.75);
-        p.drawPixmap(rect(), buffer, buffer.rect());
-    // }
+    p.fillRect(rect(), e->backgroundColor);
 
     QList<QTextCursor> cursors;
     cursors << editor->extraCursors;
     cursors << editor->textCursor();
 
-    // draw extras
     QTextBlock block = editor->_firstVisibleBlock();
+
+    QFontMetrics fm(font());
+    float fw = (fm.boundingRect("ABCDEFGHIJKLMNOPQRSTUVWXYZ").width() - fm.horizontalAdvance('Z')) /25;
+    // float fw = fm.horizontalAdvance('w');
+
+    //-----------------
+    // selections
+    //-----------------
+    for(auto cursor : cursors) {
+        if (!cursor.hasSelection()) {
+            continue;
+        }
+
+
+        QTextCursor cs(cursor);
+        cs.setPosition(cs.selectionStart());
+        while (cs.position() < cursor.selectionEnd()) {
+            QTextBlock block = cs.block();
+            if (block.isVisible()) {
+                QRectF r = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
+
+                if (r.top() > height())
+                    break;
+
+                QTextCursor ss(cs);
+                QTextCursor se(cs);
+                ss.movePosition(QTextCursor::StartOfLine);
+                se.movePosition(QTextCursor::EndOfLine);
+                if (se.position() > cursor.selectionEnd()) {
+                    se.setPosition(cursor.selectionEnd());
+                }
+
+                float x = computeX(r, editor, ss, cs.position() - ss.position(), fw);
+                float w = computeX(r, editor, cs, se.position() - ss.position(), fw) - x;
+
+                r.setWidth(w);
+                p.fillRect(QRect(r.left()+x,r.top(),w,r.height()), e->selectionBgColor);
+            }
+
+            if (!cs.movePosition(QTextCursor::Down)) {
+                break;
+            }
+            cs.movePosition(QTextCursor::StartOfLine);
+        }
+    }
+
     while (block.isValid()) {
         if (block.isVisible()) {
             QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
+            if (rect.top() > height())
+                break;
+
             QTextLayout* layout = block.layout();
 
             //-----------------
-            // cursor
+            // cursors
+            //-----------------
             if (cursorOn) {
                 for(auto cursor : cursors) {
                     if (cursor.block() == block) {
@@ -500,16 +573,16 @@ void Overlay::paintEvent(QPaintEvent*)
 
             //-----------------
             // folded indicator
+            //-----------------
             HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
             if (blockData && blockData->folded) {
                 p.fillRect(rect, foldedBg);
             }
-
-            if (rect.top() > height())
-                break;
         }
         block = block.next();
     }
+
+    p.drawPixmap(rect(), buffer, buffer.rect());
 }
 
 void Overlay::mousePressEvent(QMouseEvent* event)
@@ -541,23 +614,10 @@ void TextmateEdit::paintEvent(QPaintEvent* e)
 {
     // QPlainTextEdit::paintEvent(e);
 
-    /*
-    if (!editor->editor->textCursor().hasSelection()) {
-        if (overlay->buffer.width()) {
-            overlay->buffer = QPixmap();
-            overlay->update();
-        }
-        return;
-    }
-    */
-
-    // cheap way to override QPlainTextEdit's ugly selection painting
-
     // paint to buffer
     QPixmap map(width(), height());
-    // map.fill(Qt::transparent);
+    map.fill(Qt::transparent);
     QPainter painter(&map);
-    painter.fillRect(map.rect(), editor->backgroundColor);
 
     extraCursors.push_front(textCursor());
 
@@ -578,7 +638,6 @@ void TextmateEdit::paintEvent(QPaintEvent* e)
     }
 
     extraCursors.pop_front();
-
     overlay->buffer = map;
 }
 

@@ -92,6 +92,7 @@ QTabBar::tab {
   border: none;
   padding: 4px;
   padding-left: 14px;
+  padding-right: 14px;
   show-decoration-selected: 0;
   background: @tabItemBg;
   color: @tabItemFg;

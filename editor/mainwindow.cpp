@@ -169,7 +169,7 @@ void MainWindow::setupLayout()
     tabs = new Tabs(this);
     tabs->setDrawBase(false);
     tabs->setExpanding(false);
-    tabs->setTabsClosable(true);
+    tabs->setTabsClosable(false);
 
     connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(tabSelected(int)));
     connect(tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(tabClose(int)));
@@ -366,7 +366,7 @@ void MainWindow::setupMenu()
         &QApplication::quit, QKeySequence::Quit);
 
     // View
-    viewMenu = new QMenu(tr("&View"), this);
+    // viewMenu = new QMenu(tr("&View"), this);
     // viewMenu->addAction(
     //     tr("Toggle Sidebar"),
     //     this, [this]() { sidebar->toggle(); });
@@ -376,8 +376,7 @@ void MainWindow::setupMenu()
     // viewMenu->addAction(
     //     tr("Toggle Statusbar"),
     //     this, [this]() { saveFile(); });
-
-    menuBar()->addMenu(viewMenu);
+    // menuBar()->addMenu(viewMenu);
 
     // Help
     QMenu* helpMenu = new QMenu(tr("&Help"), this);
