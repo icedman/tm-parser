@@ -8,11 +8,14 @@ It uses the textmate parser. And reuses some visual studio code extensions.
 * themes
 * search
 * minimap
+* multi-cursor
 
 # todo
 * completions
 * auto-close
-* multi-cursor
 * git gutter
 * folder search
-* command palette
+* ui: command palette
+* ui: dialog
+* ui: menu
+* ui: statusbar

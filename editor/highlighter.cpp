@@ -179,11 +179,13 @@ void Highlighter::highlightBlock(const QString& text)
 
     //----------------------
     // find block comments
+    //----------------------
     QTextCharFormat format;
     if (lang->blockCommentStart.length()) {
         int beginComment = text.indexOf(lang->blockCommentStart.c_str());
         int endComment = text.indexOf(lang->blockCommentEnd.c_str());
-        
+        style_t s = theme->styles_for_scope("comment");
+
         if (beginComment != -1) {
             format = QSyntaxHighlighter::format(beginComment); 
             if (format.intProperty(SCOPE_PROPERTY_ID) != SCOPE_COMMENT) {
@@ -195,13 +197,10 @@ void Highlighter::highlightBlock(const QString& text)
             setCurrentBlockState(BLOCK_STATE_COMMENT);
             int b = beginComment != -1 ? beginComment : 0;
             int e = endComment != -1 ? endComment : (last - first);
-            style_t s = theme->styles_for_scope("comment");
             setFormatFromStyle(b, e - b, s, first, blockData, "comment");
-
         } else {
             setCurrentBlockState(0);
             if (endComment != -1 && previousBlockState() == BLOCK_STATE_COMMENT) {
-                style_t s = theme->styles_for_scope("comment");
                 setFormatFromStyle(0, endComment + lang->blockCommentEnd.length(), s, first, blockData, "comment");
             }
         }
@@ -209,6 +208,7 @@ void Highlighter::highlightBlock(const QString& text)
 
     //----------------------
     // gather brackets
+    //----------------------
     blockData->brackets.clear();
     if (lang->brackets) {
         std::vector<bracket_info_t> brackets;
@@ -224,7 +224,7 @@ void Highlighter::highlightBlock(const QString& text)
             // opening
             int i = 0;
             for (auto b : lang->bracketOpen) {
-                if (strstr(c, b.c_str()) == c) {
+                if (strstr(c, b.c_str()) == c) { // << strstr .. fails because it is lazy
                     found = true;
                     size_t l = (c - first);
                     brackets.push_back({ .char_idx = l,
@@ -276,10 +276,16 @@ void Highlighter::highlightBlock(const QString& text)
 
         // hack for if-else-
         if (blockData->brackets.size() == 2) {
-            if (!blockData->brackets[0].open && blockData->brackets[1].open && blockData->brackets[0].bracket == blockData->brackets[1].bracket) {
+            if (blockData->brackets[0].open != blockData->brackets[1].open && blockData->brackets[0].bracket == blockData->brackets[1].bracket) {
                 blockData->brackets.clear();
             }
         }
+
+        // format brackets with scope
+        // style_t s = theme->styles_for_scope("bracket");
+        // for (auto b : blockData->brackets) {
+        //     setFormatFromStyle(b.char_idx, 1, s, first, blockData, "bracket");
+        // }
     }
 
     blockData->parser_state = parser_state;

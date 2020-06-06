@@ -154,6 +154,8 @@ bool theme_application(theme_ptr theme)
   colors["@statusBg"] = statusBg.name();
   colors["@statusFg"] = statusFg.name();
 
+  qDebug () << statusBg.name();
+
   QTextStream in(&file);
   while (!in.atEnd())
   {
@@ -169,6 +171,6 @@ bool theme_application(theme_ptr theme)
   file.close();
   
   qobject_cast<QApplication*>(QApplication::instance())->setStyleSheet(css);
-  
+
   return true;
 }

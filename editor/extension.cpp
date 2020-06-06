@@ -279,8 +279,8 @@ theme_ptr theme_from_name(const QString path, std::vector<Extension>& extensions
             Json::Value theme = themes[i];
             if (theme["id"].asString() == theme_path || theme["label"].asString() == theme_path) {
                 theme_path = ext.path.toStdString() + "/" + theme["path"].asString();
-                // std::cout << ext.path.toStdString() << "..." << std::endl;
-                // std::cout << theme_path << std::endl;
+                std::cout << ext.path.toStdString() << "..." << std::endl;
+                std::cout << theme_path << std::endl;
                 found = true;
                 break;
             }

@@ -111,6 +111,7 @@ public slots:
     void newTab();
     void closeTab();
     void exit();
+    void theme(QString name);
 };
 
 #endif // JS_H

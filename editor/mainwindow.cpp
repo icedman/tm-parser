@@ -50,19 +50,9 @@ void MainWindow::about()
            "highlighting rules using regular expressions.</p>"));
 }
 
-void MainWindow::loadTheme(const QString& name)
-{
-    theme_ptr _theme = theme_from_name(name, extensions);
-    if (_theme) {
-        theme = _theme;
-        applyTheme();
-    }
-}
-
 void MainWindow::configure()
 {
 	editor_settings = std::make_shared<editor_settings_t>();
-
     QString userSettings = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
     load_settings(userSettings, settings);
 
@@ -122,9 +112,25 @@ void MainWindow::configure()
     }
 }
 
+void MainWindow::loadTheme(const QString& name)
+{
+    // theme = theme_from_name(settings["theme"].asString().c_str(), extensions);
+    theme_ptr _theme = theme_from_name(name, extensions);
+    if (_theme) {
+        swap(theme, _theme);
+        applyTheme();
+    }
+}
+
 void MainWindow::applyTheme()
 {
     theme_application(theme);
+    
+    // update all editors
+    for(int i=0; i<editors->count(); i++) {
+        Editor *editor = (Editor*)editors->widget(i);
+        editor->setTheme(theme);
+    }
 }
 
 void MainWindow::applySettings()
@@ -421,6 +427,8 @@ void MainWindow::warmConfigure()
         args << jsonContent;
         jsfunc.call(args);
     }
+
+    events = module.property("events");
 }
 
 bool MainWindow::processKeys(QString keys)
@@ -430,6 +438,15 @@ bool MainWindow::processKeys(QString keys)
     QJSValue jsfunc = keybinding.property("processKeys");
     QJSValue value = jsfunc.call(args);
     return value.toBool();
+}
+
+void MainWindow::emitEvent(QString event, QString payload)
+{
+    // QJSValue jsfunc = events.property("emit");
+    // QJSValueList args;
+    // args << event;
+    // args << payload;
+    // jsfunc.call(args);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* e)

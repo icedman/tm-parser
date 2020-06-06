@@ -116,8 +116,7 @@ bool JSEditor::find(QString string, QString options)
 bool JSEditor::findAndCreateCursor(QString string, QString options)
 {
     Editor *editor = (Editor*)parent();
-    QTextCursor prev = editor->editor->textCursor(); 
-
+    QTextCursor prev = editor->editor->textCursor();
     if (string.isEmpty()) {
         prev.select(QTextCursor::WordUnderCursor);
         editor->editor->setTextCursor(prev);
@@ -382,4 +381,10 @@ QJSValue JSApp::editor()
     Editor* editor = mw->currentEditor();
     QJSValue value = mw->jsEngine().newQObject(editor->jsobj);
     return value;
+}
+
+void JSApp::theme(QString name)
+{
+    MainWindow* mw = MainWindow::instance();
+    mw->loadTheme(name);
 }

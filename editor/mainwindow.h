@@ -46,6 +46,7 @@ public:
     void readSettings();
 
     bool processKeys(QString keys);
+    void emitEvent(QString event, QString payload);
 
     Editor* createEditor();
     Editor* currentEditor();
@@ -90,6 +91,7 @@ private:
     QJSEngine engine;
     QJSValue module;
     QJSValue keybinding;
+    QJSValue events;
 
     JSConsole* console;
     JSApp* app;

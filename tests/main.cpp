@@ -142,14 +142,14 @@ void test_c()
 {
     grammar_ptr gm;
     // gm = load("test-cases/first-mate/fixtures/c.json");
-    gm = load("extensions/cpp/syntaxes/c.tmLanguage.json");
+    gm = load("extensions/cpp/syntaxes/cpp.tmLanguage.json");
     // std::cout << gm->document() << std::endl;
 
     Json::Value root = parse::loadJson("test-cases/themes/light_vs.json");
     theme_ptr theme = parse_theme(root);
 
     // FILE* fp = fopen("tests/cases/sqlite3.c", "r");
-    FILE* fp = fopen("tests/cases/test.c", "r");
+    FILE* fp = fopen("tests/cases/test.cpp", "r");
     // FILE* fp = fopen("tests/cases/tinywl.c", "r");
     char str[1024];
 
@@ -160,10 +160,13 @@ void test_c()
         parse::stack_ptr parser_state = gm->seed();
         while (fgets(str, 1000, fp)) {
 
-            const char* first = str;
-            const char* last = first + strlen(first);
+            std::string ss(str, strlen(str));
+            ss += "\n";
 
-            // std::cout << ".";
+            const char* first = ss.c_str();
+            const char* last = first + ss.length();
+
+            std::cout << "------------------------" << std::endl;
             std::cout << str << std::endl;
 
             std::map<size_t, scope::scope_t> scopes;
@@ -232,8 +235,8 @@ int main(int argc, char** argv)
     // test_read_and_parse();
     // test_hello();
     // test_coffee();
-    // test_c();
-    test_markdown();
+    test_c();
+    // test_markdown();
     // test_plist();
 
     end = clock();

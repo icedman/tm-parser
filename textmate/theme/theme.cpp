@@ -229,7 +229,7 @@ theme_t::find_shared_styles(Json::Value const& themeItem)
 theme_ptr parse_theme(Json::Value& themeItem)
 {
     static std::map<std::string, theme_ptr> Cache;
-    std::string const& uuid = themeItem["scopeName"].asString();
+    std::string const& uuid = themeItem["name"].asString();
     auto theme = Cache.find(uuid);
     if (theme == Cache.end()) {
 

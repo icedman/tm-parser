@@ -47,9 +47,12 @@ bool Editor::openFile(const QString& path)
         fileName = path;
         highlighter->setLanguage(lang);
 
-        if (file.size() > (1024 * 256)) {
+        if (file.size() > (1024 * 16)) {
             // todo do super load!
-            std::cout << "do threaded syntax highlighting at load" << std::endl;
+
+            if (file.size() > (1024 * 256)) {
+                std::cout << "do threaded syntax highlighting at load" << std::endl;
+            }
 
             std::cout << file.size() << std::endl;
             highlighter->setDeferRendering(true);
@@ -126,6 +129,9 @@ void Editor::setTheme(theme_ptr _theme)
     if (!settings->word_wrap) {
         editor->setLineWrapMode(QPlainTextEdit::NoWrap);
     }
+
+    updateGutter();
+    updateMiniMap();
 }
 
 void Editor::setLanguage(language_info_ptr _lang)
@@ -368,13 +374,6 @@ static QTextBlock findBracketMatch(QTextBlock& block)
         return QTextBlock();
     }
 
-    // todo .. 
-    // format = QSyntaxHighlighter::format(c-first);
-    // if (format.intProperty(SCOPE_PROPERTY_ID) != SCOPE_OTHER) {
-    //     c++;
-    //     continue;
-    // }
-
     QTextBlock res = block.next();
     while (res.isValid()) {
         HighlightBlockData* resData = reinterpret_cast<HighlightBlockData*>(res.userData());
@@ -416,12 +415,12 @@ void Editor::toggleFold(size_t line)
         return;
     }
 
+    // todo.. can't handle ))
     HighlightBlockData* folderBlockData = reinterpret_cast<HighlightBlockData*>(folder.userData());
     HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
 
     if (folderBlockData && blockData) {
         folderBlockData->folded = !folderBlockData->folded;
-
         while (block.isValid()) {
             blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
             blockData->folded = folderBlockData->folded;

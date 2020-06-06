@@ -34,5 +34,12 @@
     { "keys": "ctrl+7",       "command": "app.tab(6)" },
     { "keys": "ctrl+8",       "command": "app.tab(7)" },
     { "keys": "ctrl+9",       "command": "app.tab(8)" },
-    { "keys": "ctrl+n",       "command": "app.newTab()" }
+    { "keys": "ctrl+n",       "command": "app.newTab()" },
+
+    { "keys": "ctrl+shift+!",  "command": "app.theme('Monokai')" },
+    { "keys": "ctrl+shift+@",  "command": "app.theme('Bluloco Dark')" },
+    { "keys": "ctrl+shift+#",  "command": "app.theme('Shades of Purple')" },
+    { "keys": "ctrl+shift+$",  "command": "app.theme('Dracula Soft')" },
+    { "keys": "ctrl+shift+%",  "command": "app.theme('Bluloco Light')" }
+
 ]
