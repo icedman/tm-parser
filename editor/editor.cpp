@@ -369,6 +369,8 @@ void Editor::highlightBlocks()
         std::cout << "all rendering done" << std::endl;
         highlighter->setDeferRendering(false);
     }
+
+    editor->paintToBuffer();
 }
 
 static QTextBlock findBracketMatch(QTextBlock& block)
@@ -498,76 +500,22 @@ void Overlay::paintEvent(QPaintEvent*)
     resize(container->width(), container->height());
 
     QPainter p(this);
-    p.setRenderHint(QPainter::Antialiasing);
+    p.drawPixmap(rect(), buffer, buffer.rect());
 
     TextmateEdit* editor = (TextmateEdit*)parent();
     Editor* e = (Editor*)editor->parent();
-
-    QColor selectionBg = e->selectionBgColor;
-    QColor foldedBg = selectionBg;
-    foldedBg.setAlpha(64);
-
-    p.fillRect(rect(), e->backgroundColor);
 
     QList<QTextCursor> cursors;
     cursors << editor->extraCursors;
     cursors << editor->textCursor();
 
     QTextBlock block = editor->_firstVisibleBlock();
-
-    QFontMetrics fm(font());
-    float fw = (fm.boundingRect("ABCDEFGHIJKLMNOPQRSTUVWXYZ").width() - fm.horizontalAdvance('Z')) /25;
-    float fs = fw * 1.2;
-
-    //-----------------
-    // selections
-    //-----------------
-    for(auto cursor : cursors) {
-        if (!cursor.hasSelection()) {
-            continue;
-        }
-
-
-        QTextCursor cs(cursor);
-        cs.setPosition(cs.selectionStart());
-        while (cs.position() < cursor.selectionEnd()) {
-            QTextBlock block = cs.block();
-            if (block.isVisible()) {
-                QRectF r = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
-
-                if (r.top() > height())
-                    break;
-
-                QTextCursor ss(cs);
-                QTextCursor se(cs);
-                ss.movePosition(QTextCursor::StartOfLine);
-                se.movePosition(QTextCursor::EndOfLine);
-                if (se.position() > cursor.selectionEnd()) {
-                    se.setPosition(cursor.selectionEnd());
-                }
-
-                float x = computeX(r, editor, ss, cs.position() - ss.position(), fw);
-                float w = computeX(r, editor, cs, se.position() - ss.position(), fw) - x;
-                if (w < fs) {
-                    w = fs;
-                }
-
-                r.setWidth(w);
-                p.fillRect(QRect(r.left()+x,r.top(),w,r.height()), e->selectionBgColor);
-            }
-
-            if (!cs.movePosition(QTextCursor::Down)) {
-                break;
-            }
-            cs.movePosition(QTextCursor::StartOfLine);
-        }
-    }
-
     while (block.isValid()) {
+        QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
+        if (rect.top() > height())
+            break;
+
         if (block.isVisible()) {
-            QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
-            if (rect.top() > height())
-                break;
 
             QTextLayout* layout = block.layout();
 
@@ -582,18 +530,9 @@ void Overlay::paintEvent(QPaintEvent*)
                 }
             }
 
-            //-----------------
-            // folded indicator
-            //-----------------
-            HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
-            if (blockData && blockData->folded) {
-                p.fillRect(rect, foldedBg);
-            }
         }
         block = block.next();
     }
-
-    p.drawPixmap(rect(), buffer, buffer.rect());
 }
 
 void Overlay::mousePressEvent(QMouseEvent* event)
@@ -625,36 +564,106 @@ void TextmateEdit::paintToBuffer()
 {
     // paint to buffer
     QPixmap map(width(), height());
-    map.fill(Qt::transparent);
-    QPainter painter(&map);
+    // map.fill(Qt::transparent);
+    
+    QPainter p(&map);
+    p.setRenderHint(QPainter::Antialiasing);
+    
+    TextmateEdit* editor = this;
+    Editor* e = (Editor*)editor->parent();
+    p.fillRect(rect(), e->backgroundColor);
 
-    extraCursors.push_front(textCursor());
+    QColor selectionBg = e->selectionBgColor;
+    QColor foldedBg = selectionBg;
+    foldedBg.setAlpha(64);
 
-    QTextBlock block;
-    block = firstVisibleBlock();
-    while (block.isValid()) {
-        if (!block.isVisible()) {
-            block = block.next();
+    QList<QTextCursor> cursors;
+    cursors << extraCursors;
+    cursors << textCursor();
+
+    QTextBlock block = editor->_firstVisibleBlock();
+
+    QFontMetrics fm(font());
+    float fw = (fm.boundingRect("ABCDEFGHIJKLMNOPQRSTUVWXYZ").width() - fm.horizontalAdvance('Z')) /25;
+    float fs = fw * 1.2;
+
+    //-----------------
+    // selections
+    //-----------------
+    for(auto cursor : cursors) {
+        if (!cursor.hasSelection()) {
             continue;
-        } else {
-            QRectF r = blockBoundingGeometry(block).translated(contentOffset());
+        }
+
+        QTextCursor cs(cursor);
+        cs.setPosition(cs.selectionStart());
+        while (cs.position() < cursor.selectionEnd()) {
+            QTextBlock block = cs.block();
+            QRectF r = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
             if (r.top() > height())
                 break;
+
+            if (block.isVisible()) {
+                QTextCursor ss(cs);
+                QTextCursor se(cs);
+                ss.movePosition(QTextCursor::StartOfLine);
+                se.movePosition(QTextCursor::EndOfLine);
+                if (se.position() > cursor.selectionEnd()) {
+                    se.setPosition(cursor.selectionEnd());
+                }
+
+                float x = computeX(r, editor, ss, cs.position() - ss.position(), fw);
+                float w = computeX(r, editor, cs, se.position() - ss.position(), fw) - x;
+                if (w < fs) {
+                    w = fs;
+                }
+
+                r.setWidth(w);
+                p.fillRect(QRect(r.left()+x,r.top(),w,r.height()), e->selectionBgColor);
+            }
+
+            if (!cs.movePosition(QTextCursor::Down)) {
+                break;
+            }
+            cs.movePosition(QTextCursor::StartOfLine);
+        }
+    }
+
+    block = firstVisibleBlock();
+    while (block.isValid()) {
+        QRectF r = blockBoundingGeometry(block).translated(contentOffset());
+        if (r.top() > height()) {
+            break;
+        }
+
+        if (block.isVisible()) {
             QTextLayout* layout = block.layout();
-            layout->draw(&painter, r.topLeft());
+
+            //-----------------
+            // folded indicator
+            //-----------------
+            HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
+            if (blockData && blockData->folded) {
+                p.fillRect(r, foldedBg);
+            }
+
+            //-----------------
+            // render the block
+            //-----------------
+            layout->draw(&p, r.topLeft());
         }
         block = block.next();
     }
 
-    extraCursors.pop_front();
     overlay->buffer = map;
     overlay->update();
-
-    qDebug() << ".";
 }
 
 void TextmateEdit::paintEvent(QPaintEvent* e)
 {
+    if (rect() != overlay->buffer.rect()) {
+        paintToBuffer();
+    }
 }
 
 void TextmateEdit::mousePressEvent(QMouseEvent* e)
