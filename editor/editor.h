@@ -129,8 +129,8 @@ private:
 public slots:
     void updateScrollBar();
     void updateScrollBar(int i);
-    void updateGutter();
-    void updateMiniMap();
+    void updateGutter(bool force = false);
+    void updateMiniMap(bool force = false);
 
 private Q_SLOTS:
     void updateRequested(const QRect& rect, int d);

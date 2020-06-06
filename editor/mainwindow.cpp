@@ -114,10 +114,10 @@ void MainWindow::configure()
 
 void MainWindow::loadTheme(const QString& name)
 {
-    // theme = theme_from_name(settings["theme"].asString().c_str(), extensions);
     theme_ptr _theme = theme_from_name(name, extensions);
     if (_theme) {
-        swap(theme, _theme);
+        // swap(theme, _theme);
+        theme = _theme;
         applyTheme();
     }
 }

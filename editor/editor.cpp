@@ -130,8 +130,12 @@ void Editor::setTheme(theme_ptr _theme)
         editor->setLineWrapMode(QPlainTextEdit::NoWrap);
     }
 
-    updateGutter();
-    updateMiniMap();
+    if (highlighter) {
+        highlighter->rehighlight();
+    }
+
+    updateGutter(true);
+    updateMiniMap(true);
 }
 
 void Editor::setLanguage(language_info_ptr _lang)
@@ -223,7 +227,7 @@ void Editor::updateRequested(const QRect& rect, int d)
     previousRect = rect;
 }
 
-void Editor::updateMiniMap()
+void Editor::updateMiniMap(bool force)
 {
     if (!mini) {
         return;
@@ -243,6 +247,10 @@ void Editor::updateMiniMap()
     int first = 0;
     if (gutter->lineNumbers.size()) {
         first = gutter->lineNumbers[0].number;
+    }
+
+    if (force) {
+        mini->setSizes(0,0,0,0);
     }
     mini->setSizes(first, gutter->lineNumbers.size(), vscroll->value(), vscroll->maximum());
 }
@@ -287,7 +295,7 @@ static bool isFoldable(QTextBlock& block)
     return false;
 }
 
-void Editor::updateGutter()
+void Editor::updateGutter(bool force)
 {
     if (!gutter) {
         return;

@@ -68,7 +68,7 @@ void Highlighter::setFormatFromStyle(size_t start, size_t length, style_t& style
     int s = -1;
     for (int i = start; i < start + length; i++) {
         if (s == -1) {
-            if (line[i] != ' ') {
+            if (line[i] != ' ' && line[i] != '\t') {
                 s = i;
             }
             continue;
@@ -131,8 +131,8 @@ void Highlighter::highlightBlock(const QString& text)
     //----------------------
     // parse the line
     //----------------------
-    std::string str;
-    str.assign(text.toUtf8().constData(), text.length());
+    std::string str = text.toStdString();
+    // str.assign(text.toUtf8().constData(), text.length());
     str += "\n";
 
     const char* first = str.c_str();
@@ -216,7 +216,8 @@ void Highlighter::highlightBlock(const QString& text)
             bool found = false;
         
             format = QSyntaxHighlighter::format(c-first);
-            if (format.intProperty(SCOPE_PROPERTY_ID) != SCOPE_OTHER) {
+            int prop = format.intProperty(SCOPE_PROPERTY_ID);
+            if (prop == SCOPE_COMMENT || prop == SCOPE_STRING) {
                 c++;
                 continue;
             }
