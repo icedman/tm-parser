@@ -3,6 +3,7 @@
 
 #include <QPlainTextEdit>
 #include <QTextBlock>
+#include <QTextCursor>
 #include <QTimer>
 #include <QWidget>
 
@@ -30,21 +31,24 @@ struct editor_settings_t {
 typedef std::shared_ptr<editor_settings_t> editor_settings_ptr;
 
 class Overlay : public QWidget {
+    Q_OBJECT
 public:
-    explicit Overlay(QWidget* parent = nullptr)
-        : QWidget(parent)
-    {
-        setAttribute(Qt::WA_NoSystemBackground);
-        setAttribute(Qt::WA_TransparentForMouseEvents);
-    }
-
+    Overlay(QWidget* parent = nullptr);
+    
     void paintEvent(QPaintEvent*) override;
     void mousePressEvent(QMouseEvent* event) override;
 
     QPixmap buffer;
+
+    QTimer updateTimer;
+    bool cursorOn;
+
+private Q_SLOTS:
+    void updateCursor();
 };
 
 class TextmateEdit : public QPlainTextEdit {
+    Q_OBJECT
 public:
     TextmateEdit(QWidget* parent = nullptr);
 
@@ -63,10 +67,17 @@ public:
         return contentOffset();
     }
 
+public:
+    void addExtraCursor();
+    void removeExtraCursors();
+    void updateExtraCursors(QKeyEvent *e);
+    QList<QTextCursor> extraCursors;
+
 private:
     void paintEvent(QPaintEvent* e) override;
     void mousePressEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* e) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
     Overlay* overlay;
     Editor* editor;

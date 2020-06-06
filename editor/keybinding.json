@@ -1,6 +1,6 @@
 [
     { "keys": "alt+q",        "command": "app.exit()" },
-    
+
     { "keys": "ctrl+f",       "command": "ui.search(app.editor().selectedText())" },
     { "keys": "ctrl+/",       "command": "app.editor().toggleComment()" },
     { "keys": "ctrl+shift+?", "command": "app.editor().toggleBlockComment()" },

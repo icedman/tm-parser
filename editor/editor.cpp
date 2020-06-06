@@ -437,6 +437,25 @@ void Editor::toggleFold(size_t line)
     updateGutter();
 }
 
+//---------------------
+// overlay
+//---------------------
+Overlay::Overlay(QWidget* parent)
+    : QWidget(parent)
+    , updateTimer(this)
+    , cursorOn(true)
+{
+    setAttribute(Qt::WA_NoSystemBackground);
+    setAttribute(Qt::WA_TransparentForMouseEvents);
+    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(updateCursor()));
+    updateTimer.start(750);
+}
+
+void Overlay::updateCursor() {
+    cursorOn = !cursorOn;
+    update();
+}
+
 void Overlay::paintEvent(QPaintEvent*)
 {
     // this actually draws the QPlainTextEdit widget .. with some extras
@@ -453,16 +472,32 @@ void Overlay::paintEvent(QPaintEvent*)
     QColor foldedBg = selectionBg;
     foldedBg.setAlpha(64);
 
-    if (buffer.width()) {
-        p.setOpacity(0.75);
+    // if (buffer.width()) {
+        // p.setOpacity(0.75);
         p.drawPixmap(rect(), buffer, buffer.rect());
-    }
+    // }
+
+    QList<QTextCursor> cursors;
+    cursors << editor->extraCursors;
+    cursors << editor->textCursor();
 
     // draw extras
     QTextBlock block = editor->_firstVisibleBlock();
     while (block.isValid()) {
         if (block.isVisible()) {
             QRectF rect = editor->_blockBoundingGeometry(block).translated(editor->_contentOffset());
+            QTextLayout* layout = block.layout();
+
+            //-----------------
+            // cursor
+            if (cursorOn) {
+                for(auto cursor : cursors) {
+                    if (cursor.block() == block) {
+                        layout->drawCursor(&p, rect.topLeft(), cursor.position() - block.position());
+                    }
+                }
+            }
+
             //-----------------
             // folded indicator
             HighlightBlockData* blockData = reinterpret_cast<HighlightBlockData*>(block.userData());
@@ -483,6 +518,9 @@ void Overlay::mousePressEvent(QMouseEvent* event)
     // listening to click events
 }
 
+//---------------------
+// custom QPlainTextEdit
+//---------------------
 TextmateEdit::TextmateEdit(QWidget* parent)
     : QPlainTextEdit(parent)
 {
@@ -490,10 +528,20 @@ TextmateEdit::TextmateEdit(QWidget* parent)
     editor = (Editor*)parent;
 }
 
+void TextmateEdit::contextMenuEvent(QContextMenuEvent *event) 
+{
+    // QMenu *menu = createStandardContextMenu();
+    // menu->addAction(tr("My Menu Item"));
+    // //...
+    // menu->exec(event->globalPos());
+    // delete menu;
+}
+
 void TextmateEdit::paintEvent(QPaintEvent* e)
 {
-    QPlainTextEdit::paintEvent(e);
+    // QPlainTextEdit::paintEvent(e);
 
+    /*
     if (!editor->editor->textCursor().hasSelection()) {
         if (overlay->buffer.width()) {
             overlay->buffer = QPixmap();
@@ -501,6 +549,7 @@ void TextmateEdit::paintEvent(QPaintEvent* e)
         }
         return;
     }
+    */
 
     // cheap way to override QPlainTextEdit's ugly selection painting
 
@@ -510,30 +559,37 @@ void TextmateEdit::paintEvent(QPaintEvent* e)
     QPainter painter(&map);
     painter.fillRect(map.rect(), editor->backgroundColor);
 
+    extraCursors.push_front(textCursor());
+
     QTextBlock block;
     block = firstVisibleBlock();
     while (block.isValid()) {
-        QRectF r = blockBoundingGeometry(block).translated(contentOffset());
-        QTextLayout* layout = block.layout();
-
         if (!block.isVisible()) {
             block = block.next();
             continue;
         } else {
+            QRectF r = blockBoundingGeometry(block).translated(contentOffset());
+            if (r.top() > height())
+                break;
+            QTextLayout* layout = block.layout();
             layout->draw(&painter, r.topLeft());
         }
-
-        if (r.top() > height())
-            break;
-
         block = block.next();
     }
+
+    extraCursors.pop_front();
 
     overlay->buffer = map;
 }
 
 void TextmateEdit::mousePressEvent(QMouseEvent* e)
 {
+    if (e->modifiers() == Qt::ControlModifier) {
+        addExtraCursor();
+    } else {
+        removeExtraCursors();
+    }
+
     QPlainTextEdit::mousePressEvent(e);
     overlay->mousePressEvent(e);
     overlay->update();
@@ -551,9 +607,112 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         }
     }
 
-    if (!handled) {
-        QPlainTextEdit::keyPressEvent(e);
+    if (!handled && e->key() == Qt::Key_Escape) {
+        removeExtraCursors();
     }
 
+    if (!handled) {
+        QTextCursor cursor = textCursor();
+        QPlainTextEdit::keyPressEvent(e);
+        updateExtraCursors(e);
+    }
+
+    overlay->update();
+}
+
+void TextmateEdit::updateExtraCursors(QKeyEvent *e)
+{
+    bool redraw = false;
+    for(auto &c : extraCursors) {
+        QTextCursor cursor = textCursor();
+        QTextCursor::MoveMode mode = e->modifiers() & Qt::ShiftModifier ? QTextCursor::KeepAnchor : QTextCursor::MoveAnchor;
+        switch (e->key()) {
+        case Qt::Key_Left:
+            if (e->modifiers() & Qt::ControlModifier) {
+                c.movePosition(QTextCursor::WordLeft, mode);
+            } else {
+                c.movePosition(QTextCursor::Left, mode);
+            }
+            redraw = true;
+            break;
+        case Qt::Key_Right:
+            if (e->modifiers() & Qt::ControlModifier) {
+                c.movePosition(QTextCursor::WordRight, mode);
+            } else {
+            c.movePosition(QTextCursor::Right, mode);
+            }
+            redraw = true;
+            break;
+        case Qt::Key_Up:
+            c.movePosition(QTextCursor::Up, mode);
+            redraw = true;
+            break;
+        case Qt::Key_Down:
+            c.movePosition(QTextCursor::Down, mode);
+            redraw = true;
+            break;
+        case Qt::Key_Backspace:
+            c.deletePreviousChar();
+            redraw = true;
+            break;
+        case Qt::Key_Delete:
+            c.deleteChar();
+            redraw = true;
+            break;
+        case Qt::Key_V:
+            if (e->modifiers() & Qt::ControlModifier) {
+                // todo pastes only from the main cursor
+                setTextCursor(c);
+                paste();
+                setTextCursor(cursor);
+                redraw = true;
+            }
+            break;
+        case Qt::Key_C:
+            if (e->modifiers() & Qt::ControlModifier) {
+                // todo copies only from the main cursor
+                redraw = true;
+            }
+            break;
+        case Qt::Key_X:
+            if (e->modifiers() & Qt::ControlModifier) {
+                c.removeSelectedText();
+                redraw = true;
+            }
+            break;
+        case Qt::Key_Z:
+            if (e->modifiers() & Qt::ControlModifier) {
+                if(e->modifiers() & Qt::ShiftModifier) {
+                    document()->redo(&c);
+                } else {
+                    document()->undo(&c);
+                }
+                redraw = true;
+            }
+            break;
+        }
+    }
+
+    if (redraw) {
+        overlay->cursorOn = true;
+        overlay->update();
+        return;
+    }
+
+    if (!e->text().isEmpty()) {
+        for(auto c : extraCursors) {
+            c.insertText(e->text());
+        }
+    }
+}
+
+void TextmateEdit::addExtraCursor()
+{
+    extraCursors.push_back(textCursor());
+}
+
+void TextmateEdit::removeExtraCursors()
+{
+    extraCursors.clear();
     overlay->update();
 }
