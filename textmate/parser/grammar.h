@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PARSE_GRAMMAR_H
+#define PARSE_GRAMMAR_H
 
 #include <map>
 #include <memory>
@@ -57,3 +58,5 @@ typedef std::shared_ptr<grammar_t> grammar_ptr;
 grammar_ptr parse_grammar(Json::Value const& json);
 
 } // namespace parse
+
+#endif

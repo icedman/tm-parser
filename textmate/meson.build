@@ -11,7 +11,7 @@ textmate_files = [
     'parser/grammar.cpp',
     'parser/reader.cpp',
     'parser/pattern.cpp',
-    'parser/parse.cpp',
+    'parser/parser.cpp',
     'scopes/scope.cpp',
     'scopes/types.cpp',
     'scopes/parse.cpp',

@@ -2,7 +2,7 @@ parser_files = [
     'grammar.cpp',
     'reader.cpp',
     'pattern.cpp',
-    'parse.cpp'
+    'parser.cpp'
 ]
 
 parser_lib = static_library(

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCOPES_SCOPE_H
+#define SCOPES_SCOPE_H
 
 #include <map>
 #include <memory>
@@ -142,3 +143,5 @@ template <>
 struct std::hash<scope::scope_t> {
     size_t operator()(scope::scope_t const& scope) const { return scope.hash(); }
 };
+
+#endif

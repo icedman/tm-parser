@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _SWAY_UTIL_H
+#define _SWAY_UTIL_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -37,3 +38,5 @@ float parse_float(const char* value);
 // subpixel);
 
 // bool sway_set_cloexec(int fd, bool cloexec);
+
+#endif

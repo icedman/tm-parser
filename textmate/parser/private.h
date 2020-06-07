@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PARSE_PRIVATE_H
+#define PARSE_PRIVATE_H
 
 #include <map>
 #include <memory>
@@ -112,3 +113,5 @@ struct stack_t {
 };
 
 } // namespace parse
+
+#endif

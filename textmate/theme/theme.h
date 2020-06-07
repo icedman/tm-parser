@@ -1,4 +1,5 @@
-#pragma once
+#ifndef THEME_THEME_H
+#define THEME_THEME_H
 
 #include <memory>
 #include <vector>
@@ -141,3 +142,5 @@ private:
 };
 
 theme_ptr parse_theme(Json::Value& json);
+
+#endif

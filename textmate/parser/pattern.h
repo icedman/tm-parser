@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PARSE_PATTERN_H
+#define PARSE_PATTERN_H
 
 #include "defines.h"
 #include "onigmognu.h"
@@ -119,3 +120,5 @@ match_t search(pattern_t const& ptrn, char const* first, char const* last,
 match_t search(pattern_t const& ptrn, std::string const& str);
 
 } // namespace regexp
+
+#endif

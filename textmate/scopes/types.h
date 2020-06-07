@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCOPES_TYPES__H
+#define SCOPES_TYPES__H
 
 #include <memory>
 #include <string>
@@ -111,3 +112,5 @@ namespace types {
 } // namespace types
 
 } // namespace scope
+
+#endif
