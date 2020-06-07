@@ -83,7 +83,7 @@ static void Commands::removeTab(Editor const* editor, QTextCursor cursor)
 
 static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
 {
-    if (!editor->lang->lineComment.length()) {
+    if (!editor->lang || !editor->lang->lineComment.length()) {
         return;
     }
     
@@ -161,7 +161,7 @@ static void Commands::toggleComment(Editor const* editor)
 
 static void toggleBlockCommentForCursor(Editor const* editor, QTextCursor cursor)
 {
-    if (!editor->lang->blockCommentStart.length()) {
+    if (!editor->lang || !editor->lang->blockCommentStart.length()) {
         return;
     }
 
@@ -279,7 +279,7 @@ static void Commands::autoIndent(Editor const* editor)
 
 static void Commands::autoClose(Editor const* editor)
 {
-    if (!editor->lang->pairs) {
+    if (!editor->lang || !editor->lang->pairs) {
         return;
     }
     

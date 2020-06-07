@@ -92,6 +92,7 @@ class Editor : public QWidget {
 
 public:
     Editor(QWidget* parent = 0);
+    ~Editor();
 
     void setupEditor();
     void setTheme(theme_ptr _theme);

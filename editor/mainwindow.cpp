@@ -34,6 +34,10 @@ MainWindow::MainWindow(QWidget* parent)
     updateTimer.singleShot(1500, this, SLOT(warmConfigure()));
 }
 
+MainWindow::~MainWindow()
+{
+}
+
 MainWindow* MainWindow::instance()
 {
     return _instance;
@@ -311,6 +315,7 @@ void MainWindow::tabClose(int index)
         if (_editor) {
             editors->removeWidget(_editor);
             tabs->removeTab(index);
+            _editor->deleteLater();
         }
     }
 

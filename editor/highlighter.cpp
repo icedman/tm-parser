@@ -111,8 +111,9 @@ void Highlighter::highlightBlock(const QString& text)
         blockData = new HighlightBlockData;
     }
 
-    std::map<size_t, scope::scope_t> &scopes = blockData->scopes;
-    scopes.clear();
+    std::map<size_t, scope::scope_t> scopes;
+     // = blockData->scopes;
+    // scopes.clear();
     
     QTextBlock prevBlock = currentBlock().previous();
     HighlightBlockData* prevBlockData = reinterpret_cast<HighlightBlockData*>(prevBlock.userData());
