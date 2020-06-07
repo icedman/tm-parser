@@ -9,6 +9,7 @@
 FileSystemModel::FileSystemModel(QObject* parent)
     : QFileSystemModel(parent)
 {
+    setOptions(QFileSystemModel::DontUseCustomDirectoryIcons);
     connect(this, SIGNAL(directoryLoaded(const QString&)), this, SLOT(onDirectoryLoaded(const QString&)));
 }
 

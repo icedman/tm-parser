@@ -94,6 +94,8 @@ void MainWindow::configure()
 
     editor_settings->tab_to_spaces = settings.isMember("tab_to_spaces") && settings["tab_to_spaces"] == true;
     editor_settings->word_wrap = settings.isMember("word_wrap") && settings["word_wrap"] == true;
+    editor_settings->auto_indent = settings.isMember("auto_indent") && settings["auto_indent"] == true;
+    editor_settings->auto_close = settings.isMember("auto_close") && settings["auto_close"] == true;
 
     // std::cout << settings << std::endl;
 

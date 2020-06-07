@@ -26,6 +26,8 @@ struct editor_settings_t {
     int tab_size;
     bool tab_to_spaces;
     bool word_wrap;
+    bool auto_indent;
+    bool auto_close;
 };
 
 typedef std::shared_ptr<editor_settings_t> editor_settings_ptr;

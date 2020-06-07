@@ -681,11 +681,11 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
     bool handled = Commands::keyPressEvent(e);
+    Editor* _editor = MainWindow::instance()->currentEditor();
 
     if (!handled && e->key() == Qt::Key_Tab && e->modifiers() == Qt::NoModifier) {
-        Editor* e = MainWindow::instance()->currentEditor();
-        if (e->settings->tab_to_spaces) {
-            Commands::insertTab(e, e->editor->textCursor());
+        if (_editor->settings->tab_to_spaces) {
+            Commands::insertTab(_editor);
             handled = true;
         }
     }
@@ -698,6 +698,10 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         QTextCursor cursor = textCursor();
         QPlainTextEdit::keyPressEvent(e);
         updateExtraCursors(e);
+
+        if (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1) {
+            Commands::autoIndent(_editor);
+        }
     }
 
     overlay->update();
