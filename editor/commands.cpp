@@ -6,6 +6,31 @@
 
 #define NO_IMPLEMENTATION(s) qDebug() << s << " not yet implemented";
 
+static QList<QTextCursor> build_cursors(TextmateEdit *editor) {
+    QList<QTextCursor> cursors;
+    cursors << editor->extraCursors;
+    
+    QTextCursor cursor = editor->textCursor();
+
+    bool addCurrentCursor = true;
+    for (auto c : cursors) {
+        if (c.position() == cursor.position()) {
+            addCurrentCursor = false;
+            break;
+        }
+        if (cursor.hasSelection() && cursor.selectionStart() == c.selectionStart() && cursor.selectedText() == c.selectedText()) {
+            addCurrentCursor = false;
+            break;
+        }
+    }
+
+    if (addCurrentCursor) {
+        cursors << cursor;
+    }
+
+    return cursors;
+}
+
 size_t detect_non_whitespace(QString s) {
   for (int i = 0; i < s.length(); i++) {
     if (s[i] != ' ' && s[i] != " ") {
@@ -118,9 +143,7 @@ static void toggleCommentForCursor(Editor const* editor, QTextCursor cursor)
 
 static void Commands::toggleComment(Editor const* editor)
 {
-    QList<QTextCursor> cursors;
-    cursors << editor->editor->extraCursors;
-    cursors << editor->editor->textCursor();
+    QList<QTextCursor> cursors = build_cursors(editor->editor);
 
     for(auto cursor : cursors) {
         toggleCommentForCursor(editor, cursor);
@@ -138,9 +161,7 @@ static void toggleBlockCommentForCursor(Editor const* editor, QTextCursor cursor
 
 static void Commands::toggleBlockComment(Editor const* editor)
 {
-    QList<QTextCursor> cursors;
-    cursors << editor->editor->extraCursors;
-    cursors << editor->editor->textCursor();
+    QList<QTextCursor> cursors = build_cursors(editor->editor);
 
     for(auto cursor : cursors) {
         toggleBlockCommentForCursor(editor, cursor);
@@ -172,9 +193,7 @@ static void toggleIndentForCursor(Editor const* editor, QTextCursor cursor)
 
 static void Commands::indent(Editor const* editor)
 {
-    QList<QTextCursor> cursors;
-    cursors << editor->editor->extraCursors;
-    cursors << editor->editor->textCursor();
+    QList<QTextCursor> cursors = build_cursors(editor->editor);
 
     for(auto cursor : cursors) {
         toggleIndentForCursor(editor, cursor);
@@ -208,9 +227,7 @@ static void toggleUnindentForCursor(Editor const* editor, QTextCursor cursor)
 
 static void Commands::unindent(Editor const* editor)
 {
-    QList<QTextCursor> cursors;
-    cursors << editor->editor->extraCursors;
-    cursors << editor->editor->textCursor();
+    QList<QTextCursor> cursors = build_cursors(editor->editor);
 
     for(auto cursor : cursors) {
         toggleUnindentForCursor(editor, cursor);
@@ -239,9 +256,7 @@ static void duplicateLineForCursor(Editor const* editor, QTextCursor cursor)
 
 static void Commands::duplicateLine(Editor const* editor)
 {
-    QList<QTextCursor> cursors;
-    cursors << editor->editor->extraCursors;
-    cursors << editor->editor->textCursor();
+    QList<QTextCursor> cursors = build_cursors(editor->editor);
 
     for(auto cursor : cursors) {
         duplicateLineForCursor(editor, cursor);

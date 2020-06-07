@@ -706,9 +706,9 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
 
 void TextmateEdit::updateExtraCursors(QKeyEvent *e)
 {
+    QTextCursor cursor = textCursor();
     bool redraw = false;
     for(auto &c : extraCursors) {
-        QTextCursor cursor = textCursor();
         QTextCursor::MoveMode mode = e->modifiers() & Qt::ShiftModifier ? QTextCursor::KeepAnchor : QTextCursor::MoveAnchor;
         switch (e->key()) {
         case Qt::Key_Left:
@@ -785,14 +785,31 @@ void TextmateEdit::updateExtraCursors(QKeyEvent *e)
 
     if (!e->text().isEmpty() && e->modifiers() == Qt::NoModifier) {
         for(auto c : extraCursors) {
+            if (c.position() == cursor.position()) {
+                continue;
+            }
             c.insertText(e->text());
         }
     }
 }
 
-void TextmateEdit::addExtraCursor()
+void TextmateEdit::addExtraCursor(QTextCursor cursor)
 {
-    extraCursors.push_back(textCursor());
+    if (!cursor.block().isValid()) {
+        cursor = textCursor();
+    }
+
+    // check if already added
+    for (auto c : extraCursors) {
+        if (c.position() == cursor.position()) {
+            return;
+        }
+        if (cursor.hasSelection() && cursor.selectionStart() == c.selectionStart() && cursor.selectedText() == c.selectedText()) {
+            return;
+        }
+    }
+
+    extraCursors.push_back(cursor);
 }
 
 void TextmateEdit::removeExtraCursors()

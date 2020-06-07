@@ -125,7 +125,7 @@ bool JSEditor::findAndCreateCursor(QString string, QString options)
 
     bool res = Commands::find(editor, string, options);
     if (res) {
-        editor->editor->extraCursors.push_back(prev);
+        editor->editor->addExtraCursor(prev);
     }
     return res;
 }

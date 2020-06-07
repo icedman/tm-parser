@@ -68,7 +68,7 @@ public:
     }
 
 public:
-    void addExtraCursor();
+    void addExtraCursor(QTextCursor cursor = QTextCursor());
     void removeExtraCursors();
     void updateExtraCursors(QKeyEvent *e);
     QList<QTextCursor> extraCursors;
