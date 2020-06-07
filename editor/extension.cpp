@@ -116,6 +116,22 @@ static void load_language_configuration(const QString path, language_info_ptr la
             lang->brackets = lang->bracketOpen.size();
         }
     }
+
+    if (root.isMember("autoClosingPairs")) {
+        Json::Value pairs = root["autoClosingPairs"];
+        if (pairs.isArray()) {
+            for (int i = 0; i < pairs.size(); i++) {
+                Json::Value pair = pairs[i];
+                if (pair.isObject()) {
+                    if (pair.isMember("open") && pair.isMember("close")) {
+                        lang->pairOpen.push_back(pair["open"].asString());
+                        lang->pairClose.push_back(pair["close"].asString());
+                    }
+                }
+            }
+            lang->pairs = lang->pairOpen.size();
+        }
+    }
 }
 
 language_info_ptr language_from_file(const QString path, std::vector<Extension>& extensions)

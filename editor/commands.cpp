@@ -278,7 +278,29 @@ static void Commands::autoIndent(Editor const* editor)
 }
 
 static void Commands::autoClose(Editor const* editor)
-{}
+{
+    if (!editor->lang->pairs) {
+        return;
+    }
+    
+    QTextCursor cursor = editor->editor->textCursor();
+    size_t pos = cursor.position();
+    QString line = cursor.block().text();
+    int idx = 0;
+    for (auto b : editor->lang->pairOpen) {
+        int pos = line.indexOf(b.c_str());
+        if (pos == line.length()-b.length()) {
+            QString close = editor->lang->pairClose.at(idx).c_str();
+            cursor.beginEditBlock();
+            cursor.insertText(close);
+            cursor.endEditBlock();
+            cursor.setPosition(cursor.position() - close.length());
+            editor->editor->setTextCursor(cursor);
+            return;
+        }
+        idx++;
+    }
+}
 
 static void duplicateLineForCursor(Editor const* editor, QTextCursor cursor)
 {

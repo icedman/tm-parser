@@ -29,6 +29,10 @@ struct language_info_t {
     std::vector<std::string> bracketOpen;
     std::vector<std::string> bracketClose;
 
+    bool pairs;
+    std::vector<std::string> pairOpen;
+    std::vector<std::string> pairClose;
+
     parse::grammar_ptr grammar;
 };
 

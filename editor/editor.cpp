@@ -680,7 +680,7 @@ void TextmateEdit::mousePressEvent(QMouseEvent* e)
 
 void TextmateEdit::keyPressEvent(QKeyEvent* e)
 {
-    bool handled = Commands::keyPressEvent(e);
+    bool handled = Commands::keyPressEvent(e); 
     Editor* _editor = MainWindow::instance()->currentEditor();
 
     if (!handled && e->key() == Qt::Key_Tab && e->modifiers() == Qt::NoModifier) {
@@ -701,6 +701,12 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
 
         if (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Enter - 1) {
             Commands::autoIndent(_editor);
+        }
+
+        if (!(e->modifiers() & Qt::ControlModifier) &&
+            e->key() != Qt::Key_Delete &&
+            e->key() != Qt::Key_Backspace) {
+            Commands::autoClose(_editor);
         }
     }
 

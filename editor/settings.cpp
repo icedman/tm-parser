@@ -154,7 +154,7 @@ bool theme_application(theme_ptr theme)
   colors["@statusBg"] = statusBg.name();
   colors["@statusFg"] = statusFg.name();
 
-  qDebug () << statusBg.name();
+  // qDebug () << statusBg.name();
 
   QTextStream in(&file);
   while (!in.atEnd())
