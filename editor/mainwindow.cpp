@@ -55,10 +55,21 @@ void MainWindow::configure()
 	editor_settings = std::make_shared<editor_settings_t>();
     QString userSettings = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
     load_settings(userSettings, settings);
-
+    
     QString userExtensions = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor/extensions", QStandardPaths::LocateDirectory);
     load_extensions(userExtensions, extensions);
-    load_extensions(QString("./extensions"), extensions);
+
+    if (settings.isMember("extensions")) {
+        Json::Value exts = settings["extensions"];
+        if (exts.isArray()) {
+            for(auto path : exts) {
+                load_extensions(QString(path.asString().c_str()), extensions);
+            }
+        }
+    }
+
+
+    // load_extensions(QString("./extensions"), extensions);
 
     if (settings["theme"].isString()) {
         theme = theme_from_name(settings["theme"].asString().c_str(), extensions);
@@ -110,7 +121,7 @@ void MainWindow::configure()
         editor_settings->tab_size = 1;
     }
     if (editor_settings->tab_size > 8) {
-        editor_settings->tab_size = 8;
+        editor_settings->tab_size = 8;    
     }
 }
 
@@ -421,7 +432,10 @@ void MainWindow::warmConfigure()
 
     module = engine.importModule("js/init.js");
     keybinding = module.property("keybinding");
-    QFile file("./keybinding.json");
+
+    QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor/keybinding.json", QStandardPaths::LocateDirectory);
+    QFile file(keyBindingPath);
+    
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         QJSValue jsfunc = keybinding.property("loadMap");
         QJSValueList args;

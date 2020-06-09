@@ -706,7 +706,7 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         if (!(e->modifiers() & Qt::ControlModifier) &&
             e->key() != Qt::Key_Delete &&
             e->key() != Qt::Key_Backspace) {
-            Commands::autoClose(_editor);
+            Commands::autoClose(_editor, e->text());
         }
     }
 

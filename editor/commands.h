@@ -13,7 +13,7 @@ public:
     static void toggleComment(Editor const* editor);
     static void toggleBlockComment(Editor const* editor);
     static void autoIndent(Editor const* editor);
-    static void autoClose(Editor const* editor);
+    static void autoClose(Editor const* editor, QString lastKey);
     static void indent(Editor const* editor);
     static void unindent(Editor const* editor);
     static void duplicateLine(Editor const* editor);

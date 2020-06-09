@@ -277,17 +277,39 @@ static void Commands::autoIndent(Editor const* editor)
     cursor.endEditBlock();
 }
 
-static void Commands::autoClose(Editor const* editor)
+static void Commands::autoClose(Editor const* editor, QString lastKey)
 {
     if (!editor->lang->pairs) {
         return;
     }
     
+    if (editor->editor->extraCursors.size()) {
+        return;
+    }
+
     QTextCursor cursor = editor->editor->textCursor();
+    QTextCursor cs(cursor);
+    cs.movePosition(QTextCursor::EndOfLine);
+
+    if (cs.position() != cursor.position()) {
+        return;
+    }
+
     size_t pos = cursor.position();
     QString line = cursor.block().text();
+    if (!lastKey.length()) {
+        return;
+    }
     int idx = 0;
     for (auto b : editor->lang->pairOpen) {
+        if (b.find(lastKey.toStdString()) == std::string::npos) {
+            idx++;
+            continue;
+        }
+    
+        // qDebug() << "?" << b.c_str();
+        // qDebug() << lastKey;
+
         int pos = line.indexOf(b.c_str());
         if (pos == line.length()-b.length()) {
             QString close = editor->lang->pairClose.at(idx).c_str();
@@ -298,6 +320,7 @@ static void Commands::autoClose(Editor const* editor)
             editor->editor->setTextCursor(cursor);
             return;
         }
+
         idx++;
     }
 }
