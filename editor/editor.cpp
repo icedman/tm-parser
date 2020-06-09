@@ -22,6 +22,10 @@ Editor::Editor(QWidget* parent)
     jsobj = new JSEditor((QObject*)this);
 }
 
+Editor::~Editor()
+{
+}
+
 void Editor::newFile()
 {
     editor->clear();
