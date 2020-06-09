@@ -78,9 +78,14 @@ void load_extensions(const QString path, std::vector<Extension>& extensions)
     // std::cout << contribs;
 }
 
-static void load_language_configuration(const QString path, language_info_ptr lang)
+static bool load_language_configuration(const QString path, language_info_ptr lang)
 {
     Json::Value root = parse::loadJson(path.toStdString());
+    
+    if (root.empty()) {
+        return false;
+    }
+    
     if (root.isMember("comments")) {
         Json::Value comments = root["comments"];
 
@@ -132,6 +137,8 @@ static void load_language_configuration(const QString path, language_info_ptr la
             lang->pairs = lang->pairOpen.size();
         }
     }
+    
+    return true;
 }
 
 language_info_ptr language_from_file(const QString path, std::vector<Extension>& extensions)
@@ -153,6 +160,7 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
     Extension resolvedExtension;
     std::string resolvedLanguage;
     Json::Value resolvedGrammars;
+    Json::Value resolvedConfiguration;
 
     for (auto ext : extensions) {
         Json::Value contribs = ext.package["contributes"];
@@ -169,16 +177,24 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
             Json::Value exts = lang["extensions"];
             for (int j = 0; j < exts.size(); j++) {
                 Json::Value ex = exts[j];
-                if (ex.asString().compare(suffix) == 0) {
+                // if (ex.asString().compare(suffix) == 0) {
+                if (ex.asString() == suffix) {
                     resolvedExtension = ext;
                     resolvedLanguage = lang["id"].asString();
                     resolvedGrammars = contribs["grammars"];
+                    
+                    qDebug() << resolvedLanguage.c_str();
+                    
                     break;
                 }
             }
 
-            if (!resolvedLanguage.empty())
+            if (!resolvedLanguage.empty()) {
+                if (lang.isMember("configuration")) {
+                    resolvedConfiguration = lang["configuration"];
+                }
                 break;
+            }
         }
 
         if (!resolvedLanguage.empty())
@@ -199,7 +215,11 @@ language_info_ptr language_from_file(const QString path, std::vector<Extension>&
                 lang->id = resolvedLanguage;
 
                 // language configuration
-                path = QDir(resolvedExtension.path).filePath("language-configuration.json");
+                if (!resolvedConfiguration.empty()) {
+                    path = QDir(resolvedExtension.path).filePath(resolvedConfiguration.asString().c_str());
+                } else {
+                    path = QDir(resolvedExtension.path).filePath("language-configuration.json");
+                }
                 load_language_configuration(path, lang);
 
                 qDebug() << "langauge matched";

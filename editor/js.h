@@ -72,12 +72,14 @@ public slots:
     QJSValue isChecked();
 
     // layout
-    QJSValue addStretch(QJSValue stretch = QJSValue(1));
+    QJSValue addStretch(int stretch = 1);
 
     // all
+    QJSValue setAlignment(int alignment);
     QJSValue setText(QString text);
     QJSValue getText();
     QJSValue setFocus();
+    QJSValue resize(int w, int h);
     QJSValue setMinimumSize(int w, int h);
     QJSValue setMaximumSize(int w, int h);
     QJSValue setStyleSheet(QString s);

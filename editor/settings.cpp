@@ -35,8 +35,8 @@ bool theme_color(theme_ptr theme, std::string name, QColor& qcolor)
 
 bool theme_application(theme_ptr theme)
 {
-  QFile file("./style.css");        
-
+  QString basePath = QCoreApplication::applicationDirPath();
+  QFile file(basePath + "/css/style.css");
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
     return true;
   }

@@ -714,6 +714,7 @@ void TextmateEdit::keyPressEvent(QKeyEvent* e)
         }
     }
 
+    overlay->cursorOn = true;
     overlay->update();
     paintToBuffer();
 }
@@ -797,7 +798,7 @@ void TextmateEdit::updateExtraCursors(QKeyEvent *e)
         return;
     }
 
-    if (!e->text().isEmpty() && e->modifiers() == Qt::NoModifier) {
+    if (!e->text().isEmpty() && (e->modifiers() == Qt::NoModifier || e->modifiers() == Qt::ShiftModifier)) {
         for(auto c : extraCursors) {
             if (c.position() == cursor.position()) {
                 continue;

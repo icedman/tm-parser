@@ -316,7 +316,7 @@ static void Commands::autoClose(Editor const* editor, QString lastKey)
             cursor.beginEditBlock();
             cursor.insertText(close);
             cursor.endEditBlock();
-            cursor.setPosition(cursor.position() - close.length());
+            cursor.setPosition(cursor.position() - close.length(), QTextCursor::KeepAnchor);
             editor->editor->setTextCursor(cursor);
             return;
         }

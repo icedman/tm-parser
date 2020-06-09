@@ -22,6 +22,8 @@ MainWindow::MainWindow(QWidget* parent)
     _instance = this;
     configure();
 
+    // setWindowFlags(Qt::FramelessWindowHint);
+    
     setupLayout();
     setupMenu();
 
@@ -423,6 +425,8 @@ void MainWindow::warmConfigure()
 {
     std::cout << "warm configure" << std::endl;
 
+    QString basePath = QCoreApplication::applicationDirPath();
+
     //---------------------
     // setup js engine
     //---------------------
@@ -435,12 +439,14 @@ void MainWindow::warmConfigure()
     obj = engine.newQObject(app);
     engine.globalObject().setProperty("app", obj);
 
-    module = engine.importModule("js/init.js");
+    // qDebug() << basePath << "/js/init.js";
+    module = engine.importModule(basePath + "/js/init.js");
     keybinding = module.property("keybinding");
 
-    QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor/keybinding.json", QStandardPaths::LocateDirectory);
+    QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
+    keyBindingPath += "/keybinding.json";
+
     QFile file(keyBindingPath);
-    
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         QJSValue jsfunc = keybinding.property("loadMap");
         QJSValueList args;

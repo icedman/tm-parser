@@ -182,6 +182,9 @@ QLineEdit {
   background: @treeBg;
   color: @treeFg;
 }
+QLineEdit::focus {
+  border-color: @treeItemHoverBg;
+}
 
 /* button */
 QPushButton {
@@ -193,7 +196,6 @@ QPushButton {
   color: @treeItemFg;
   border: 1px solid @inputBorder;
 }
-
 
 QPushButton[checkable=true] {
   background: transparent;

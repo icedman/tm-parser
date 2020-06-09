@@ -273,10 +273,10 @@ void JSUIObject::submitted()
     onSubmit.call();
 }
 
-QJSValue JSUIObject::addStretch(QJSValue stretch)
+QJSValue JSUIObject::addStretch(int stretch)
 {
     UI_CONTAINED((UI_VBOX | UI_HBOX), QBoxLayout, contained, true);
-    contained->addStretch(stretch.toInt());
+    contained->addStretch(stretch);
     return QJSValue();
 }
 
@@ -303,10 +303,24 @@ QJSValue JSUIObject::setFocus()
     return QJSValue();
 }
 
+QJSValue JSUIObject::resize(int w, int h)
+{
+    QWidget *widget = (QWidget*)parent();
+    widget->resize(w, h);
+    return QJSValue();
+}
+
 QJSValue JSUIObject::setMinimumSize(int w, int h)
 {
     QWidget *widget = (QWidget*)parent();
     widget->setMinimumSize(w, h);
+    return QJSValue();
+}
+
+QJSValue JSUIObject::setAlignment(int align)
+{
+    UI_CONTAINED((UI_VBOX | UI_HBOX), QBoxLayout, contained, true);
+    contained->setAlignment(align);
     return QJSValue();
 }
 
