@@ -114,6 +114,24 @@ public slots:
     void closeTab();
     void exit();
     void theme(QString name);
+    
+    QString projectPath();
+    
+    // editor (focused)
+    void toggleComment();
+    void toggleBlockComment();
+    void indent();
+    void unindent();
+    void duplicateLine();
+    void expandSelectionToLine();
+    void zoomIn();
+    void zoomOut();
+    void addExtraCursor();
+    void removeExtraCursors();
+    bool find(QString string, QString options = QString());
+    bool findAndCreateCursor(QString string, QString options = QString());
+
+    QString selectedText();
 };
 
 #endif // JS_H

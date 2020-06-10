@@ -40,9 +40,11 @@ static bool convert_dictionary(Json::Value const& repository,
 
 rule_ptr convert_json(Json::Value const& json)
 {
-
     rule_ptr res = std::make_shared<rule_t>();
-
+    if (!json.isObject()) {
+        return res;
+    }
+    
     //------------
     // strings
     //------------

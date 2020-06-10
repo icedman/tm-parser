@@ -14,6 +14,7 @@
 #include "tabs.h"
 #include "panel.h"
 #include "theme.h"
+#include "engine.h"
 
 Q_DECLARE_METATYPE(Editor*)
 
@@ -44,7 +45,6 @@ public:
     Editor* openTab(const QString& path = QString());
 
     void closeEvent(QCloseEvent* event);
-    void readSettings();
 
     bool processKeys(QString keys);
     void emitEvent(QString event, QString payload);
@@ -66,6 +66,8 @@ public:
     editor_settings_ptr editor_settings;
     Json::Value settings;
 
+    QString projectPath;
+    
 public:
 
     void keyPressEvent(QKeyEvent* e) override;
@@ -90,12 +92,19 @@ private:
     QTimer updateTimer;
 
     QJSEngine engine;
-    QJSValue module;
+    QJSValue baseModule;    
+    
+    QJSValue uiModule;
+    QJSValue eventsModule;
+    QJSValue searchModule;
+        
     QJSValue keybinding;
     QJSValue events;
 
     JSConsole* console;
     JSApp* app;
+    
+    Engine *jsengine;
 };
 
 #endif // MAINWINDOW_H

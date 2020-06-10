@@ -402,3 +402,125 @@ void JSApp::theme(QString name)
     MainWindow* mw = MainWindow::instance();
     mw->loadTheme(name);
 }
+
+QString JSApp::projectPath()
+{
+    MainWindow* mw = MainWindow::instance();
+    return mw->projectPath;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void JSApp::toggleComment()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    Commands::toggleComment(editor);
+}
+
+void JSApp::toggleBlockComment()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    Commands::toggleBlockComment(editor);
+}
+
+void JSApp::indent()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    Commands::indent(editor);
+}
+
+void JSApp::unindent()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    Commands::unindent(editor);
+}
+
+void JSApp::duplicateLine()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    Commands::duplicateLine(editor);
+}
+
+void JSApp::expandSelectionToLine()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    Commands::expandSelectionToLine(editor);
+}
+
+QString JSApp::selectedText()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    return (editor)->editor->textCursor().selectedText();
+}
+
+void JSApp::zoomIn()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    return (editor)->editor->zoomIn();
+}
+
+void JSApp::zoomOut()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    return (editor)->editor->zoomOut();
+}
+
+void JSApp::addExtraCursor()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    (editor)->editor->addExtraCursor();
+}
+
+void JSApp::removeExtraCursors()
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    (editor)->editor->removeExtraCursors();
+}
+
+bool JSApp::find(QString string, QString options)
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    return Commands::find(editor, string, options);
+}
+
+bool JSApp::findAndCreateCursor(QString string, QString options)
+{
+    MainWindow* mw = MainWindow::instance();
+    Editor* editor = mw->currentEditor();
+    QTextCursor prev = editor->editor->textCursor();
+    if (string.isEmpty()) {
+        prev.select(QTextCursor::WordUnderCursor);
+        editor->editor->setTextCursor(prev);
+        return !prev.selectedText().isEmpty();
+    }
+
+    bool res = Commands::find(editor, string, options);
+    if (res) {
+        editor->editor->addExtraCursor(prev);
+    }
+    return res;
+}

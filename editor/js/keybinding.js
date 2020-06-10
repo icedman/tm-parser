@@ -1,14 +1,13 @@
-import { ui as _ui } from './ui.js';
-
 const key_mapping = {};
 const last_key = {
     time: 0,
     keys: ""
 };
 
-const ui = _ui;
+// const ui = _ui;
+const ui = {};
 
-export const keybinding = {
+const keybinding = {
     processKeys: (k) => {
         // console.log(k);
         let kb = key_mapping[k];
@@ -23,6 +22,8 @@ export const keybinding = {
         last_key.time = t;
         last_key.keys = k;
         try {
+            engine.log(app);
+            engine.log(app.editor());
             kb.func.call();
         } catch(err) {
             console.log(err);
@@ -31,12 +32,20 @@ export const keybinding = {
     },
     
     loadMap: (m) => {
-        let jm = JSON.parse(m);
+        try {
+        let jm =m; //  JSON.parse(m);
         jm.forEach(kb => {
             key_mapping[kb["keys"]] = kb;
             eval(`kb.func = ()=>{ ${kb.command} };`);
         });
+        
+        // engine.log(JSON.stringify(key_mapping));
+        
+        } catch(err) {
+        engine.log(err);
+        }
     }
 }
 
-console.log("js::keybinding");
+window.keybinding = keybinding;
+engine.log("js::keybinding");

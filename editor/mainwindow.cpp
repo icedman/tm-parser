@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , updateTimer(this)
     , icons(0)
+    , jsengine(0)
 {
     _instance = this;
     configure();
@@ -33,7 +34,7 @@ MainWindow::MainWindow(QWidget* parent)
     setWindowTitle(tr("Editor"));
     setMinimumSize(600, 400);
 
-    updateTimer.singleShot(1500, this, SLOT(warmConfigure()));
+    updateTimer.singleShot(500, this, SLOT(warmConfigure()));
 }
 
 MainWindow::~MainWindow()
@@ -57,7 +58,7 @@ void MainWindow::about()
 }
 
 void MainWindow::configure()
-{
+{    
 	editor_settings = std::make_shared<editor_settings_t>();
     QString userSettings = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
     load_settings(userSettings, settings);
@@ -181,8 +182,6 @@ void MainWindow::applySettings()
 
 void MainWindow::setupLayout()
 {
-    readSettings();
-
     splitterv = new QSplitter(Qt::Vertical);
     splitter = new QSplitter(Qt::Horizontal);
     editors = new QStackedWidget();
@@ -260,13 +259,13 @@ void MainWindow::openFile(const QString& path)
         return;
     }
 
-    if (!editors->count()) {
-        sidebar->setRootPath(QFileInfo(fileName).path());
-    }
-
     // directory open requested
     if (QFileInfo(fileName).isDir()) {
         if (tabs->count() == 0) {
+            if (!editors->count()) {
+                projectPath = fileName;
+                sidebar->setRootPath(projectPath);
+            }
             newFile();
         }
         return;
@@ -274,11 +273,18 @@ void MainWindow::openFile(const QString& path)
 
     if (QFile::exists(fileName)) {
         fileName = QFileInfo(fileName).absoluteFilePath();
+                     
+        if (tabs->count() == 0) {
+            projectPath = QFileInfo(fileName).path();
+            sidebar->setRootPath(projectPath);
+        }
+        
         openTab(fileName);
         if (currentEditor()->fileName != fileName) {
             currentEditor()->setLanguage(language_from_file(fileName, extensions));
             currentEditor()->openFile(fileName);
         }
+
         return;
     }
 }
@@ -417,16 +423,33 @@ void MainWindow::closeEvent(QCloseEvent* event)
     // save geometry
     QMainWindow::closeEvent(event);
 }
-void MainWindow::readSettings()
-{
-}
 
 void MainWindow::warmConfigure()
 {
     std::cout << "warm configure" << std::endl;
+    jsengine = new Engine(this);
 
     QString basePath = QCoreApplication::applicationDirPath();
-
+    
+    app = new JSApp(this);
+    jsengine->frame->addToJavaScriptWindowObject("app", app);
+    
+    jsengine->runScriptFile("./js/init.js");
+    jsengine->runScriptFile("./js/keybinding.js");
+    
+    QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
+    keyBindingPath += "/keybinding.json";
+    
+    QFile file(keyBindingPath);
+    if (file.open(QFile::ReadOnly | QFile::Text)) {
+        QString script = "try { window.keyjson = " + file.readAll() + ";  } catch(err) { engine.log(err) }";
+        // qDebug() << script;
+        jsengine->runScript(script);
+        // jsengine->runScript("engine.log(window.keyjson)");
+        jsengine->runScript("keybinding.loadMap(keyjson)");
+    }
+    
+    /*
     //---------------------
     // setup js engine
     //---------------------
@@ -440,12 +463,16 @@ void MainWindow::warmConfigure()
     engine.globalObject().setProperty("app", obj);
 
     // qDebug() << basePath << "/js/init.js";
-    module = engine.importModule(basePath + "/js/init.js");
-    keybinding = module.property("keybinding");
+    baseModule = engine.importModule(basePath + "/js/init.js");
 
+    keybinding = baseModule.property("keybinding");
+    events = baseModule.property("events");
+    
+    uiModule = engine.importModule(basePath + "/js/ui.js");
+    
     QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
     keyBindingPath += "/keybinding.json";
-
+    
     QFile file(keyBindingPath);
     if (file.open(QFile::ReadOnly | QFile::Text)) {
         QJSValue jsfunc = keybinding.property("loadMap");
@@ -454,16 +481,23 @@ void MainWindow::warmConfigure()
         args << jsonContent;
         jsfunc.call(args);
     }
-
-    events = module.property("events");
+    */
 }
 
 bool MainWindow::processKeys(QString keys)
 {
-    QJSValueList args;
-    args << keys;
-    QJSValue jsfunc = keybinding.property("processKeys");
-    QJSValue value = jsfunc.call(args);
+    if (!jsengine) {
+        return false;    
+    }
+    
+    QVariant value = jsengine
+        ->runScript("try { keybinding.processKeys(\"" + keys + "\"); } catch(err) { engine.log(err) } ");
+
+    // qDebug() << value;    
+    // QJSValueList args;
+    // args << keys;
+    // QJSValue jsfunc = keybinding.property("processKeys");
+    // QJSValue value = jsfunc.call(args);
     return value.toBool();
 }
 

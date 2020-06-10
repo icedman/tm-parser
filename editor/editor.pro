@@ -1,4 +1,4 @@
-QT += widgets qml svg
+QT += widgets qml svg webkitwidgets network widgets
 requires(qtConfig(filedialog))
 
 HEADERS         = commands.h \
@@ -13,7 +13,8 @@ HEADERS         = commands.h \
                   panel.h \
                   sidebar.h \
                   settings.h \
-                  tabs.h
+                  tabs.h \
+                  engine.h
 
 SOURCES         = commands.cpp \
                   editor.cpp \
@@ -28,6 +29,7 @@ SOURCES         = commands.cpp \
                   sidebar.cpp \
                   settings.cpp \
                   tabs.cpp \
+                  engine.cpp \
                   main.cpp \
                   ../textmate/parser/grammar.cpp \
                   ../textmate/parser/reader.cpp \

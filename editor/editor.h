@@ -131,13 +131,11 @@ private:
     QScrollBar* vscroll;
     QTextBlock updateIterator;
 
-public slots:
+private Q_SLOTS:
     void updateScrollBar();
     void updateScrollBar(int i);
     void updateGutter(bool force = false);
     void updateMiniMap(bool force = false);
-
-private Q_SLOTS:
     void updateRequested(const QRect& rect, int d);
     void highlightBlocks();
 };
