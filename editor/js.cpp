@@ -524,3 +524,9 @@ bool JSApp::findAndCreateCursor(QString string, QString options)
     }
     return res;
 }
+
+void JSApp::showInspector()
+{
+    MainWindow* mw = MainWindow::instance();
+    mw->js()->showInspector();
+}

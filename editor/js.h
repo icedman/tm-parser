@@ -130,6 +130,8 @@ public slots:
     void removeExtraCursors();
     bool find(QString string, QString options = QString());
     bool findAndCreateCursor(QString string, QString options = QString());
+    
+    void showInspector();
 
     QString selectedText();
 };

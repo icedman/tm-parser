@@ -434,8 +434,8 @@ void MainWindow::warmConfigure()
     app = new JSApp(this);
     jsengine->frame->addToJavaScriptWindowObject("app", app);
     
-    jsengine->runScriptFile("./js/init.js");
-    jsengine->runScriptFile("./js/keybinding.js");
+    jsengine->runScriptFile(basePath + "/js/init.js");
+    jsengine->runScriptFile(basePath + "/js/keybinding.js");
     
     QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
     keyBindingPath += "/keybinding.json";

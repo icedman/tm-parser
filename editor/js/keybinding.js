@@ -22,8 +22,6 @@ const keybinding = {
         last_key.time = t;
         last_key.keys = k;
         try {
-            engine.log(app);
-            engine.log(app.editor());
             kb.func.call();
         } catch(err) {
             console.log(err);

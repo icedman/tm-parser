@@ -54,6 +54,8 @@ public:
     Panel* createPanel(QString name);
 
     QJSEngine& jsEngine() { return engine; }
+    Engine* js() { return jsengine; }
+    
     int currentTab() { return tabs->currentIndex(); }
 
     static MainWindow* instance();
