@@ -18,3 +18,7 @@ moc_*
 .qmake*
 editor.app
 editor/editor
+
+node_modules
+dist
+.cache

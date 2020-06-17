@@ -1,5 +1,7 @@
-QT += widgets qml svg webkitwidgets network widgets
+QT += widgets svg webkitwidgets network
 requires(qtConfig(filedialog))
+
+INCPATH   += ./js-qt-native
 
 HEADERS         = commands.h \
                   editor.h \
@@ -10,11 +12,11 @@ HEADERS         = commands.h \
                   js.h \
                   mainwindow.h \
                   minimap.h \
-                  panel.h \
                   sidebar.h \
                   settings.h \
                   tabs.h \
-                  engine.h
+                  ./js-qt-native/qt/core.h \
+                  ./js-qt-native/qt/engine.h
 
 SOURCES         = commands.cpp \
                   editor.cpp \
@@ -25,11 +27,9 @@ SOURCES         = commands.cpp \
                   js.cpp \
                   mainwindow.cpp \
                   minimap.cpp \
-                  panel.cpp \
                   sidebar.cpp \
                   settings.cpp \
                   tabs.cpp \
-                  engine.cpp \
                   main.cpp \
                   ../textmate/parser/grammar.cpp \
                   ../textmate/parser/reader.cpp \
@@ -40,11 +40,14 @@ SOURCES         = commands.cpp \
                   ../textmate/scopes/parse.cpp \
                   ../textmate/scopes/match.cpp \
                   ../textmate/theme/theme.cpp \
-                  ../textmate/theme/util.cpp
+                  ../textmate/theme/util.cpp \
+                  ./js-qt-native/qt/core.cpp \
+                  ./js-qt-native/qt/engine.cpp
+
+
 
 QMAKE_CXXFLAGS += -fpermissive
 CONFIG += c++17
-#CONFIG += c++14
 
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/widgets/richtext/syntaxhighlighter

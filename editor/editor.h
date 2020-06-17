@@ -10,7 +10,6 @@
 #include "extension.h"
 #include "grammar.h"
 #include "highlighter.h"
-#include "js.h"
 #include "theme.h"
 
 class MiniMap;
@@ -109,6 +108,10 @@ public:
 
     void toggleFold(size_t line);
 
+    QString fullPath() {
+        return fileName;
+    }
+
     QString fileName;
     TextmateEdit* editor;
     Gutter* gutter;
@@ -123,8 +126,6 @@ public:
     theme_ptr theme;
     language_info_ptr lang;
     parse::grammar_ptr grammar;
-
-    JSEditor* jsobj;
 
 private:
     QTimer updateTimer;

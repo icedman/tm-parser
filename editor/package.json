@@ -1,0 +1,15 @@
+{
+  "name": "editor",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "clsx": "^1.1.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "uuid": "^8.1.0"
+  },
+  "scripts": {
+    "start": "parcel index.html"
+  }
+}

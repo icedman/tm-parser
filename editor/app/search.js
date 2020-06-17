@@ -15,7 +15,7 @@ const simpleSearch = (keywords, options) => {
     
     // console.log(JSON.stringify(searchOps));
     // console.log("search for " + keywords);
-    app.editor().find(keywords, searchOps.join(','));
+    app.find(keywords, searchOps.join(','));
 }
     
 const fileSearch = (keywords, replace, where, options) => {
@@ -34,7 +34,7 @@ const fileSearch = (keywords, replace, where, options) => {
     }
     console.log("advance search for " + keywords);
     console.log("not yet working");
-    // app.editor().find(keywords, searchOps.join(','));
+    // app.find(keywords, searchOps.join(','));
 }
 
 export {

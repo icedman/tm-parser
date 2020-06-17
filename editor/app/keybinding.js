@@ -37,13 +37,15 @@ const keybinding = {
             eval(`kb.func = ()=>{ ${kb.command} };`);
         });
         
-        // engine.log(JSON.stringify(key_mapping));
+        // app.log(JSON.stringify(key_mapping));
         
         } catch(err) {
-        engine.log(err);
+            console.log(err);
         }
     }
 }
 
 window.keybinding = keybinding;
-engine.log("js::keybinding");
+console.log("js::keybinding");
+
+export default keybinding;

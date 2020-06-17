@@ -10,6 +10,8 @@
 #include "theme.h"
 #include "commands.h"
 
+#include "qt/core.h"
+
 static MainWindow* _instance;
 
 #define UNTITLED_TEXT tr("untitled")
@@ -17,8 +19,9 @@ static MainWindow* _instance;
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , updateTimer(this)
+    , engine(new Engine)
+    , jsApp(this)
     , icons(0)
-    , jsengine(0)
 {
     _instance = this;
     configure();
@@ -34,11 +37,12 @@ MainWindow::MainWindow(QWidget* parent)
     setWindowTitle(tr("Editor"));
     setMinimumSize(600, 400);
 
-    updateTimer.singleShot(500, this, SLOT(warmConfigure()));
+    updateTimer.singleShot(250, this, SLOT(warmConfigure()));
 }
 
 MainWindow::~MainWindow()
 {
+    delete engine;
 }
 
 MainWindow* MainWindow::instance()
@@ -47,6 +51,29 @@ MainWindow* MainWindow::instance()
 }
 
 Editor* MainWindow::currentEditor() { return (Editor*)editors->currentWidget(); }
+
+QStringList MainWindow::editorsPath()
+{
+    QStringList res;
+    for(int i=0; i<editors->count(); i++) {
+        Editor *e = qobject_cast<Editor*>(editors->widget(i));
+        if (e) {
+            res << e->fullPath();
+        }
+    }
+    return res;
+}
+
+Editor* MainWindow::findEditor(QString path)
+{
+    for(int i=0; i<editors->count(); i++) {
+        Editor *e = qobject_cast<Editor*>(editors->widget(i));
+        if (e && e->fullPath() == path) {
+            return e;
+        }
+    }
+    return 0;
+}
 
 void MainWindow::about()
 {
@@ -161,7 +188,6 @@ void MainWindow::applySettings()
         font.setPointSize(editor_settings->font_size);
         font.setFixedPitch(true);
         sidebar->setFont(font);
-
         sidebar->show();
     } else {
         sidebar->hide();
@@ -185,7 +211,6 @@ void MainWindow::setupLayout()
     splitterv = new QSplitter(Qt::Vertical);
     splitter = new QSplitter(Qt::Horizontal);
     editors = new QStackedWidget();
-    panels = new QStackedWidget();
 
     sidebar = new Sidebar(this);
     sidebar->mainWindow = this;
@@ -208,7 +233,6 @@ void MainWindow::setupLayout()
     vbox->setSpacing(0);
 
     splitterv->addWidget(splitter);
-    splitterv->addWidget(panels); 
     // splitterv->setStretchFactor(3, 1);
 
     splitter->addWidget(sidebar);
@@ -313,6 +337,7 @@ void MainWindow::tabSelected(int index)
         if (_editor) {
             editors->setCurrentWidget(_editor);
             tabs->setCurrentIndex(index);
+            _editor->editor->setFocus(Qt::ActiveWindowFocusReason);
         }
     }
 }
@@ -427,93 +452,51 @@ void MainWindow::closeEvent(QCloseEvent* event)
 void MainWindow::warmConfigure()
 {
     std::cout << "warm configure" << std::endl;
-    jsengine = new Engine(this);
 
-    QString basePath = QCoreApplication::applicationDirPath();
-    
-    app = new JSApp(this);
-    jsengine->frame->addToJavaScriptWindowObject("app", app);
-    
-    jsengine->runScriptFile(basePath + "/js/init.js");
-    jsengine->runScriptFile(basePath + "/js/keybinding.js");
-    
+    engine->addFactory(new UICoreFactory());
+
+    panels = qobject_cast<QStackedWidget*>(engine->create("panels", "StackedView", true)->widget());
+    splitterv->addWidget(panels); 
+    engine->runFromUrl(QUrl("http://localhost:1234/index.html"));
+
+    connect(engine, SIGNAL(engineReady()), this, SLOT(attachJSObjects()));
+}
+
+void MainWindow::attachJSObjects()
+{
+    engine->frame->addToJavaScriptWindowObject("app", &jsApp);
+
     QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
     keyBindingPath += "/keybinding.json";
-    
+
     QFile file(keyBindingPath);
     if (file.open(QFile::ReadOnly | QFile::Text)) {
-        QString script = "try { window.keyjson = " + file.readAll() + ";  } catch(err) { engine.log(err) }";
-        // qDebug() << script;
-        jsengine->runScript(script);
-        // jsengine->runScript("engine.log(window.keyjson)");
-        jsengine->runScript("keybinding.loadMap(keyjson)");
+        QString script = "try { window.keyjson = " + file.readAll() + ";  } catch(err) { console.log(err) }";
+        engine->runScript(script);
+        engine->runScript("console.log(keyjson)");
+        engine->runScript("setTimeout(()=>{keybinding.loadMap(keyjson)}, 0)");
     }
-    
-    /*
-    //---------------------
-    // setup js engine
-    //---------------------
-    QJSValue obj;
-    console = new JSConsole(this);
-    obj = engine.newQObject(console);
-    engine.globalObject().setProperty("console", obj);
-
-    app = new JSApp(this);
-    obj = engine.newQObject(app);
-    engine.globalObject().setProperty("app", obj);
-
-    // qDebug() << basePath << "/js/init.js";
-    baseModule = engine.importModule(basePath + "/js/init.js");
-
-    keybinding = baseModule.property("keybinding");
-    events = baseModule.property("events");
-    
-    uiModule = engine.importModule(basePath + "/js/ui.js");
-    
-    QString keyBindingPath = QStandardPaths::locate(QStandardPaths::HomeLocation, ".editor", QStandardPaths::LocateDirectory);
-    keyBindingPath += "/keybinding.json";
-    
-    QFile file(keyBindingPath);
-    if (file.open(QFile::ReadOnly | QFile::Text)) {
-        QJSValue jsfunc = keybinding.property("loadMap");
-        QJSValueList args;
-        QString jsonContent = file.readAll();
-        args << jsonContent;
-        jsfunc.call(args);
-    }
-    */
 }
 
 bool MainWindow::processKeys(QString keys)
 {
-    if (!jsengine) {
+    if (!engine) {
         return false;    
     }
-    
-    QVariant value = jsengine
-        ->runScript("try { keybinding.processKeys(\"" + keys + "\"); } catch(err) { engine.log(err) } ");
 
-    // qDebug() << value;    
-    // QJSValueList args;
-    // args << keys;
-    // QJSValue jsfunc = keybinding.property("processKeys");
-    // QJSValue value = jsfunc.call(args);
+    QVariant value = engine->runScript("try { keybinding.processKeys(\"" + keys + "\"); } catch(err) { app.log(err) } ");
+
     return value.toBool();
 }
 
 void MainWindow::emitEvent(QString event, QString payload)
 {
-    // QJSValue jsfunc = events.property("emit");
-    // QJSValueList args;
-    // args << event;
-    // args << payload;
-    // jsfunc.call(args);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* e)
 {
     if (e->key() == Qt::Key_Escape) {
-        panels->hide();
+        // panels->hide();
         currentEditor()->editor->setFocus(Qt::ActiveWindowFocusReason);
         return;
     }
@@ -521,31 +504,4 @@ void MainWindow::keyPressEvent(QKeyEvent* e)
     if (!Commands::keyPressEvent(e)) {
         QMainWindow::keyPressEvent(e);
     }
-}
-
-Panel* MainWindow::createPanel(QString name)
-{
-    for(int i=0;i<panels->count();i++) {
-        Panel *p = (Panel*)panels->widget(i);
-        if (p->objectName() == name) {
-            panels->setCurrentWidget(p);
-            panels->show();
-            qDebug() << "show panel";
-            return p;
-        }
-    }
-
-    Panel *p = new Panel(this);
-    p->setObjectName(name);
-    p->setProperty("ui", true);
-
-    QStyle *style = qobject_cast<QApplication*>(QApplication::instance())->style();    
-    style->unpolish(p);
-    style->polish(p);
-
-    panels->addWidget(p);
-    panels->setCurrentWidget(p);
-    panels->show();
-    qDebug() << "create panel";
-    return p;
 }

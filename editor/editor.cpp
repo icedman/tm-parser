@@ -19,7 +19,6 @@ Editor::Editor(QWidget* parent)
     , editor(0)
     , updateTimer(this)
 {
-    jsobj = new JSEditor((QObject*)this);
 }
 
 Editor::~Editor()
@@ -474,6 +473,13 @@ Overlay::Overlay(QWidget* parent)
 }
 
 void Overlay::updateCursor() {
+
+    TextmateEdit* editor = qobject_cast<TextmateEdit*>(QApplication::focusWidget());
+    if (!editor) {
+        cursorOn = false;
+        return;
+    }
+
     cursorOn = !cursorOn;
     update();
 }
@@ -505,6 +511,10 @@ void Overlay::paintEvent(QPaintEvent*)
 
     QPainter p(this);
     p.drawPixmap(rect(), buffer, buffer.rect());
+
+    if (!cursorOn) {
+        return;
+    }
 
     TextmateEdit* editor = (TextmateEdit*)parent();
     Editor* e = (Editor*)editor->parent();

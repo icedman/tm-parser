@@ -1,20 +1,19 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QJSEngine>
 #include <QMainWindow>
 #include <QTimer>
 
 #include "editor.h"
 #include "extension.h"
 #include "icons.h"
-#include "js.h"
 #include "json/json.h"
 #include "sidebar.h"
 #include "tabs.h"
-#include "panel.h"
 #include "theme.h"
-#include "engine.h"
+
+#include "js.h"
+#include "qt/engine.h"
 
 Q_DECLARE_METATYPE(Editor*)
 
@@ -48,14 +47,13 @@ public:
 
     bool processKeys(QString keys);
     void emitEvent(QString event, QString payload);
+    Engine* js() { return engine; }
 
     Editor* createEditor();
     Editor* currentEditor();
-    Panel* createPanel(QString name);
+    Editor* findEditor(QString path);
+    QStringList editorsPath();
 
-    QJSEngine& jsEngine() { return engine; }
-    Engine* js() { return jsengine; }
-    
     int currentTab() { return tabs->currentIndex(); }
 
     static MainWindow* instance();
@@ -79,6 +77,9 @@ public slots:
     void tabSelected(int index);
     void tabClose(int index);
 
+private Q_SLOTS:
+    void attachJSObjects();
+
 private:
     QMenu* fileMenu;
     QMenu* viewMenu;
@@ -89,24 +90,11 @@ private:
     QStackedWidget* panels;
     Tabs* tabs;
     Sidebar* sidebar;
-    Panel* panel;
 
     QTimer updateTimer;
 
-    QJSEngine engine;
-    QJSValue baseModule;    
-    
-    QJSValue uiModule;
-    QJSValue eventsModule;
-    QJSValue searchModule;
-        
-    QJSValue keybinding;
-    QJSValue events;
-
-    JSConsole* console;
-    JSApp* app;
-    
-    Engine *jsengine;
+    JSApp jsApp;
+    Engine *engine;
 };
 
 #endif // MAINWINDOW_H
