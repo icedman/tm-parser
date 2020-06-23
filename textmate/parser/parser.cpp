@@ -66,16 +66,18 @@ struct scopes_t {
                 if (scope.back() == pair.second.scope) {
                     scope.pop_scope();
                 } else {
-                    // std::vector<std::string> stack;
-                    // while (scope.back() != pair.second.scope) {
-                    //     // D(DBF_Parser, bug("%s != %s\n", scope.back().c_str(),
-                    //     // pair.second.scope.c_str()););
-                    //     stack.emplace_back(scope.back());
-                    //     scope.pop_scope();
-                    // }
-                    // scope.pop_scope();
-                    // for (auto it = stack.rbegin(); it != stack.rend(); ++it)
-                    //     scope.push_scope(*it);
+                    std::vector<std::string> stack;
+                    while (!scope.empty() && scope.back() != pair.second.scope) {
+                        // D(DBF_Parser, bug("%s != %s\n", scope.back().c_str(),
+                        // pair.second.scope.c_str()););
+                        stack.emplace_back(scope.back());
+                        scope.pop_scope();
+                    }
+                    if (!scope.empty()) {
+                        scope.pop_scope();
+                    }
+                    for (auto it = stack.rbegin(); it != stack.rend(); ++it)
+                        scope.push_scope(*it);
                 }
             }
             // D(DBF_Parser, bug("→ %s\n", to_s(scope).c_str()););
