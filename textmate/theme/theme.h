@@ -32,6 +32,7 @@ struct color_info_t {
     bool is_opaque() const { return alpha == 1; };
 
     double red, green, blue, alpha;
+    int index; // terminal color index (0-200)
 };
 
 enum bool_t {

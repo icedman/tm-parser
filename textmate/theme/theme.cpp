@@ -1,8 +1,29 @@
 #include "theme.h"
 #include "util.h"
+#include "colors.h"
 // #include "reader.h"
 
 #include <iostream>
+
+static int nearest_color(int r, int g, int b)
+{
+    int idx = -1;
+    long d = 0;
+    
+    for(int i=0; i<250; i++) {
+        const color_t clr = termColors[i];
+        int rr = r - clr.r; 
+        int gg = g - clr.g; 
+        int bb = b - clr.b;
+        long dd = (rr * rr) + (gg * gg) + (bb * bb);
+        if (idx == -1 || d > dd) {
+            d = dd;
+            idx = i;
+        } 
+    }
+    
+    return idx;
+}
 
 /*
 https://code.visualstudio.com/api/references/theme-color
@@ -62,6 +83,8 @@ static void get_settings_color(Json::Value const& item, color_info_t* target)
     target->green = rgba[1];
     target->blue = rgba[2];
     target->alpha = rgba[3];
+
+    target->index = nearest_color(target->red * 255, target->green * 255, target->blue * 255);
     // std::cout<<item.asString()<<std::endl;
 }
 
