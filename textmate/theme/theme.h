@@ -18,6 +18,7 @@ struct color_info_t {
         , green(0)
         , blue(0)
         , alpha(1)
+        , index(0)
     {
     }
     color_info_t(double red, double green, double blue, double alpha = 1)
@@ -25,6 +26,7 @@ struct color_info_t {
         , green(green)
         , blue(blue)
         , alpha(alpha)
+        , index(0)
     {
     }
 
@@ -33,6 +35,8 @@ struct color_info_t {
 
     double red, green, blue, alpha;
     int index; // terminal color index (0-200)
+
+    static int nearest_color_index(int red, int green, int blue);
 };
 
 enum bool_t {
@@ -114,6 +118,8 @@ struct theme_t {
     std::string theme_color_string(std::string const& name);
     void theme_color(std::string const& name, color_info_t& color);
 
+    std::map<int, color_info_t> colorIndices;
+
 private:
     struct shared_styles_t {
 
@@ -143,5 +149,5 @@ private:
 };
 
 theme_ptr parse_theme(Json::Value& json);
-
+    
 #endif

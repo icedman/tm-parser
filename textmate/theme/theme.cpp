@@ -5,12 +5,14 @@
 
 #include <iostream>
 
-static int nearest_color(int r, int g, int b)
+static theme_t *current_parsed_theme = 0;
+
+int nearest_color(int r, int g, int b)
 {
     int idx = -1;
     long d = 0;
     
-    for(int i=0; i<250; i++) {
+    for(int i=0; i<256; i++) {
         const color_t clr = termColors[i];
         int rr = r - clr.r; 
         int gg = g - clr.g; 
@@ -25,6 +27,11 @@ static int nearest_color(int r, int g, int b)
     return idx;
 }
 
+int color_info_t::nearest_color_index(int red, int green, int blue)
+{
+    return nearest_color(red * 255, green * 255, blue * 255);
+}
+    
 /*
 https://code.visualstudio.com/api/references/theme-color
 */
@@ -83,8 +90,20 @@ static void get_settings_color(Json::Value const& item, color_info_t* target)
     target->green = rgba[1];
     target->blue = rgba[2];
     target->alpha = rgba[3];
-
     target->index = nearest_color(target->red * 255, target->green * 255, target->blue * 255);
+
+    if (current_parsed_theme) {
+        if (current_parsed_theme->colorIndices.find(target->index) == current_parsed_theme->colorIndices.end()) {
+            color_info_t clr;
+            clr.red = target->red;
+            clr.green = target->green;
+            clr.blue = target->blue;
+            clr.alpha = target->alpha;
+            clr.index = target->index;
+            current_parsed_theme->colorIndices.emplace(target->index, clr);
+        }
+    }
+    
     // std::cout<<item.asString()<<std::endl;
 }
 
@@ -126,8 +145,9 @@ void theme_t::shared_styles_t::setup_styles(Json::Value const& themeItem)
     for (int i = 0; i < settings.size(); i++) {
         Json::Value item = settings[i];
 
-        if (!item.isMember("scope")) {
-            continue;
+        if (item.isMember("scope")) {
+            item["scope"] = "default";
+            // continue;
         }
 
         Json::Value scope = settings[i]["scope"];
@@ -187,6 +207,7 @@ theme_t::theme_t(Json::Value const& themeItem, std::string const& fontName,
     : _font_name(fontName)
     , _font_size(fontSize)
 {
+    current_parsed_theme = this;
     _styles = find_shared_styles(themeItem);
 
     setup_global_style(themeItem);
@@ -205,10 +226,12 @@ std::string theme_t::theme_color_string(std::string const& name)
     }
     return "";
 }
+
 void theme_t::theme_color(std::string const& name, color_info_t& color)
 {
     if (bundle.isMember("colors")) {
         Json::Value colors = bundle["colors"];
+        current_parsed_theme = this;
         get_settings_color(colors[name], &color);
     }
 }
@@ -251,6 +274,7 @@ theme_t::find_shared_styles(Json::Value const& themeItem)
 
 theme_ptr parse_theme(Json::Value& themeItem)
 {
+    // std::cout << themeItem << std::endl;
     static std::map<std::string, theme_ptr> Cache;
     std::string const& uuid = themeItem["name"].asString();
     auto theme = Cache.find(uuid);
@@ -267,7 +291,6 @@ theme_ptr parse_theme(Json::Value& themeItem)
             theme_ptr _parent_theme = parse_theme(inc);
 #endif
         }
-
         theme = Cache.emplace(uuid, _theme).first;
     }
 

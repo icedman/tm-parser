@@ -104,7 +104,7 @@
 			"scope": "constant.character, constant.other",
 			"settings": {
 				"fontStyle": "",
-				"foreground": "#8080FF",
+				"foreground": "#8080FF"
 			}
 		},
 		{
@@ -136,7 +136,7 @@
 			"scope": "entity.name.class, entity.name.type, entity.name.namespace, entity.name.scope-resolution",
 			"settings": {
 				"fontStyle": "",
-				"foreground": "#9B0000",
+				"foreground": "#9B0000"
 			}
 		},
 		{
