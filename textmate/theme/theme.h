@@ -37,10 +37,7 @@ struct color_info_t {
     int index; // terminal color index (0-200)
 
     static int set_term_color_count(int count);
-    static int nearest_color_index(int red, int green, int blue, bool trueColor = false);
-    static color_info_t term_color(int idx);
-    static color_info_t true_color(int idx);
-    
+    static int nearest_color_index(int red, int green, int blue);
 };
 
 enum bool_t {
@@ -115,7 +112,6 @@ struct theme_t {
     float font_size() const;
     color_info_t foreground() const;
     color_info_t background(std::string const& fileType = NULL_STR) const;
-    // bool is_dark () const;
 
     style_t const& styles_for_scope(scope::scope_t const& scope);
 
@@ -135,6 +131,9 @@ private:
             std::string scope_selector);
 
         std::vector<style_t> _styles;
+
+        color_info_t _foreground;
+        color_info_t _background;
     };
 
     typedef std::shared_ptr<shared_styles_t> shared_styles_ptr;
@@ -153,5 +152,5 @@ private:
 };
 
 theme_ptr parse_theme(Json::Value& json);
-    
+
 #endif
