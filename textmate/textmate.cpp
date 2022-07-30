@@ -19,25 +19,31 @@ inline bool color_is_set(rgba_t clr) {
   return clr.r >= 0 && (clr.r != 0 || clr.g != 0 || clr.b != 0 || clr.a != 0);
 }
 
-inline textstyle_t construct_style(std::vector<span_info_t> &spans, int index) {
+inline textstyle_t construct_style(std::vector<span_info_t> &spans, int16_t index) {
   textstyle_t res = {
-      index, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false, false, false,
+      index, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, false, false, false, false,
   };
 
-  int32_t start;
-  int32_t length;
-  int32_t flags;
-  int8_t r;
-  int8_t g;
-  int8_t b;
-  int8_t bg_r;
-  int8_t bg_g;
-  int8_t bg_b;
-  int8_t caret;
-  bool bold;
-  bool italic;
-  bool underline;
-  bool strike;
+  memset(&res, 0, sizeof(textstyle_t));
+  res.start = index;
+  res.length = 1;
+
+  // int16_t start;
+  // int16_t length;
+  // int16_t flags;
+  // int16_t r;
+  // int16_t g;
+  // int16_t b;
+  // int16_t a;
+  // int16_t bg_r;
+  // int16_t bg_g;
+  // int16_t bg_b;
+  // int16_t bg_a;
+  // int8_t caret;
+  // bool bold;
+  // bool italic;
+  // bool underline;
+  // bool strike;
 
   for (auto span : spans) {
     if (index >= span.start && index < span.start + span.length) {
@@ -45,6 +51,7 @@ inline textstyle_t construct_style(std::vector<span_info_t> &spans, int index) {
         res.r = span.fg.r;
         res.g = span.fg.g;
         res.b = span.fg.b;
+        res.a = span.fg.a;
       }
       res.italic = res.italic || span.italic;
 
@@ -60,10 +67,17 @@ inline textstyle_t construct_style(std::vector<span_info_t> &spans, int index) {
 }
 
 inline bool textstyles_equal(textstyle_t &first, textstyle_t &second) {
-  return first.italic == second.italic && first.underline == second.underline &&
-         first.r == second.r && first.g == second.g && first.b == second.b &&
-         first.bg_r == second.bg_r && first.bg_g == second.bg_g &&
-         first.bg_b == second.bg_b && first.caret == second.caret &&
+  return first.italic == second.italic && first.bold == second.bold &&
+        first.strike == second.strike && first.underline == second.underline &&
+         first.r == second.r &&
+         first.g == second.g &&
+         first.b == second.b &&
+         first.a == second.a &&
+         first.bg_r == second.bg_r &&
+         first.bg_g == second.bg_g &&
+         first.bg_b == second.bg_b &&
+         first.bg_a == second.bg_a &&
+         first.caret == second.caret &&
          first.flags == second.flags;
 }
 
@@ -75,8 +89,12 @@ static std::vector<language_info_ptr> languages;
 static textstyle_t textstyle_buffer[MAX_STYLED_SPANS];
 static char text_buffer[MAX_BUFFER_LENGTH];
 
-theme_ptr current_theme() { return themes[0]; }
-theme_ptr Textmate::theme() { return themes[0]; }
+int current_theme_id = 0;
+theme_ptr current_theme() { return themes[current_theme_id]; }
+theme_ptr Textmate::theme() { return themes[current_theme_id]; }
+
+int current_language_id = 0;
+language_info_ptr Textmate::language() { return languages[current_language_id]; }
 
 void Textmate::initialize(std::string path) {
   load_extensions(path, extensions);
@@ -85,7 +103,7 @@ void Textmate::initialize(std::string path) {
   // }
 }
 
-rgba_t theme_color_from_scope_fg_bg(char *scope, bool fore = true) {
+rgba_t theme_color_from_scope_fg_bg(char *scope, bool fore) {
   rgba_t res = {-1, 0, 0, 0};
   if (current_theme()) {
     style_t scoped = current_theme()->styles_for_scope(scope);
@@ -121,6 +139,12 @@ rgba_t theme_color(char *scope) { return theme_color_from_scope_fg_bg(scope); }
 
 theme_info_t themeInfo;
 int themeInfoId = -1;
+
+int Textmate::set_theme(int id)
+{
+  current_theme_id = id;
+  return id;
+}
 
 theme_info_t Textmate::theme_info() {
   char _default[32] = "default";
@@ -188,6 +212,67 @@ theme_info_t Textmate::theme_info() {
   cmt.green *= 255;
   cmt.blue *= 255;
 
+
+  color_info_t fn;
+  if (current_theme()) {
+    // current_theme()->theme_color("comment", fn);
+    style_t style = current_theme()->styles_for_scope("entity.name.function");
+    fn = style.foreground;
+    if (fn.is_blank()) {
+      current_theme()->theme_color("editor.foreground", fn);
+    }
+    if (fn.is_blank()) {
+      rgba_t tc = theme_color_from_scope_fg_bg(_default, false);
+      fn.red = (float)tc.r / 255;
+      fn.green = (float)tc.g / 255;
+      fn.blue = (float)tc.b / 255;
+    }
+  }
+
+  fn.red *= 255;
+  fn.green *= 255;
+  fn.blue *= 255;
+
+  color_info_t kw;
+  if (current_theme()) {
+    // current_theme()->theme_color("comment", kw);
+    style_t style = current_theme()->styles_for_scope("keyword");
+    kw = style.foreground;
+    if (kw.is_blank()) {
+      current_theme()->theme_color("editor.foreground", kw);
+    }
+    if (kw.is_blank()) {
+      rgba_t tc = theme_color_from_scope_fg_bg(_default, false);
+      kw.red = (float)tc.r / 255;
+      kw.green = (float)tc.g / 255;
+      kw.blue = (float)tc.b / 255;
+    }
+  }
+
+  kw.red *= 255;
+  kw.green *= 255;
+  kw.blue *= 255;
+
+  color_info_t var;
+  if (current_theme()) {
+    // current_theme()->theme_color("comment", var);
+    style_t style = current_theme()->styles_for_scope("variable");
+    var = style.foreground;
+    if (var.is_blank()) {
+      current_theme()->theme_color("editor.foreground", var);
+    }
+    if (var.is_blank()) {
+      rgba_t tc = theme_color_from_scope_fg_bg(_default, false);
+      var.red = (float)tc.r / 255;
+      var.green = (float)tc.g / 255;
+      var.blue = (float)tc.b / 255;
+    }
+  }
+
+  var.red *= 255;
+  var.green *= 255;
+  var.blue *= 255;
+
   info.fg_r = fg.red;
   info.fg_g = fg.green;
   info.fg_b = fg.blue;
@@ -204,6 +289,18 @@ theme_info_t Textmate::theme_info() {
   info.cmt_g = cmt.green;
   info.cmt_b = cmt.blue;
   info.cmt_a = color_info_t::nearest_color_index(cmt.red, cmt.green, cmt.blue);
+  info.fn_r = fn.red;
+  info.fn_g = fn.green;
+  info.fn_b = fn.blue;
+  info.fn_a = color_info_t::nearest_color_index(fn.red, fn.green, fn.blue);
+  info.kw_r = kw.red;
+  info.kw_g = kw.green;
+  info.kw_b = kw.blue;
+  info.kw_a = color_info_t::nearest_color_index(kw.red, kw.green, kw.blue);
+  info.var_r = var.red;
+  info.var_g = var.green;
+  info.var_b = var.blue;
+  info.var_a = color_info_t::nearest_color_index(var.red, var.green, var.blue);
 
   // why does this happen?
   if (info.sel_r < 0 && info.sel_g < 0 && info.sel_b < 0) {
@@ -218,13 +315,16 @@ theme_info_t Textmate::theme_info() {
 int Textmate::load_theme(std::string path) {
   theme_ptr theme = theme_from_name(path, extensions);
   if (theme != NULL) {
+    #ifdef DISABLE_RESOURCE_CACHING
+    themes.clear();
+    #endif
     themes.emplace_back(theme);
     return themes.size() - 1;
   }
   return 0;
 }
 
-int load_icons(std::string path) {
+int Textmate::load_icons(std::string path) {
   icons = icon_theme_from_name(path, extensions);
   return 0;
 }
@@ -232,6 +332,41 @@ int load_icons(std::string path) {
 int Textmate::load_language(std::string path) {
   language_info_ptr lang = language_from_file(path, extensions);
   if (lang != NULL) {
+    #ifdef DISABLE_RESOURCE_CACHING
+    languages.clear();
+    #endif
+    languages.emplace_back(lang);
+    return languages.size() - 1;
+  }
+  return 0;
+}
+
+int Textmate::set_language(int id)
+{
+  current_language_id = id;
+  return id;
+}
+
+int Textmate::load_theme_data(const char* data)
+{
+  theme_ptr theme = theme_from_name("", extensions, "", data);
+  if (theme != NULL) {
+    #ifdef DISABLE_RESOURCE_CACHING
+    themes.clear();
+    #endif
+    themes.emplace_back(theme);
+    return themes.size() - 1;
+  }
+  return 0;
+}
+
+int Textmate::load_language_data(const char* data)
+{
+  language_info_ptr lang = language_from_file("", extensions, data);
+  if (lang != NULL) {
+    #ifdef DISABLE_RESOURCE_CACHING
+    languages.clear();
+    #endif
     languages.emplace_back(lang);
     return languages.size() - 1;
   }
@@ -252,13 +387,16 @@ void dump_tokens(std::map<size_t, scope::scope_t> &scopes) {
   }
 }
 
-std::map<size_t, parse::stack_ptr> parser_states;
-std::map<size_t, std::string> block_texts;
+block_data_t _previous_block_data;
+block_data_t* Textmate::previous_block_data()
+{
+  return &_previous_block_data;
+}
 
 std::vector<textstyle_t>
 Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
                           block_data_t *block, block_data_t *prev_block,
-                          block_data_t *next_block) {
+                          block_data_t *next_block, std::vector<span_info_t> *span_infos) {
 
   std::vector<textstyle_t> textstyle_buffer;
 
@@ -266,7 +404,7 @@ Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
     return textstyle_buffer;
   }
 
-  // printf("hl %d %s\n", block, _text);
+  // printf("hl %x %s\n", block, _text);
 
   parse::grammar_ptr gm = lang->grammar;
   themeInfo = theme_info();
@@ -321,14 +459,14 @@ Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
     scopeName = scope.back();
     // printf(">%s %d\n", scopeName.c_str());
 
-    span_info_t span = {.start = (int)n,
-                        .length = (int)(l - n),
+    span_info_t span = {.start = (int16_t)n,
+                        .length = (int16_t)(l - n),
                         .fg =
                             {
-                                (int)(255 * style.foreground.red),
-                                (int)(255 * style.foreground.green),
-                                (int)(255 * style.foreground.blue),
-                                style.foreground.index,
+                                (int16_t)(255 * style.foreground.red),
+                                (int16_t)(255 * style.foreground.green),
+                                (int16_t)(255 * style.foreground.blue),
+                                (int16_t)style.foreground.index,
                             },
                         .bg = {0, 0, 0, 0},
                         .bold = style.bold == bool_true,
@@ -355,36 +493,39 @@ Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
       prev = &s;
     }
   }
+    
+  if (span_infos) {
+    span_infos->clear();
+    for(auto &s : spans) {
+      span_infos->push_back(s);
+    }
+  }
 
   int idx = 0;
-  textstyle_t *prev = NULL;
-
-  // if (spans.size() == 1) {
-  //   return textstyle_buffer;
-  // }
-
   for (int i = 0; i < l && i < MAX_STYLED_SPANS; i++) {
-    textstyle_buffer.push_back(construct_style(spans, i));
-    textstyle_t *ts = &textstyle_buffer[idx];
+    textstyle_t _ts = construct_style(spans, i);
+    textstyle_t *prev = NULL;
+    if (textstyle_buffer.size() > 0) {
+      prev = &textstyle_buffer[textstyle_buffer.size()-1];
+    }
 
-    if (!color_is_set({ts->r, ts->g, ts->b, 0})) {
-      if (ts->r + ts->g + ts->b == 0) {
-        ts->r = themeInfo.fg_r;
-        ts->g = themeInfo.fg_g;
-        ts->b = themeInfo.fg_b;
-        ts->a = themeInfo.fg_a;
+    if (!color_is_set({_ts.r, _ts.g, _ts.b, 0})) {
+      if (_ts.r + _ts.g + _ts.b == 0) {
+        _ts.r = themeInfo.fg_r;
+        _ts.g = themeInfo.fg_g;
+        _ts.b = themeInfo.fg_b;
+        _ts.a = themeInfo.fg_a;
       }
     }
 
-    if (i > 0 &&
-        textstyles_equal(textstyle_buffer[idx], textstyle_buffer[idx - 1])) {
-      textstyle_buffer[idx - 1].length++;
-      idx--;
+    if (prev != NULL && (textstyles_equal(_ts, *prev))) {
+      prev->length++;
+    } else {
+      textstyle_buffer.push_back(_ts);
     }
-
-    idx++;
   }
 
+  idx = textstyle_buffer.size();
   if (idx > 0) {
     block->comment_block =
         (textstyle_buffer[idx - 1].flags & SCOPE_COMMENT_BLOCK);
@@ -398,10 +539,11 @@ Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
     }
   }
 
+  _previous_block_data.parser_state = parser_state;
   return textstyle_buffer;
 }
 
-char *language_definition(int langId) {
+char* Textmate::language_definition(int langId) {
   language_info_ptr lang = languages[langId];
   std::ostringstream ss;
   ss << lang->definition;
@@ -409,7 +551,7 @@ char *language_definition(int langId) {
   return text_buffer;
 }
 
-char *icon_for_filename(char *filename) {
+char* Textmate::icon_for_filename(char *filename) {
   icon_t icon = icon_for_file(icons, filename, extensions);
   strcpy(text_buffer, icon.path.c_str());
   return text_buffer;

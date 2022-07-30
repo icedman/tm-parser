@@ -2,6 +2,7 @@
 #define TEXTMATE_H
 
 #include "theme.h"
+#include "parse.h"
 #include <string>
 #include <vector>
 
@@ -40,10 +41,10 @@ struct block_data_t {
 };
 
 struct rgba_t {
-  int r;
-  int g;
-  int b;
-  int a;
+  int16_t r;
+  int16_t g;
+  int16_t b;
+  int16_t a;
 };
 
 struct theme_info_t {
@@ -63,6 +64,18 @@ struct theme_info_t {
   int16_t cmt_g;
   int16_t cmt_b;
   int16_t cmt_a;
+  int16_t fn_r;
+  int16_t fn_g;
+  int16_t fn_b;
+  int16_t fn_a;
+  int16_t kw_r;
+  int16_t kw_g;
+  int16_t kw_b;
+  int16_t kw_a;
+  int16_t var_r;
+  int16_t var_g;
+  int16_t var_b;
+  int16_t var_a;
 };
 
 struct textstyle_t {
@@ -76,7 +89,8 @@ struct textstyle_t {
   int16_t bg_r;
   int16_t bg_g;
   int16_t bg_b;
-  int16_t caret;
+  int16_t bg_a;
+  int8_t caret;
   bool bold;
   bool italic;
   bool underline;
@@ -99,14 +113,26 @@ public:
   static void initialize(std::string path);
   static int load_theme(std::string path);
   static int load_language(std::string path);
-  static language_info_ptr language_info(int id);
+  static int load_theme_data(const char* theme);
+  static int load_language_data(const char* grammar);
+  static int load_icons(std::string path);
+  static language_info_ptr language_info(int id = 0);
+  static language_info_ptr language();
+  static int set_language(int id);
   static std::vector<textstyle_t>
   run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
                   block_data_t *block = NULL, block_data_t *prev = NULL,
-                  block_data_t *next = NULL);
+                  block_data_t *next = NULL, std::vector<span_info_t> *span_infos = NULL);
+  static block_data_t* previous_block_data();
   static theme_info_t theme_info();
   static theme_ptr theme();
+  static int set_theme(int id);
   static bool has_running_threads();
+
+  static char* language_definition(int langId);
+  static char* icon_for_filename(char *filename);
 };
+
+rgba_t theme_color_from_scope_fg_bg(char *scope, bool fore = true);
 
 #endif // TEXTMATE_H
