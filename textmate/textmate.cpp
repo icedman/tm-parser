@@ -89,6 +89,8 @@ static std::vector<language_info_ptr> languages;
 static textstyle_t textstyle_buffer[MAX_STYLED_SPANS];
 static char text_buffer[MAX_BUFFER_LENGTH];
 
+block_data_t _previous_block_data;
+
 int current_theme_id = 0;
 theme_ptr current_theme() { return themes[current_theme_id]; }
 theme_ptr Textmate::theme() { return themes[current_theme_id]; }
@@ -330,6 +332,7 @@ int Textmate::load_icons(std::string path) {
 }
 
 int Textmate::load_language(std::string path) {
+  _previous_block_data.parser_state = NULL;
   language_info_ptr lang = language_from_file(path, extensions);
   if (lang != NULL) {
     #ifdef DISABLE_RESOURCE_CACHING
@@ -362,6 +365,7 @@ int Textmate::load_theme_data(const char* data)
 
 int Textmate::load_language_data(const char* data)
 {
+  _previous_block_data.parser_state = NULL;
   language_info_ptr lang = language_from_file("", extensions, data);
   if (lang != NULL) {
     #ifdef DISABLE_RESOURCE_CACHING
@@ -387,7 +391,6 @@ void dump_tokens(std::map<size_t, scope::scope_t> &scopes) {
   }
 }
 
-block_data_t _previous_block_data;
 block_data_t* Textmate::previous_block_data()
 {
   return &_previous_block_data;
@@ -559,4 +562,12 @@ char* Textmate::icon_for_filename(char *filename) {
 
 bool Textmate::has_running_threads() {
   return parse::grammar_t::running_threads > 0;
+}
+
+void Textmate::shutdown()
+{
+  extensions.clear();
+  themes.clear();
+  languages.clear(); 
+  icons = nullptr;
 }

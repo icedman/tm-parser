@@ -131,6 +131,8 @@ public:
 
   static char* language_definition(int langId);
   static char* icon_for_filename(char *filename);
+
+  static void shutdown();
 };
 
 rgba_t theme_color_from_scope_fg_bg(char *scope, bool fore = true);
