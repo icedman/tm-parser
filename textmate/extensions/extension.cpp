@@ -230,7 +230,7 @@ static bool load_language_configuration(const std::string path,
 {
     Json::Value root = parse::loadJson(path);
     if (root.empty()) {
-        printf("unable to load configuration file %s", path.c_str());
+        log("unable to load configuration file %s", path.c_str());
         return false;
     }
 

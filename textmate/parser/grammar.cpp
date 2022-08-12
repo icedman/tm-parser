@@ -34,9 +34,7 @@ grammar_t::grammar_t(Json::Value const& json)
     doc = json;
 }
 
-grammar_t::~grammar_t() {
-    printf("grammar freed\n");
-}
+grammar_t::~grammar_t() {}
 
 static bool pattern_has_back_reference(std::string const& ptrn)
 {
