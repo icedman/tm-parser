@@ -1,6 +1,6 @@
 #include "theme.h"
 #include "colors.h"
-#include "util.h"
+#include "extensions/util.h"
 
 #include <iostream>
 
