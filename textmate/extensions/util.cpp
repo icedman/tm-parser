@@ -33,8 +33,12 @@
 #include "rgb.h"
 
 
-// #define ENABLE_LOG
+#ifdef ENABLE_LOG
+#ifndef LOG_FILE
 #define LOG_FILE "./ashlar.log"
+#endif
+#endif
+
 static bool log_initialized = false;
 
 std::vector<std::string> split_path(const std::string& str,
