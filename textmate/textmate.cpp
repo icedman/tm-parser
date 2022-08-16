@@ -321,7 +321,8 @@ int Textmate::load_theme(std::string path) {
     themes.clear();
     #endif
     themes.emplace_back(theme);
-    return themes.size() - 1;
+    set_theme(themes.size() - 1);
+    return current_theme_id;
   }
   return 0;
 }
@@ -358,7 +359,8 @@ int Textmate::load_theme_data(const char* data)
     themes.clear();
     #endif
     themes.emplace_back(theme);
-    return themes.size() - 1;
+    set_theme(themes.size() - 1);
+    return current_theme_id;
   }
   return 0;
 }
@@ -446,7 +448,9 @@ Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
   // dump_tokens(scopes);
   // }
 
-  block->parser_state = parser_state;
+  if (block) {
+    block->parser_state = parser_state;
+  }
 
   std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
   size_t n = 0;
@@ -528,6 +532,8 @@ Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
     }
   }
 
+  if (!block) return textstyle_buffer;
+  
   idx = textstyle_buffer.size();
   if (idx > 0) {
     block->comment_block =

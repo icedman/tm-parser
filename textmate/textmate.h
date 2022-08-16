@@ -108,8 +108,7 @@ struct span_info_t {
   std::string scope;
 };
 
-class Textmate {
-public:
+struct Textmate {
   static void initialize(std::string path);
   static int load_theme(std::string path);
   static int load_language(std::string path);
