@@ -1,10 +1,11 @@
+#include "textmate.h"
+
 #include "extension.h"
 #include "grammar.h"
 #include "parse.h"
 #include "reader.h"
 #include "theme.h"
-
-#include "textmate.h"
+#include "util.h"
 
 #include <time.h>
 #define SKIP_PARSE_THRESHOLD 500
@@ -321,7 +322,8 @@ int Textmate::load_theme(std::string path) {
     themes.clear();
     #endif
     themes.emplace_back(theme);
-    return themes.size() - 1;
+    set_theme(themes.size() - 1);
+    return current_theme_id;
   }
   return 0;
 }
@@ -334,6 +336,13 @@ int Textmate::load_icons(std::string path) {
 int Textmate::load_language(std::string path) {
   _previous_block_data.parser_state = NULL;
   language_info_ptr lang = language_from_file(path, extensions);
+  if (lang && !lang->grammar->document().isMember("patterns")) {
+    log("invalid language");
+    return -1;
+  }
+
+  // log(">%s", lang->grammar->document()["scopeName"].asString().c_str());
+
   if (lang != NULL) {
     #ifdef DISABLE_RESOURCE_CACHING
     languages.clear();
@@ -358,7 +367,8 @@ int Textmate::load_theme_data(const char* data)
     themes.clear();
     #endif
     themes.emplace_back(theme);
-    return themes.size() - 1;
+    set_theme(themes.size() - 1);
+    return current_theme_id;
   }
   return 0;
 }
@@ -367,6 +377,10 @@ int Textmate::load_language_data(const char* data)
 {
   _previous_block_data.parser_state = NULL;
   language_info_ptr lang = language_from_file("", extensions, data);
+  if (lang && !lang->grammar->document().isMember("patterns")) {
+    log("invalid language");
+    return -1;
+  }
   if (lang != NULL) {
     #ifdef DISABLE_RESOURCE_CACHING
     languages.clear();
@@ -424,7 +438,7 @@ Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
   const char *last = first + l;
 
   parse::stack_ptr parser_state;
-  if (prev_block != NULL) {
+  if (block != NULL && prev_block != NULL) {
     parser_state = prev_block->parser_state;
     block->prev_comment_block = prev_block->comment_block;
     block->prev_string_block = prev_block->string_block;
@@ -446,7 +460,10 @@ Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
   // dump_tokens(scopes);
   // }
 
-  block->parser_state = parser_state;
+  if (block) {
+    block->parser_state = parser_state;
+    block->dirty = false;
+  }
 
   std::map<size_t, scope::scope_t>::iterator it = scopes.begin();
   size_t n = 0;
@@ -528,6 +545,8 @@ Textmate::run_highlighter(char *_text, language_info_ptr lang, theme_ptr theme,
     }
   }
 
+  if (!block) return textstyle_buffer;
+  
   idx = textstyle_buffer.size();
   if (idx > 0) {
     block->comment_block =
@@ -571,3 +590,46 @@ void Textmate::shutdown()
   languages.clear(); 
   icons = nullptr;
 }
+
+// todo!!!
+void doc_data_t::add_block_at(int line)
+{
+  blocks.insert(blocks.begin() + line, std::make_shared<block_data_t>());
+}
+
+void doc_data_t::remove_block_at(int line)
+{
+  blocks.erase(blocks.begin() + line);
+}
+
+void doc_data_t::make_dirty()
+{
+  for(auto b : blocks) {
+    b->make_dirty();
+  }
+}
+
+block_data_ptr doc_data_t::block_at(int line)
+{
+  int idx = 0;
+  while (line >= blocks.size()) {
+    blocks.push_back(std::make_shared<block_data_t>());
+    if (idx++ > 100) break;
+  }
+
+  if (line >= 0 && line < blocks.size()) {
+    return blocks[line];
+  }
+  return nullptr;
+}
+
+block_data_ptr doc_data_t::previous_block(int line)
+{
+  return block_at(line-1);
+}
+
+block_data_ptr doc_data_t::next_block(int line)
+{
+  return block_at(line+1);
+}
+

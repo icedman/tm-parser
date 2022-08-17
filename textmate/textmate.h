@@ -28,7 +28,7 @@
 struct block_data_t {
   block_data_t()
       : parser_state(nullptr), comment_block(false), prev_comment_block(false),
-        string_block(false), prev_string_block(false) {}
+        string_block(false), prev_string_block(false), dirty(true) {}
   ~block_data_t() {}
 
   parse::stack_ptr parser_state;
@@ -36,9 +36,28 @@ struct block_data_t {
   bool prev_comment_block;
   bool string_block;
   bool prev_string_block;
+  bool dirty;
 
-  virtual void make_dirty() {}
+  virtual void make_dirty() {
+    dirty = true;
+  }
 };
+
+typedef std::shared_ptr<block_data_t> block_data_ptr;
+typedef std::vector<block_data_ptr> block_data_list;
+
+struct doc_data_t {
+  block_data_list blocks;
+
+  block_data_ptr block_at(int line);
+  block_data_ptr previous_block(int line);
+  block_data_ptr next_block(int line);
+  void add_block_at(int line);
+  void remove_block_at(int line);
+  void make_dirty();
+};
+
+typedef std::shared_ptr<doc_data_t> doc_data_ptr;
 
 struct rgba_t {
   int16_t r;
@@ -108,8 +127,7 @@ struct span_info_t {
   std::string scope;
 };
 
-class Textmate {
-public:
+struct Textmate {
   static void initialize(std::string path);
   static int load_theme(std::string path);
   static int load_language(std::string path);
