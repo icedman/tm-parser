@@ -253,6 +253,7 @@ rule_ptr grammar_t::add_grammar(std::string const& scope,
         _grammars.emplace(scope, grammar);
 
         if (spawn_thread) {
+            #ifndef DISABLE_ADD_GRAMMAR_THREADS
             setup_includes_payload_t* p = new setup_includes_payload_t();
             p->_this = this;
             p->rule = grammar;
@@ -263,6 +264,7 @@ rule_ptr grammar_t::add_grammar(std::string const& scope,
             pthread_t thread_id;
             pthread_create(&thread_id, NULL,
                 &setup_includes_thread, (void*)(p));
+            #endif
 
         } else {
             compile_patterns(grammar.get());
@@ -286,6 +288,7 @@ rule_ptr grammar_t::add_grammar(std::string const& scope, std::string const& pat
         _grammars.emplace(scope, grammar);
 
         if (spawn_thread) {
+            #ifndef DISABLE_ADD_GRAMMAR_THREADS
             setup_includes_payload_t* p = new setup_includes_payload_t();
             p->_this = this;
             p->rule = grammar;
@@ -297,6 +300,7 @@ rule_ptr grammar_t::add_grammar(std::string const& scope, std::string const& pat
             pthread_t thread_id;
             pthread_create(&thread_id, NULL,
                 &setup_includes_thread, (void*)(p));
+            #endif
 
         } else {
             if (path != "") {

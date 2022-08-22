@@ -7,7 +7,9 @@ typedef struct _colorEntry {
     const char* name;
 } colorEntry;
 
-colorEntry colorTable[] = { { 255, 250, 250, "snow" },
+colorEntry colorTable[] = {
+#ifndef DISABLE_COLOR_NAMES
+    { 255, 250, 250, "snow" },
     { 248, 248, 255, "ghost white" },
     { 248, 248, 255, "GhostWhite" },
     { 245, 245, 245, "white smoke" },
@@ -760,4 +762,5 @@ colorEntry colorTable[] = { { 255, 250, 250, "snow" },
     { 139, 0, 0, "DarkRed" },
     { 144, 238, 144, "light green" },
     { 144, 238, 144, "LightGreen" },
+#endif
     { 0, 0, 0, 0 } };

@@ -8,6 +8,7 @@ typedef struct _color_t {
 } color_t;
 
 const color_t termColors8[] = {
+#ifndef DISABLE_COLOR_NAMES
     { 0, 0, 0 }, // Black
     { 255, 0, 0 }, // Red
     { 0, 255, 0 }, // Green
@@ -16,10 +17,11 @@ const color_t termColors8[] = {
     { 255, 0, 255 }, // Magenta
     { 0, 255, 255 }, // Cyan
     { 255, 255, 255 } // White
+#endif
 };
 
 const color_t termColors256[] = {
-
+#ifndef DISABLE_COLOR_NAMES
     { 0, 0, 0 }, // Black
     { 128, 0, 0 }, // Maroon
     { 0, 128, 0 }, // Green
@@ -276,6 +278,7 @@ const color_t termColors256[] = {
     { 218, 218, 218 }, // Grey85
     { 228, 228, 228 }, // Grey89
     { 238, 238, 238 } // Grey93
+#endif
 };
 
 #endif // TERMCOLORS_H
